@@ -61,8 +61,8 @@ public class BookEventRepositoryTest {
 
 		Assertions.assertEquals(2, events.size());
 
-		Assertions.assertEquals(BookEventType.BookRegistered.name(), events.get(0).type().name());
-		Assertions.assertEquals(BookEventType.BookReserved.name(), events.get(1).type().name());
+		Assertions.assertEquals(BookEventType.BookRegistered, events.get(0).type());
+		Assertions.assertEquals(BookEventType.BookReserved, events.get(1).type());
 
 	}
 

@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.infrastructure.erros;
+package mentoring.acomi.bookservice.infrastructure.errors;
 
 import java.time.Instant;
 
@@ -17,7 +17,7 @@ import mentoring.acomi.bookservice.domain.errors.BookNotRegistered;
 import mentoring.acomi.bookservice.domain.errors.CannotRemoveBookCopies;
 import mentoring.acomi.bookservice.domain.errors.InvalidQuantity;
 import mentoring.acomi.bookservice.domain.errors.ValidationDomain;
-import mentoring.acomi.bookservice.infrastructure.erros.dto.ErrorResponse;
+import mentoring.acomi.bookservice.infrastructure.errors.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler {
