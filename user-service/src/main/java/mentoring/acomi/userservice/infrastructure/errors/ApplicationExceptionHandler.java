@@ -1,4 +1,4 @@
-package mentoring.acomi.loanservice.infrastructure.errors;
+package mentoring.acomi.userservice.infrastructure.errors;
 
 import java.time.Instant;
 
@@ -12,11 +12,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
-import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
-import mentoring.acomi.loanservice.domain.errors.LoanNotExist;
-import mentoring.acomi.loanservice.domain.errors.ValidationDomain;
-import mentoring.acomi.loanservice.infrastructure.errors.dto.ErrorResponse;
+import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
+import mentoring.acomi.userservice.domain.errors.UserNotExist;
+import mentoring.acomi.userservice.domain.errors.ValidationDomain;
+import mentoring.acomi.userservice.infrastructure.errors.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler {
@@ -47,18 +46,12 @@ public class ApplicationExceptionHandler {
 		return handleException(e, e.getCode(), e.getMessage(), "CONFLICT");
 	}
 
-	@ExceptionHandler(LoanNotExist.class)
+	@ExceptionHandler(UserNotExist.class)
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
-	public ErrorResponse handleLoanNotCreatedError(LoanNotExist e) throws Exception {
+	public ErrorResponse handleUserNotCreatedError(UserNotExist e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
 	}
-	
-	@ExceptionHandler(InvalidLoanStateTransition.class)
-	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
-	public ErrorResponse handleInvalidLoanStateTransitionError(InvalidLoanStateTransition e) throws Exception {
-		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
-	}
-	
+		
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(Exception.class)
 	public ErrorResponse handleGenericException(Exception e) throws Exception {

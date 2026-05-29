@@ -29,14 +29,14 @@ class LoanApiIntegrationTest {
 	}
 	
 	@Test
-	void shouldReturnOkWhenCallingGetBooks() {
+	void shouldReturnOkWhenCallingGetLoans() {
 		ResponseEntity<LoansResponse> response =  client.get().uri("/loans").retrieve().toEntity(LoansResponse.class);
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 		Assertions.assertNotNull(response.getBody());
 	}
 
 	@Test
-	void shouldCreateBook() {
+	void shouldCreateLoan() {
 		AddLoanRequest request = new AddLoanRequest("9788804336327", "user01", LocalDate.now(), null);
 		ResponseEntity<String> response = client.post().uri("/loans").contentType(MediaType.APPLICATION_JSON)
 	            .body(request).retrieve().toEntity(String.class);
