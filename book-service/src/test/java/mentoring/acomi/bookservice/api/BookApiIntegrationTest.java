@@ -28,7 +28,7 @@ class BookApiIntegrationTest {
 	
 	@Test
 	void shouldReturnOkWhenCallingGetBooks() {
-		ResponseEntity<BooksResponse> response =  client.get().uri("/books").retrieve().toEntity(BooksResponse.class);
+		ResponseEntity<BooksResponse> response =  client.get().uri("/").retrieve().toEntity(BooksResponse.class);
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 		Assertions.assertNotNull(response.getBody());
 	}
@@ -36,7 +36,7 @@ class BookApiIntegrationTest {
 	@Test
 	void shouldCreateBook() {
 		AddBookRequest request = new AddBookRequest("9788804336327", "Italo Calvino", "Il barone rampante", "");
-		ResponseEntity<String> response = client.post().uri("/books").contentType(MediaType.APPLICATION_JSON)
+		ResponseEntity<String> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON)
 	            .body(request).retrieve().toEntity(String.class);
 
 		Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());

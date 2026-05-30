@@ -93,7 +93,7 @@ public class ApplicationExceptionHandler {
 			throw e;
 		}
 
-		return new ErrorResponse(code, message, type, "book-service", Instant.now());
+		return new ErrorResponse(code, message, type, "loan-service", Instant.now());
 
 	}
 

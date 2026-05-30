@@ -44,7 +44,7 @@ class AuthIntegrationTest {
 
 	@BeforeEach
 	public void setup() {
-		this.client = RestClient.builder().baseUrl(String.format("http://localhost:%d", port)).build();
+		this.client = RestClient.builder().baseUrl(String.format("http://localhost:%d/auth", port)).build();
 
 		jpaRepository.deleteAll();
 		createUser(USER_EMAIL, PASSWORD);
@@ -54,7 +54,7 @@ class AuthIntegrationTest {
 	public void shouldLoginSuccessfully() throws Exception {
 
 		LoginRequest loginRequest = new LoginRequest(USER_EMAIL, PASSWORD);
-		ResponseEntity<AuthResponse> response = client.post().uri("/auth/login").contentType(MediaType.APPLICATION_JSON)
+		ResponseEntity<AuthResponse> response = client.post().uri("/login").contentType(MediaType.APPLICATION_JSON)
 				.body(loginRequest).retrieve().toEntity(AuthResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -72,7 +72,7 @@ class AuthIntegrationTest {
 		LoginRequest loginRequest = new LoginRequest(USER_EMAIL, "12");
 
 		Assertions.assertThrows(HttpClientErrorException.Unauthorized.class, () -> {
-			client.post().uri("/auth/login").contentType(MediaType.APPLICATION_JSON).body(loginRequest).retrieve()
+			client.post().uri("/login").contentType(MediaType.APPLICATION_JSON).body(loginRequest).retrieve()
 					.toEntity(AuthResponse.class);
 		});
 
@@ -84,8 +84,8 @@ class AuthIntegrationTest {
 		AuthResponse login = loginUser();
 
 		TokenRefreshRequest request = new TokenRefreshRequest(login.refreshToken());
-		ResponseEntity<AuthResponse> response = client.post().uri("/auth/refresh")
-				.contentType(MediaType.APPLICATION_JSON).body(request).retrieve().toEntity(AuthResponse.class);
+		ResponseEntity<AuthResponse> response = client.post().uri("/refresh").contentType(MediaType.APPLICATION_JSON)
+				.body(request).retrieve().toEntity(AuthResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -105,7 +105,7 @@ class AuthIntegrationTest {
 		TokenRefreshRequest request = new TokenRefreshRequest(login.refreshToken());
 
 		Assertions.assertThrows(HttpClientErrorException.Unauthorized.class, () -> {
-			client.post().uri("/auth/refresh").contentType(MediaType.APPLICATION_JSON).body(request).retrieve()
+			client.post().uri("/refresh").contentType(MediaType.APPLICATION_JSON).body(request).retrieve()
 					.toEntity(AuthResponse.class);
 		});
 	}
@@ -126,7 +126,7 @@ class AuthIntegrationTest {
 		TokenRefreshRequest request = new TokenRefreshRequest("1234");
 
 		Assertions.assertThrows(HttpClientErrorException.Unauthorized.class, () -> {
-			client.post().uri("/auth/refresh").contentType(MediaType.APPLICATION_JSON).body(request).retrieve()
+			client.post().uri("/refresh").contentType(MediaType.APPLICATION_JSON).body(request).retrieve()
 					.toEntity(AuthResponse.class);
 		});
 	}
@@ -137,15 +137,15 @@ class AuthIntegrationTest {
 		AuthResponse login = loginUser();
 
 		LogoutRequest logoutRequest = new LogoutRequest(login.refreshToken());
-		ResponseEntity<String> logoutResponse = client.post().uri("/auth/logout")
-				.contentType(MediaType.APPLICATION_JSON).body(logoutRequest).retrieve().toEntity(String.class);
+		ResponseEntity<String> logoutResponse = client.post().uri("/logout").contentType(MediaType.APPLICATION_JSON)
+				.body(logoutRequest).retrieve().toEntity(String.class);
 
 		Assertions.assertEquals(HttpStatus.OK, logoutResponse.getStatusCode());
 
 		TokenRefreshRequest request = new TokenRefreshRequest(login.refreshToken());
 
 		Assertions.assertThrows(HttpClientErrorException.Unauthorized.class, () -> {
-			client.post().uri("/auth/refresh").contentType(MediaType.APPLICATION_JSON).body(request).retrieve()
+			client.post().uri("/refresh").contentType(MediaType.APPLICATION_JSON).body(request).retrieve()
 					.toEntity(AuthResponse.class);
 		});
 	}
@@ -153,7 +153,7 @@ class AuthIntegrationTest {
 	private AuthResponse loginUser() throws Exception {
 
 		LoginRequest loginRequest = new LoginRequest(USER_EMAIL, PASSWORD);
-		ResponseEntity<AuthResponse> response = client.post().uri("/auth/login").contentType(MediaType.APPLICATION_JSON)
+		ResponseEntity<AuthResponse> response = client.post().uri("/login").contentType(MediaType.APPLICATION_JSON)
 				.body(loginRequest).retrieve().toEntity(AuthResponse.class);
 
 		return response.getBody();
@@ -162,8 +162,8 @@ class AuthIntegrationTest {
 	private AuthResponse refreshToken(String refreshToken) throws Exception {
 
 		TokenRefreshRequest request = new TokenRefreshRequest(refreshToken);
-		ResponseEntity<AuthResponse> response = client.post().uri("/auth/refresh")
-				.contentType(MediaType.APPLICATION_JSON).body(request).retrieve().toEntity(AuthResponse.class);
+		ResponseEntity<AuthResponse> response = client.post().uri("/refresh").contentType(MediaType.APPLICATION_JSON)
+				.body(request).retrieve().toEntity(AuthResponse.class);
 
 		return response.getBody();
 	}

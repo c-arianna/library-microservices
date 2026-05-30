@@ -30,7 +30,7 @@ class LoanApiIntegrationTest {
 	
 	@Test
 	void shouldReturnOkWhenCallingGetLoans() {
-		ResponseEntity<LoansResponse> response =  client.get().uri("/loans").retrieve().toEntity(LoansResponse.class);
+		ResponseEntity<LoansResponse> response =  client.get().uri("/").retrieve().toEntity(LoansResponse.class);
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 		Assertions.assertNotNull(response.getBody());
 	}
@@ -38,7 +38,7 @@ class LoanApiIntegrationTest {
 	@Test
 	void shouldCreateLoan() {
 		AddLoanRequest request = new AddLoanRequest("9788804336327", "user01", LocalDate.now(), null);
-		ResponseEntity<String> response = client.post().uri("/loans").contentType(MediaType.APPLICATION_JSON)
+		ResponseEntity<String> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON)
 	            .body(request).retrieve().toEntity(String.class);
 
 		Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
