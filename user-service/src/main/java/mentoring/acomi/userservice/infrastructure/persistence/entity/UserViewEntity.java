@@ -31,7 +31,7 @@ public class UserViewEntity {
 	
 	private String lastname;
 	
-	private String password;
+	private String passwordHash;
 	
 	@Enumerated(EnumType.STRING)
 	private UserStatus status;
@@ -56,12 +56,12 @@ public class UserViewEntity {
         this.updatedAt = LocalDateTime.now();
     }
     
-    public UserViewEntity(String id, String email, String name, String lastname, String password, UserStatus status, UserRole role) {
+    public UserViewEntity(String id, String email, String name, String lastname, String passwordHash, UserStatus status, UserRole role) {
     	this.id = id;
     	this.email = email;
     	this.name = name;
     	this.lastname = lastname;
-    	this.password = password;
+    	this.passwordHash = passwordHash;
     	this.status = status;
     	this.role = role;
     }

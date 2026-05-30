@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import mentoring.acomi.userservice.application.errors.InvalidLogin;
+import mentoring.acomi.userservice.application.errors.InvalidRefreshToken;
+import mentoring.acomi.userservice.application.errors.InvalidUserStatus;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
 import mentoring.acomi.userservice.domain.errors.ValidationDomain;
@@ -52,6 +55,24 @@ public class ApplicationExceptionHandler {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
 	}
 		
+	@ExceptionHandler(InvalidLogin.class)
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ErrorResponse handleInvalidLoginError(InvalidLogin e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "LOGIN");
+	}
+	
+	@ExceptionHandler(InvalidRefreshToken.class)
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ErrorResponse handleInvalidRefreshTokenError(InvalidRefreshToken e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "LOGIN");
+	}
+	
+	@ExceptionHandler(InvalidUserStatus.class)
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ErrorResponse handleInvalidUserStatusError(InvalidUserStatus e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "LOGIN");
+	}
+	
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(Exception.class)
 	public ErrorResponse handleGenericException(Exception e) throws Exception {

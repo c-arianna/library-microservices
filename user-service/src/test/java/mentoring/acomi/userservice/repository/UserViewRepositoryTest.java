@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
@@ -31,36 +32,37 @@ public class UserViewRepositoryTest {
 	@Autowired
 	private EntityManager entityManager;
 
-
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
 	@Test
-	void shouldSaveBookView() {
+	void shouldSaveUserView() {
 
 		String userId = UUID.randomUUID().toString();
 		Optional<UserView> userView = repository.findById(userId);
 		Assertions.assertTrue(userView.isEmpty());
 
-		UserView user = new UserView(userId, "test@gmail.com", "Arianna", "Comi", "12345678", UserStatus.ACTIVE, UserRole.LIBRARIAN);
+		String hashedPassword = getHashedPassword("12345678");
+		UserView user = new UserView(userId, "test@gmail.com", "Arianna", "Comi", hashedPassword, UserStatus.ACTIVE, UserRole.LIBRARIAN);
 		repository.add(user);
 		userView = repository.findById(userId);
 
 		Assertions.assertTrue(userView.isPresent());
 
 		UserView userViewFound = userView.get();
-
-		String hashedPassword = Password.fromHash("12345678").value();
 		
 		Assertions.assertAll(() -> Assertions.assertEquals(userId, userViewFound.id()),
 				() -> Assertions.assertEquals("test@gmail.com", userViewFound.email()),
 				() -> Assertions.assertEquals("Arianna", userViewFound.name()),
 				() -> Assertions.assertEquals("Comi", userViewFound.lastname()),
-				() -> Assertions.assertEquals(hashedPassword, userViewFound.password()),
+				() -> Assertions.assertTrue(passwordEncoder.matches("12345678", userViewFound.passwordHash())),
 				() -> Assertions.assertEquals(UserStatus.ACTIVE, userViewFound.status()),
 				() -> Assertions.assertEquals(UserRole.LIBRARIAN, userViewFound.role()));
 
 	}
 
 	@Test
-	void reserveShouldIncrementReservedCopies() {
+	void shouldFindUser() {
 
 		String userId = UUID.randomUUID().toString();
 		createUser(userId, "test@gmail.com");
@@ -74,8 +76,14 @@ public class UserViewRepositoryTest {
 	}
 
 	private void createUser(String userId, String email) {
-		UserViewEntity entity = new UserViewEntity(userId, email,"Arianna", "Comi", "12345678", UserStatus.ACTIVE, UserRole.READER);
+		String hashedPassword = getHashedPassword("12345678");
+		UserViewEntity entity = new UserViewEntity(userId, email,"Arianna", "Comi", hashedPassword, UserStatus.ACTIVE, UserRole.READER);
 		jpaRepository.saveAndFlush(entity);
 	}
+	
+	private String getHashedPassword(String password) {
+		return Password.hashed(passwordEncoder.encode(password)).value();
+	}
+
 
 }

@@ -1,36 +1,25 @@
 package mentoring.acomi.userservice.domain.model;
 
-import mentoring.acomi.userservice.application.security.PasswordHasher;
 import mentoring.acomi.userservice.domain.errors.InvalidPassword;
 
 public final class Password {
 
-	private final String hashedValue;
+	private final String value;
 
-	private Password(String hashedValue) {
-		this.hashedValue = hashedValue;
+	private Password(String value) {
+		this.value = value;
 	}
 
-	public static Password create(String rawPassword, PasswordHasher hasher) {
-
-		if (rawPassword == null || rawPassword.isBlank()) {
+	public static Password hashed(String hashedPassword) {
+		
+		if (hashedPassword == null || hashedPassword.isBlank()) {
 			throw InvalidPassword.empty();
 		}
-
-		String hash = hasher.hash(rawPassword);
-
-		return new Password(hash);
-	} 
-
-	public static Password fromHash(String hash) {
-        return new Password(hash);
-    }
-	
-	public boolean matches(String rawPassword, PasswordHasher hasher) {
-        return hasher.matches(rawPassword, this.hashedValue);
+		
+        return new Password(hashedPassword);
     }
 	
 	public String value() {
-		return hashedValue;
+		return value;
 	}
 }

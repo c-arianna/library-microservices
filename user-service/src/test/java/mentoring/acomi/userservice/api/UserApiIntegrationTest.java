@@ -12,8 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 
 import mentoring.acomi.userservice.application.security.JwtProperties;
+import mentoring.acomi.userservice.infrastructure.dto.AuthResponse;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.SubscribeResponse;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserApiIntegrationTest {
@@ -34,16 +34,15 @@ class UserApiIntegrationTest {
 	@Test
 	void shouldCreateUser() {
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", "test@gmail.com", "12345678");
-		ResponseEntity<SubscribeResponse> response = client.post().uri("/users/subscribe").contentType(MediaType.APPLICATION_JSON)
-	            .body(request).retrieve().toEntity(SubscribeResponse.class);
+		ResponseEntity<AuthResponse> response = client.post().uri("/auth/subscribe").contentType(MediaType.APPLICATION_JSON)
+	            .body(request).retrieve().toEntity(AuthResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 		
-		SubscribeResponse body = response.getBody();
+		AuthResponse body = response.getBody();
 		
 		Assertions.assertNotNull(response.getBody());
 		
-		Assertions.assertEquals("test@gmail.com", body.email());
 		Assertions.assertNotNull(body.userId());
 		Assertions.assertNotNull(body.accessToken());
 		Assertions.assertNotNull(body.refreshToken());

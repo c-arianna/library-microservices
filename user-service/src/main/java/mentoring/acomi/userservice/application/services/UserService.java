@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,8 +14,6 @@ import mentoring.acomi.userservice.application.aggregates.UserAggregate;
 import mentoring.acomi.userservice.application.eventhandler.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
-import mentoring.acomi.userservice.application.security.PasswordHasher;
-import mentoring.acomi.userservice.application.security.TokenService;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.model.Password;
@@ -22,7 +21,6 @@ import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.domain.model.UserRole;
 import mentoring.acomi.userservice.domain.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.SubscribeResponse;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
@@ -32,23 +30,21 @@ public class UserService {
 
 	private final UserViewRepository userViewRepository;
 	private final UserEventRepository userEventRepository;
-	private final PasswordHasher passwordHasher;
+	private final PasswordEncoder passwordEncoder;
 	private final EventDispatcher eventDispatcher;
-	private final TokenService tokenService;
 	
 	private final Logger logger = LogManager.getLogger(UserService.class);
 
 	public UserService(UserViewRepository userViewRepository, UserEventRepository userEventRepository,
-			PasswordHasher passwordHasher, EventDispatcher eventDispatcher, TokenService tokenService) {
+			PasswordEncoder passwordEncoder, EventDispatcher eventDispatcher) {
 		this.userViewRepository = userViewRepository;
 		this.userEventRepository = userEventRepository;
-		this.passwordHasher = passwordHasher;
+		this.passwordEncoder = passwordEncoder;
 		this.eventDispatcher = eventDispatcher;
-		this.tokenService = tokenService;
 	}
 
 	@Transactional
-	public SubscribeResponse subscribe(SubscribeRequest request) {
+	public User subscribe(SubscribeRequest request) {
 
 		String userId = UUID.randomUUID().toString();
 		String email = request.email();
@@ -60,11 +56,8 @@ public class UserService {
 		UserAggregate aggregate = loadUser(userId);
 		User user = getUser(userId, request);
 		aggregate.subscribe(user);
-
-		String accessToken = tokenService.generateAccessToken(user.getId(), user.getEmail().getValue(), user.getRole());
-		String refreshToken = tokenService.generateRefreshToken(user.getId());
 		
-		return new SubscribeResponse(userId, email, accessToken, refreshToken);
+		return user;
 
 	}
 
@@ -90,8 +83,9 @@ public class UserService {
 	
 	
 	private User getUser(String userId, SubscribeRequest request) {
+		String hashedPassowrd = passwordEncoder.encode(request.password());
 		return User.create(userId, request.email(), request.name(), request.lastname(),
-				Password.create(request.password(), passwordHasher), UserRole.READER);
+				Password.hashed(hashedPassowrd), UserRole.READER);
 	}
 
 	private UserAggregate loadUser(String userId) {
