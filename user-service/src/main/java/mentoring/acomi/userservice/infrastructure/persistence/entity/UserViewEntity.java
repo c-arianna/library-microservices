@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import mentoring.acomi.userservice.domain.model.UserRole;
+import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.userservice.domain.model.UserStatus;
 
 @Entity

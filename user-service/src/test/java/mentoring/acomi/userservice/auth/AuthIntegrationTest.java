@@ -1,7 +1,7 @@
 package mentoring.acomi.userservice.auth;
 
+import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.userservice.domain.model.Password;
-import mentoring.acomi.userservice.domain.model.UserRole;
 import mentoring.acomi.userservice.domain.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.dto.AuthResponse;
 import mentoring.acomi.userservice.infrastructure.dto.LoginRequest;

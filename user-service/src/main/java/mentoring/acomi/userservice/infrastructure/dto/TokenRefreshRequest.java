@@ -1,3 +1,7 @@
 package mentoring.acomi.userservice.infrastructure.dto;
 
-public record TokenRefreshRequest(String refreshToken) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record TokenRefreshRequest(
+		@NotBlank(message="refreshToken required")
+		String refreshToken) {}

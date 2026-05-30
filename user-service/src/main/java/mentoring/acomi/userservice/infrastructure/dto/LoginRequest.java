@@ -1,12 +1,12 @@
 package mentoring.acomi.userservice.infrastructure.dto;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
 
-		@NotEmpty
+		@NotBlank(message = "email required")
 		String email,
 
-		@NotEmpty 
+		@NotBlank(message = "password required")
 		String password) {
 }

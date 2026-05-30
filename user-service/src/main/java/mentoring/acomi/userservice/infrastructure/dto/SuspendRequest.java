@@ -1,3 +1,14 @@
 package mentoring.acomi.userservice.infrastructure.dto;
 
-public record SuspendRequest(String userId, String reason, String suspendedBy) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record SuspendRequest(
+		
+		@NotBlank(message = "userId required")
+		String userId, 
+		
+		String reason, 
+		
+		@NotBlank(message = "suspendedBy required")
+		String suspendedBy
+) {}

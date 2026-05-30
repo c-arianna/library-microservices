@@ -1,8 +1,8 @@
 package mentoring.acomi.userservice.infrastructure.dto;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 
 public record LogoutRequest(		
-		@NotEmpty
+		@NotBlank(message = "refreshToken required")
 		String refreshToken
 ) {}

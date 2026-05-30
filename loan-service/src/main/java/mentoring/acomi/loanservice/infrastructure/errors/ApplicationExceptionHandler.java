@@ -16,7 +16,7 @@ import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.errors.LoanNotExist;
 import mentoring.acomi.loanservice.domain.errors.ValidationDomain;
-import mentoring.acomi.loanservice.infrastructure.errors.dto.ErrorResponse;
+import mentoring.acomi.sharedlibrary.model.ErrorResponse;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler {

@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import mentoring.acomi.sharedlibrary.model.UserRole;
 
 @EqualsAndHashCode
 @ToString

@@ -4,14 +4,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import mentoring.acomi.sharedlibrary.security.JwtProperties;
+import mentoring.acomi.sharedlibrary.service.generator.TokenGenerator;
 import mentoring.acomi.userservice.application.errors.InvalidLogin;
 import mentoring.acomi.userservice.application.errors.InvalidRefreshToken;
 import mentoring.acomi.userservice.application.errors.InvalidUserStatus;
 import mentoring.acomi.userservice.application.repositories.RefreshTokenRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
-import mentoring.acomi.userservice.application.security.JwtProperties;
 import mentoring.acomi.userservice.application.security.RefreshTokenGenerator;
-import mentoring.acomi.userservice.application.security.TokenService;
 import mentoring.acomi.userservice.application.view.RefreshToken;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
@@ -30,14 +30,14 @@ public class AuthService {
 
 	private final UserViewRepository userViewRepository;
 	private final PasswordEncoder passwordEncoder;
-	private final TokenService tokenService;
+	private final TokenGenerator tokenService;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final JwtProperties jwtProperties;
 	private final RefreshTokenGenerator refreshTokenGenerator;
     private final UserService userService;
     
 	public AuthService(UserViewRepository userViewRepository, PasswordEncoder passwordEncoder,
-			TokenService tokenService, RefreshTokenRepository refreshTokenRepository, JwtProperties jwtProperties,
+			TokenGenerator tokenService, RefreshTokenRepository refreshTokenRepository, JwtProperties jwtProperties,
 			RefreshTokenGenerator refreshTokenGenerator, UserService userService) {
 		this.userViewRepository = userViewRepository;
 		this.passwordEncoder = passwordEncoder;

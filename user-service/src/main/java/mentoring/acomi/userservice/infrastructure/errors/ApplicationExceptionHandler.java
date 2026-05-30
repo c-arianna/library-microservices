@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import mentoring.acomi.sharedlibrary.model.ErrorResponse;
 import mentoring.acomi.userservice.application.errors.InvalidLogin;
 import mentoring.acomi.userservice.application.errors.InvalidRefreshToken;
 import mentoring.acomi.userservice.application.errors.InvalidUserStatus;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
 import mentoring.acomi.userservice.domain.errors.ValidationDomain;
-import mentoring.acomi.userservice.infrastructure.errors.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler {

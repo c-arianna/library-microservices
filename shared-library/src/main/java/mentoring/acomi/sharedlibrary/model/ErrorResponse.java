@@ -1,4 +1,4 @@
-package mentoring.acomi.userservice.infrastructure.errors.dto;
+package mentoring.acomi.sharedlibrary.model;
 
 import java.time.Instant;
 

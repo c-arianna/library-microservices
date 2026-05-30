@@ -1,4 +1,4 @@
-package mentoring.acomi.userservice.application.security;
+package mentoring.acomi.sharedlibrary.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 @ConfigurationProperties(prefix = "spring.security.jwt")
 @Validated
 public record JwtProperties(
-		@NotNull 
+		@NotNull
 		String issuer,
 		
 		@NotNull 

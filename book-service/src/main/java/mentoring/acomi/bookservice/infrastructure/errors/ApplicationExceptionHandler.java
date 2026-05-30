@@ -17,7 +17,7 @@ import mentoring.acomi.bookservice.domain.errors.BookNotRegistered;
 import mentoring.acomi.bookservice.domain.errors.CannotRemoveBookCopies;
 import mentoring.acomi.bookservice.domain.errors.InvalidQuantity;
 import mentoring.acomi.bookservice.domain.errors.ValidationDomain;
-import mentoring.acomi.bookservice.infrastructure.errors.dto.ErrorResponse;
+import mentoring.acomi.sharedlibrary.model.ErrorResponse;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler {

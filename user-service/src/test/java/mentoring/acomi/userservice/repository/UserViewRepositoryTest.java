@@ -11,10 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
+import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.model.Password;
-import mentoring.acomi.userservice.domain.model.UserRole;
 import mentoring.acomi.userservice.domain.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserViewJpaRepository;

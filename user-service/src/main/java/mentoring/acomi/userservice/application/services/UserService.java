@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
 import mentoring.acomi.userservice.application.eventhandler.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
@@ -18,7 +19,6 @@ import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.model.Password;
 import mentoring.acomi.userservice.domain.model.User;
-import mentoring.acomi.userservice.domain.model.UserRole;
 import mentoring.acomi.userservice.domain.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;

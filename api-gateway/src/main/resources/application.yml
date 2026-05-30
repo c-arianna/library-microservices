@@ -33,3 +33,11 @@ spring:
               - Path=/loans, /loans/**
             filters:
               - StripPrefix=1
+
+  security:
+    jwt:
+      enabled: true
+      issuer: user-service
+      secret: ${JWT_SECRET:d6ISU26dwuewuDCpql4e0kJkCNM5WmrggGtnoqQ35VU=}
+      access-token-expiration-minutes: 15
+      refresh-token-expiration-days: 7
