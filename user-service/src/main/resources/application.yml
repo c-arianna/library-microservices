@@ -23,3 +23,6 @@ spring:
       secret: ${JWT_SECRET:d6ISU26dwuewuDCpql4e0kJkCNM5WmrggGtnoqQ35VU=}
       access-token-expiration-minutes: 15
       refresh-token-expiration-days: 7
+    user:
+      name: none
+      password: none

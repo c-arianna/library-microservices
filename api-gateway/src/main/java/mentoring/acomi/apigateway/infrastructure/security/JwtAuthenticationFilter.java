@@ -7,11 +7,11 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -20,46 +20,49 @@ import mentoring.acomi.sharedlibrary.model.TokenPrincipal;
 import mentoring.acomi.sharedlibrary.service.validator.TokenValidator;
 import reactor.core.publisher.Mono;
 
-@Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class JwtAuthenticationFilter implements WebFilter {
 
-    private static final Logger logger = LogManager.getLogger(JwtAuthenticationFilter.class);
+	private static final Logger logger = LogManager.getLogger(JwtAuthenticationFilter.class);
 
-    private final TokenValidator tokenValidator;
+	private final TokenValidator tokenValidator;
 
-    public JwtAuthenticationFilter(TokenValidator tokenValidator) {
-        this.tokenValidator = tokenValidator;
-    }
+	public JwtAuthenticationFilter(TokenValidator tokenValidator) {
+		this.tokenValidator = tokenValidator;
+	}
 
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-    	
-        String authorizationHeader = exchange.getRequest()
-                .getHeaders()
-                .getFirst(HttpHeaders.AUTHORIZATION);
+	@Override
+	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-        	 return chain.filter(exchange);
-        }
+		String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        String token = authorizationHeader.substring(7);
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			return chain.filter(exchange);
+		}
 
-        try {
-            
-        	TokenPrincipal principal = tokenValidator.validateAndExtract(token);
+		String token = authorizationHeader.substring(7);
 
-            var authorities = List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", principal.role().name())));
+		try {
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
+			TokenPrincipal principal = tokenValidator.validateAndExtract(token);
 
-            logger.debug("JWT authentication set for userId={}", principal.userId());
+			var authorities = List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", principal.role().name())));
 
-            return chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
+			Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
-        } catch (Exception ex) {
-            logger.warn("Invalid JWT token", ex);
-            return chain.filter(exchange);
-        }
-    }
+			logger.debug("JWT authentication set for userId={}", principal.userId());
+
+			ServerHttpRequest mutatedRequest = exchange.getRequest().mutate().header("X-User-Id", principal.userId())
+					.header("X-User-Role", principal.role().name()).build();
+
+			ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+
+			return chain.filter(mutatedExchange)
+					.contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
+
+		} catch (Exception ex) {
+			logger.warn("Invalid JWT token", ex);
+			return chain.filter(exchange);
+		}
+	}
 }

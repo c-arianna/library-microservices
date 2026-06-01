@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,17 +25,19 @@ import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
+import mentoring.acomi.loanservice.infrastructure.security.GatewayPrincipal;
 
 @Service
 public class LoanService {
 
- 	private final LoanEventRepository loanEventRepository;
+	private final LoanEventRepository loanEventRepository;
 	private final LoanViewRepository loanViewRepository;
 	private final EventDispatcher eventDispatcher;
-	
+
 	private final Logger logger = LogManager.getLogger(LoanService.class);
-	
-	public LoanService(LoanEventRepository eventRepository, LoanViewRepository loanViewRepository, EventDispatcher eventDispatcher) {
+
+	public LoanService(LoanEventRepository eventRepository, LoanViewRepository loanViewRepository,
+			EventDispatcher eventDispatcher) {
 		this.loanEventRepository = eventRepository;
 		this.loanViewRepository = loanViewRepository;
 		this.eventDispatcher = eventDispatcher;
@@ -56,11 +60,11 @@ public class LoanService {
 
 	@Transactional
 	public void confirmLoan(String loanId) {
-		
+
 		LoanAggregate aggregate = loadLoan(loanId);
 
 		aggregate.ensureCreated();
-		
+
 		if (!aggregate.isConfirmable()) {
 			throw new InvalidLoanStateTransition("Cannot confirm loan");
 		}
@@ -68,24 +72,27 @@ public class LoanService {
 		aggregate.requestConfirm();
 
 	}
-	
+
 	@Transactional
 	public void cancelLoan(String loanId) {
 		LoanAggregate aggregate = loadLoan(loanId);
-		aggregate.cancel();		
+		aggregate.cancel();
 	}
-	
+
 	@Transactional
 	public void returnLoan(String loanId) {
 		LoanAggregate aggregate = loadLoan(loanId);
-		aggregate.returnLoan();		
+		aggregate.returnLoan();
 	}
 
 	public LoansResponse findLoans(LoanFilter filter) {
-		List<LoanView> loans = loanViewRepository.find(filter);
+
+		LoanFilter finalFilter = applyCheckUserFilter(filter);
+		
+		List<LoanView> loans = loanViewRepository.find(finalFilter);
 		return toLoansResponse(loans);
 	}
-	
+
 	private void validateLoanRequest(AddLoanRequest request, String loanId) {
 
 		if (loanEventRepository.exists(loanId)) {
@@ -93,15 +100,16 @@ public class LoanService {
 		}
 
 	}
-	
+
 	private LoansResponse toLoansResponse(List<LoanView> loans) {
 
-		List<LoanDto> loanResponse = loans.stream().map(loan -> new LoanDto(loan.id(), loan.isbn(), loan.userId(), loan.status(), loan.start(),
-				loan.end())).toList();
+		List<LoanDto> loanResponse = loans.stream().map(
+				loan -> new LoanDto(loan.id(), loan.isbn(), loan.userId(), loan.status(), loan.start(), loan.end()))
+				.toList();
 
 		return new LoansResponse(loanResponse);
 	}
-	
+
 	private LoanAggregate loadLoan(String loanId) {
 		List<LoanEvent> events = loanEventRepository.loadStream(loanId);
 		Consumer<LoanEvent> dispatch = event -> {
@@ -116,4 +124,14 @@ public class LoanService {
 		return new LoanAggregate(loanId, dispatch, events);
 	}
 
+	private LoanFilter applyCheckUserFilter(LoanFilter filter) {
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		GatewayPrincipal principal = (GatewayPrincipal) auth.getPrincipal();
+
+		String role = principal.role();
+		
+		return "READER".equals(role) ? new LoanFilter(filter.isbn(), principal.userId(), filter.status()) : filter;
+
+	}
 }

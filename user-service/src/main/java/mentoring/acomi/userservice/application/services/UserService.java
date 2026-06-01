@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.security.GatewayPrincipal;
 
 @Service
 public class UserService {
@@ -32,7 +35,7 @@ public class UserService {
 	private final UserEventRepository userEventRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final EventDispatcher eventDispatcher;
-	
+
 	private final Logger logger = LogManager.getLogger(UserService.class);
 
 	public UserService(UserViewRepository userViewRepository, UserEventRepository userEventRepository,
@@ -56,36 +59,51 @@ public class UserService {
 		UserAggregate aggregate = loadUser(userId);
 		User user = getUser(userId, request);
 		aggregate.subscribe(user);
-		
+
 		return user;
 
 	}
 
 	@Transactional
 	public UserResponse unsubscribe(UnsubscribeRequest request) {
-		UserAggregate aggregate = loadUser(request.userId());
+
+		String currentUserId = getLoggedUserId();
+		
+		UserAggregate aggregate = loadUser(currentUserId);
 		aggregate.unsubscribe(request.reason());
-		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.DISABLE);
+		return new UserResponse(currentUserId, aggregate.email(), aggregate.role(), UserStatus.DISABLE);
 	}
-	
+
 	@Transactional
 	public UserResponse suspend(SuspendRequest request) {
+		
 		UserAggregate aggregate = loadUser(request.userId());
-		aggregate.suspend(request.reason(), request.suspendedBy());
+		
+		String currentUserId = getLoggedUserId();
+		
+		aggregate.suspend(request.reason(), currentUserId);
 		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.SUSPENDED);
 	}
-	
+
 	public UserResponse unsuspend(SuspendRequest request) {
 		UserAggregate aggregate = loadUser(request.userId());
-		aggregate.unsuspend(request.reason(), request.suspendedBy());
+		
+		String currentUserId = getLoggedUserId();
+		
+		aggregate.unsuspend(request.reason(), currentUserId);
 		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.ACTIVE);
 	}
-	
+
+	private String getLoggedUserId() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		GatewayPrincipal principal = (GatewayPrincipal) auth.getPrincipal();
+		return principal.userId();
+	}
 	
 	private User getUser(String userId, SubscribeRequest request) {
 		String hashedPassowrd = passwordEncoder.encode(request.password());
-		return User.create(userId, request.email(), request.name(), request.lastname(),
-				Password.hashed(hashedPassowrd), UserRole.READER);
+		return User.create(userId, request.email(), request.name(), request.lastname(), Password.hashed(hashedPassowrd),
+				UserRole.READER);
 	}
 
 	private UserAggregate loadUser(String userId) {
@@ -101,5 +119,5 @@ public class UserService {
 
 		return new UserAggregate(userId, dispatch, events);
 	}
-	
+
 }

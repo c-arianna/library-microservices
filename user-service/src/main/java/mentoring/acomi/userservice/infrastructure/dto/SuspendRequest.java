@@ -7,8 +7,5 @@ public record SuspendRequest(
 		@NotBlank(message = "userId required")
 		String userId, 
 		
-		String reason, 
-		
-		@NotBlank(message = "suspendedBy required")
-		String suspendedBy
+		String reason
 ) {}

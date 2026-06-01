@@ -1,6 +1,7 @@
 package mentoring.acomi.bookservice.infrastructure.controllers;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,12 +28,14 @@ public class BookController {
 		this.service = service;		
 	}
 	
+	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@PostMapping("/")
 	@ResponseStatus(HttpStatus.CREATED)
 	public BookResponse addBook(@RequestBody @Valid AddBookRequest request) {
 		return service.addBook(request);
 	}
 	
+	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")
 	@GetMapping("/")
 	public BooksResponse findBooks(@RequestParam(required = false) String title, 
 			@RequestParam(required = false) String author, @RequestParam(required = false) String isbn,
@@ -41,12 +44,14 @@ public class BookController {
 		return service.findBooks(filter);
 	}
 	
+	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@PostMapping("/{isbn}/copies/add")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void addBookCopies(@RequestBody AddBookCopiesRequest request, @PathVariable String isbn) {
 		service.addBookCopies(request, isbn);
 	}
 	
+	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@PostMapping("/{isbn}/copies/remove")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void removeBookCopies(@RequestBody RemoveBookCopiesRequest request, @PathVariable String isbn) {

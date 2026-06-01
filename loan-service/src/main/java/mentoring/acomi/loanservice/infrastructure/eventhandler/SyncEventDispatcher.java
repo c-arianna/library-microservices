@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.loanservice.application.eventhandler.EventDispatcher;
+import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
 
@@ -21,6 +22,12 @@ public class SyncEventDispatcher implements EventDispatcher {
 
 	private static final Logger logger = LogManager.getLogger(SyncEventDispatcher.class);;
 
+	private final LoanProjection projection;
+	
+	public SyncEventDispatcher(LoanProjection projection) {
+		this.projection = projection;
+	}
+	
 	@Override
 	public void dispatch(LoanEvent event) {
 
@@ -33,6 +40,8 @@ public class SyncEventDispatcher implements EventDispatcher {
 				logger.error("[EventDispatcher] Subscriber failed, eventType={}", event.type(), e);
 			}
 		}
+		
+		projection.updateView(event);
 
 	}
 

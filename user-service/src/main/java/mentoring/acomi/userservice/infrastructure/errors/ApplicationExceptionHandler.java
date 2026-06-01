@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,6 +37,14 @@ public class ApplicationExceptionHandler {
 
 	}
 
+	@ExceptionHandler(AuthorizationDeniedException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ErrorResponse handleAccessDeniedErorr(AuthorizationDeniedException e) throws Exception {
+
+		return handleException(e, "ACCESS_DENIED", "Invalid permission to access this resource", "SECURITY");
+
+	}
+	
 	@ExceptionHandler(ValidationDomain.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErrorResponse handleValidationDomainError(ValidationDomain e) throws Exception {
