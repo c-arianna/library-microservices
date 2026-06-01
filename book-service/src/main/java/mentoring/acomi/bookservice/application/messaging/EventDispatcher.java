@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.application.eventhandler;
+package mentoring.acomi.bookservice.application.messaging;
 
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 

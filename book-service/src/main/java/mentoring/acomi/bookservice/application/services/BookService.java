@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.bookservice.application.BookFilter;
 import mentoring.acomi.bookservice.application.aggregates.BookAggregate;
-import mentoring.acomi.bookservice.application.eventhandler.EventDispatcher;
+import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.view.BookView;

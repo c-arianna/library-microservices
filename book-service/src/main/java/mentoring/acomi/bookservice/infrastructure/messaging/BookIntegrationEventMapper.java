@@ -69,7 +69,7 @@ public class BookIntegrationEventMapper {
 	private IntegrationEventEnvelope<?> getBookBorrowRejectedIntegrationevent(BookBorrowRejectedEvent e) {
 
 		BookBorrowRejectedIntegrationPayload payload = new BookBorrowRejectedIntegrationPayload(e.payload().isbn(),
-				e.payload().loanId(), e.payload().userId(), e.payload().reason().name());
+				e.payload().loanId(), e.payload().userId(), e.payload().reason().toString());
 
 		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.BOOK_BORROW_REJECTED, PRODUCER,
 				e.aggregateId(), e.occurredAt(), payload);
@@ -78,7 +78,7 @@ public class BookIntegrationEventMapper {
 	private IntegrationEventEnvelope<?> getBookReservationRejectedIntegrationevent(BookReservationRejectedEvent e) {
 
 		BookReservationRejectedIntegrationPayload payload = new BookReservationRejectedIntegrationPayload(
-				e.payload().isbn(), e.payload().loanId(), e.payload().userId(), e.payload().reason().name());
+				e.payload().isbn(), e.payload().loanId(), e.payload().userId(), e.payload().reason().toString());
 
 		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.BOOK_RESERVATION_REJECTED, PRODUCER,
 				e.aggregateId(), e.occurredAt(), payload);

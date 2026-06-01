@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.application.services.BookEventService;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.sharedlibrary.integration.messaging.loan.LoanIntegrationPayload;
 import tools.jackson.databind.ObjectMapper;
 
@@ -23,7 +24,7 @@ public class BookIntegrationEventListener {
 		this.service = service;
 	}
 
-	@RabbitListener(queues = "book-service.queue")
+	@RabbitListener(queues = MessagingTopology.BOOK_QUEUE)
 	public void onEvent(IntegrationEventEnvelope<?> eventEnvelope) {
 		try {
 			LoanIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class);

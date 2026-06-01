@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import mentoring.acomi.bookservice.application.aggregates.BookAggregate;
-import mentoring.acomi.bookservice.application.eventhandler.EventDispatcher;
+import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.model.ISBN;
@@ -29,7 +29,7 @@ public class BookEventService {
 		this.bookEventRepository = eventRepository;
 		this.eventDispatcher = eventDispatcher;
 		this.handlers = Map.of(IntegrationEventTypes.LOAN_REQUESTED, this::handleLoanRequested,
-				IntegrationEventTypes.LOAN_CONFIRMED, this::handleLoanConfirm, IntegrationEventTypes.LOAN_CANCELED,
+				IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, this::handleLoanConfirmRequested, IntegrationEventTypes.LOAN_CANCELED,
 				this::handleLoanCanceled, IntegrationEventTypes.LOAN_RETURNED, this::handleLoanReturned);
 	}
 
@@ -46,7 +46,7 @@ public class BookEventService {
 		book.reserve(payload.loanId(), payload.userId());
 	}
 
-	private void handleLoanConfirm(LoanIntegrationPayload payload) {
+	private void handleLoanConfirmRequested(LoanIntegrationPayload payload) {
 		BookAggregate book = loadBook(payload.isbn());
 		book.borrow(payload.loanId(), payload.userId());
 	}

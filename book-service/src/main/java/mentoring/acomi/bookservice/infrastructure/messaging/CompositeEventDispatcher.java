@@ -2,7 +2,7 @@ package mentoring.acomi.bookservice.infrastructure.messaging;
 
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.bookservice.application.eventhandler.EventDispatcher;
+import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.projection.BookProjection;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.events.BookStateEvent;

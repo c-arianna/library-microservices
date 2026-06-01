@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
-import mentoring.acomi.loanservice.application.eventhandler.EventDispatcher;
+import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
