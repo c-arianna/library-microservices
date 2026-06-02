@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
@@ -13,6 +14,7 @@ import mentoring.acomi.bookservice.infrastructure.persistence.mapper.BookEventJp
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookEventJpaRepository;
 
 @Repository
+@Transactional
 public class JpaBookEventRepositoryAdapter implements BookEventRepository {
 
 	private final BookEventJpaRepository repository;

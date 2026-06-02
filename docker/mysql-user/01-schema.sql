@@ -1,6 +1,6 @@
-use loan_db;
+use user_db;
 
-CREATE TABLE IF NOT EXISTS loan_events (
+CREATE TABLE IF NOT EXISTS user_events (
     id bigint not null auto_increment,
     aggregate_id varchar(100) not null,
     event_type varchar(50) not null,
@@ -14,24 +14,26 @@ CREATE TABLE IF NOT EXISTS loan_events (
     key idx_event_type (event_type)
 );
 
-CREATE TABLE IF NOT EXISTS loan_view (
-  id varchar(36) not null,
-  isbn varchar(17) not null,
-  user_id varchar(36) not null,
-  start_date date not null,
-  end_date date not null,
-  status ENUM('PENDING', 'RESERVED', 'CONFIRMED', 'CANCELED', 'RETURNED', 'FAILED') not null default 'PENDING',
-  created_at timestamp not null default current_timestamp,
-  updated_at timestamp not null default current_timestamp,
-  primary key(id)
-);
-
 CREATE TABLE IF NOT EXISTS user_view(
 	id varchar(36) not null,
 	email varchar(100) not null,
+	name varchar(50) not null,
+	lastname varchar(50) not null,
+	password_hash varchar(100) not null,
+	role ENUM('READER', 'LIBRARIAN', 'ADMIN') not null default 'READER',
 	status ENUM('ACTIVE', 'SUSPENDED', 'DISABLE') not null default 'ACTIVE',
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp,
     unique key uq_email (email),
 	primary key(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS refresh_token (
+    id bigint auto_increment,
+    user_id varchar(36) not null,
+    token varchar(128) null unique,
+    expires_at datetime not null,
+    revoked boolean not null,
+    primary key(id)
 );

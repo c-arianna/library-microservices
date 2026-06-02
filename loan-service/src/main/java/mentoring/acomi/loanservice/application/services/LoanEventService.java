@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
@@ -72,11 +73,13 @@ public class LoanEventService {
 
 	}
 	
+	@Transactional
 	public void handleSubscribeUser(UserSubscribedIntegrationPayload payload) {
 		UserView user = new UserView(payload.userId(), payload.email(), payload.status());
 		userViewRepository.add(user);
 	}
 
+	@Transactional
 	public void handleUpdateUserStatus(UserIntegrationPayload payload) {
 		userViewRepository.updateStatus(payload.userId(), payload.status());
 	}

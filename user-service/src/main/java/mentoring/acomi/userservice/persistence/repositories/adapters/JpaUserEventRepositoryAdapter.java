@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.domain.events.UserEvent;
@@ -13,6 +14,7 @@ import mentoring.acomi.userservice.infrastructure.persistence.mapper.UserEventJp
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserEventJpaRepository;
 
 @Repository
+@Transactional
 public class JpaUserEventRepositoryAdapter implements UserEventRepository {
 
 	private final UserEventJpaRepository repository;

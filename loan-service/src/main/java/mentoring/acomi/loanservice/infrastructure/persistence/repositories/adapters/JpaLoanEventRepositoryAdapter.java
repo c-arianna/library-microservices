@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
@@ -13,6 +14,7 @@ import mentoring.acomi.loanservice.infrastructure.persistence.mapper.LoanEventJp
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanEventJpaRepository;
 
 @Repository
+@Transactional
 public class JpaLoanEventRepositoryAdapter implements LoanEventRepository {
 
 	private final LoanEventJpaRepository repository;

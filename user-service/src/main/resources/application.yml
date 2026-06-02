@@ -1,14 +1,19 @@
-server:
-  port: 8081
-
 spring:
   application:
     name: user-service    
     
   datasource:
-    url: jdbc:mysql://localhost:3306/user_db
-    username: libraryApp
-    password: libraryAppTest!
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/user_db}
+    username: ${SPRING_DATASOURCE_USERNAME:libraryApp}
+    password: ${SPRING_DATASOURCE_PASSWORD:libraryAppTest!}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  hikari:
+    maximumPoolSize: 10
+    minimumIdle: 2
+    initializationFailTimeout: 0
+    connectionTimeout: 30000
+    validationTimeout: 5000
 
   jpa:
     hibernate:
@@ -25,10 +30,14 @@ spring:
       refresh-token-expiration-days: 7
     user:
       name: none
-      password: none			
+      password: none
 
   rabbitmq:
-    host: localhost
+    host: ${SPRING_RABBITMQ_HOST:localhost}
     port: 5672
-    username: guest
-    password: guest
+    username: libraryApp
+    password: libraryAppTest!
+
+  sql:
+    init:
+      continue-on-error: true

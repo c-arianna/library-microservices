@@ -6,9 +6,9 @@ import java.util.Map;
 public enum IntegrationEventTypes {
 
 	BOOK_REGISTERED("book.registered"), BOOK_COPIES_UPDATED("book.copies.updated"), BOOK_RESERVED("book.reserved"),
-	BOOK_BORROWED("book.borrowd"), BOOK_RELEASED("book.released"), BOOK_RETURNED("book.returned"),
+	BOOK_BORROWED("book.borrowed"), BOOK_RELEASED("book.released"), BOOK_RETURNED("book.returned"),
 	BOOK_RESERVATION_REJECTED("book.reservation.rejected"), BOOK_BORROW_REJECTED("book.borrow.rejected"),
-	LOAN_REQUESTED("loan.requested"), LOAN_CONFIRMED("loan.confirmed"), LOAN_CONFIRM_REQUESTED("loan.confirmRequested"), LOAN_CANCELED("loan.canceled"), 
+	LOAN_REQUESTED("loan.requested"), LOAN_CONFIRMED("loan.confirmed"), LOAN_CONFIRM_REQUESTED("loan.confirm.requested"), LOAN_CANCELED("loan.canceled"), 
 	LOAN_RETURNED("loan.returned"), LOAN_RESERVED("loan.reserved"), LOAN_FAILED("loan.failed"),
 	USER_SUBSCRIBED("user.subscribed"), USER_UNSUBSCRIBED("user.unsubscribed"), USER_SUSPENDED("user.suspended"), USER_UNSUSPENDED("user.unsuspended");
 

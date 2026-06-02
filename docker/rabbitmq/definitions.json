@@ -1,0 +1,115 @@
+{
+  "vhosts": [
+    { "name": "/" }
+  ],
+
+  "exchanges": [
+    {
+      "name": "events.exchange",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true
+    }
+  ],
+
+  "queues": [
+    {
+      "name": "book-service.queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "loan-service.queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "user-service.queue",
+      "vhost": "/",
+      "durable": true
+    }
+  ],
+
+  "bindings": [
+
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "book-service.queue",
+      "destination_type": "queue",
+      "routing_key": "loan.requested"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "book-service.queue",
+      "destination_type": "queue",
+      "routing_key": "loan.confirm.requested"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "book-service.queue",
+      "destination_type": "queue",
+      "routing_key": "loan.canceled"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "book-service.queue",
+      "destination_type": "queue",
+      "routing_key": "loan.returned"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "loan-service.queue",
+      "destination_type": "queue",
+      "routing_key": "book.reserved"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "loan-service.queue",
+      "destination_type": "queue",
+      "routing_key": "book.reservation.rejected"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "loan-service.queue",
+      "destination_type": "queue",
+      "routing_key": "book.borrowed"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "loan-service.queue",
+      "destination_type": "queue",
+      "routing_key": "book.borrow.rejected"
+    },
+    {
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "loan-service.queue",
+      "destination_type": "queue",
+      "routing_key": "user.*"
+    }
+  ],
+"users": [
+    {
+      "name": "libraryApp",
+      "password": "libraryAppTest!",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "libraryApp",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}

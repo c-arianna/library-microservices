@@ -125,6 +125,7 @@ public class AuthService {
 		return new AuthResponse(user.id(), newAccessToken, newRefreshToken);
 	}
 
+	@Transactional
 	public AuthResponse subscribe(SubscribeRequest request) {
 		
 		User user = userService.subscribe(request);
