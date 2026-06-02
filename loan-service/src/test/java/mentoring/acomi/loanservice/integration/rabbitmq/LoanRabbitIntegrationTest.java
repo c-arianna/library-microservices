@@ -6,9 +6,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.BindingBuilder;
@@ -17,6 +19,10 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -27,17 +33,21 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
+import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.services.LoanService;
+import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
+import mentoring.acomi.loanservice.infrastructure.security.GatewayPrincipal;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookBorrowRejectedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookLoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookReservationRejectedIntegrationPayload;
+import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @SpringBootTest
 @Testcontainers
@@ -73,8 +83,17 @@ class LoanRabbitIntegrationTest {
 	@Autowired
 	private TopicExchange eventsExchange;
 
+	@Autowired
+	private UserViewRepository userViewRepository;
+
 	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
+
+	@BeforeEach
+	public void setupUser() {
+		userViewRepository.add(new UserView(USER_ID, "test@gmail.com", UserStatus.ACTIVE));
+		setAuthenticatedUser(USER_ID, "READER");
+	}
 
 	@Test
 	void shouldConsumeBookReservedAndReserveLoan() {
@@ -146,30 +165,33 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldPublishLoanRequestedWhenLoanIsCreated() {
 
-		String queue = createTmpQueue(IntegrationEventTypes.LOAN_REQUESTED.toString());
+		String queue = createTmpQueue(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey());
 		createLoan();
 
-		String messageBody = receiveMessageBody(queue);
-
-		Assertions.assertNotNull(messageBody);
-		Assertions.assertTrue(messageBody.contains("\"eventType\":\"loan.requested\""));
-		Assertions.assertTrue(messageBody.contains("\"producer\":\"loan-service\""));
-		Assertions.assertTrue(messageBody.contains(String.format("\"isbn\":\"%s\"", ISBN)));
-		Assertions.assertTrue(messageBody.contains(String.format("\"userId\":\"%s\"", USER_ID)));
+		String body = waitForMessageBody(queue);
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			Assertions.assertNotNull(body);
+			Assertions.assertTrue(body.contains("\"eventType\":\"LOAN_REQUESTED\""));
+			Assertions.assertTrue(body.contains("\"producer\":\"loan-service\""));
+			Assertions.assertTrue(body.contains(String.format("\"isbn\":\"%s\"", ISBN)));
+			Assertions.assertTrue(body.contains(String.format("\"userId\":\"%s\"", USER_ID)));
+		});
 	}
 
 	@Test
 	void shouldPublishLoanReservedAfterConsumingBookReserved() {
 
-		String queue = createTmpQueue(IntegrationEventTypes.LOAN_RESERVED.toString());
+		String queue = createTmpQueue(IntegrationEventTypes.LOAN_RESERVED.getRoutingKey());
 		String loanId = createLoan();
 
 		publishBookReserved(loanId);
 
+		String body = waitForMessageBody(queue);
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			String body = receiveMessageBody(queue);
 			Assertions.assertNotNull(body);
-			Assertions.assertTrue(body.contains("\"eventType\":\"loan.reserved\""));
+			Assertions.assertTrue(body.contains("\"eventType\":\"LOAN_RESERVED\""));
 			Assertions.assertTrue(body.contains("\"producer\":\"loan-service\""));
 			Assertions.assertTrue(body.contains(String.format("\"loanId\":\"%s\"", loanId)));
 		});
@@ -189,7 +211,7 @@ class LoanRabbitIntegrationTest {
 				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, Instant.now(),
 				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_RESERVED.toString(),
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(),
 				event);
 	}
 
@@ -198,7 +220,7 @@ class LoanRabbitIntegrationTest {
 				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, Instant.now(),
 				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_BORROWED.toString(),
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_BORROWED.getRoutingKey(),
 				event);
 	}
 
@@ -208,7 +230,7 @@ class LoanRabbitIntegrationTest {
 				new BookReservationRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
-				IntegrationEventTypes.BOOK_RESERVATION_REJECTED.toString(), event);
+				IntegrationEventTypes.BOOK_RESERVATION_REJECTED.getRoutingKey(), event);
 	}
 
 	private void publishBookBorrowRejected(String loanId, String reason) {
@@ -218,11 +240,11 @@ class LoanRabbitIntegrationTest {
 				new BookBorrowRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
-				IntegrationEventTypes.BOOK_BORROW_REJECTED.toString(), event);
+				IntegrationEventTypes.BOOK_BORROW_REJECTED.getRoutingKey(), event);
 	}
 
 	private String createTmpQueue(String routingKey) {
-		
+
 		String queueName = String.join(".", "tmp", routingKey, UUID.randomUUID().toString());
 
 		Queue queue = new Queue(queueName, false, false, true);
@@ -239,5 +261,27 @@ class LoanRabbitIntegrationTest {
 		}
 		return new String(message.getBody(), StandardCharsets.UTF_8);
 	}
+
+	private void setAuthenticatedUser(String userId, String role) {
+		GatewayPrincipal principal = new GatewayPrincipal(userId, role);
+
+		Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
+
+		SecurityContextHolder.getContext().setAuthentication(auth);
+	}
+	
+	private String waitForMessageBody(String queueName) {
+        final String[] holder = new String[1];
+
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .pollInterval(Duration.ofMillis(100))
+            .until(() -> {
+                holder[0] = receiveMessageBody(queueName);
+                return holder[0] != null;
+            });
+
+        return holder[0];
+    }
 
 }

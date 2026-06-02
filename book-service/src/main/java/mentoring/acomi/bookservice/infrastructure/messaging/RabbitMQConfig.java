@@ -27,10 +27,10 @@ public class RabbitMQConfig {
 
 	@Bean
 	Declarables bookBindings(Queue queue, TopicExchange exchange) {
-		return new Declarables(BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_REQUESTED.toString()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.toString()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_CANCELED.toString()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_RETURNED.toString()));
+		return new Declarables(BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey()),
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.getRoutingKey()),
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_CANCELED.getRoutingKey()),
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_RETURNED.getRoutingKey()));
 	}
 
 	@Bean

@@ -40,15 +40,12 @@ public class ApplicationExceptionHandler {
 	@ExceptionHandler(AuthorizationDeniedException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)
 	public ErrorResponse handleAccessDeniedErorr(AuthorizationDeniedException e) throws Exception {
-
 		return handleException(e, "ACCESS_DENIED", "Invalid permission to access this resource", "SECURITY");
-
 	}
 	
 	@ExceptionHandler(ValidationDomain.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErrorResponse handleValidationDomainError(ValidationDomain e) throws Exception {
-
 		return handleException(e, e.getCode(), e.getMessage(), "VALIDATION_ERROR");
 	}
 

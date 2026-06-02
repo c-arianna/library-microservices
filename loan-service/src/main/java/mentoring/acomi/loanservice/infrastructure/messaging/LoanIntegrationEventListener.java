@@ -11,6 +11,8 @@ import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookBorrowRejectedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookLoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookReservationRejectedIntegrationPayload;
+import mentoring.acomi.sharedlibrary.integration.messaging.user.UserIntegrationPayload;
+import mentoring.acomi.sharedlibrary.integration.messaging.user.UserSubscribedIntegrationPayload;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -54,6 +56,18 @@ public class LoanIntegrationEventListener {
 						BookBorrowRejectedIntegrationPayload.class);
 				service.handleBookBorrowRejected(payload);
 			}
+			case USER_SUBSCRIBED -> {
+				UserSubscribedIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(),
+						UserSubscribedIntegrationPayload.class);
+				service.handleSubscribeUser(payload);
+			}
+			
+			case USER_UNSUBSCRIBED, USER_SUSPENDED, USER_UNSUSPENDED -> {
+				UserIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(),
+						UserIntegrationPayload.class);
+				service.handleUpdateUserStatus(payload);
+			}
+			
 			default ->
 				throw new IllegalArgumentException(String.format("Unexpected value: %s", eventEnvelope.eventType()));
 			}

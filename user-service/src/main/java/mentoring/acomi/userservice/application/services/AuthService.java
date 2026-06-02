@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.sharedlibrary.security.JwtProperties;
 import mentoring.acomi.sharedlibrary.service.generator.TokenGenerator;
 import mentoring.acomi.userservice.application.errors.InvalidLogin;
@@ -16,7 +17,6 @@ import mentoring.acomi.userservice.application.view.RefreshToken;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
 import mentoring.acomi.userservice.domain.model.User;
-import mentoring.acomi.userservice.domain.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.dto.AuthResponse;
 import mentoring.acomi.userservice.infrastructure.dto.LoginRequest;
 import mentoring.acomi.userservice.infrastructure.dto.LogoutRequest;

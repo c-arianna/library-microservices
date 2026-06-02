@@ -13,15 +13,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.sharedlibrary.model.UserRole;
+import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
-import mentoring.acomi.userservice.application.eventhandler.EventDispatcher;
+import mentoring.acomi.userservice.application.messaging.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.model.Password;
 import mentoring.acomi.userservice.domain.model.User;
-import mentoring.acomi.userservice.domain.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
@@ -85,6 +85,7 @@ public class UserService {
 		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.SUSPENDED);
 	}
 
+	@Transactional
 	public UserResponse unsuspend(SuspendRequest request) {
 		UserAggregate aggregate = loadUser(request.userId());
 		

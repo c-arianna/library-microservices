@@ -1,4 +1,4 @@
-package mentoring.acomi.userservice.infrastructure.persistence.entity;
+package mentoring.acomi.loanservice.infrastructure.persistence.entity;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +13,6 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @Entity
@@ -26,18 +25,9 @@ public class UserViewEntity {
 	private String id;
 	
 	private String email;
-	
-	private String name;
-	
-	private String lastname;
-	
-	private String passwordHash;
-	
+		
 	@Enumerated(EnumType.STRING)
 	private UserStatus status;
-	
-	@Enumerated(EnumType.STRING)
-	private UserRole role;
 	
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
@@ -56,14 +46,10 @@ public class UserViewEntity {
         this.updatedAt = LocalDateTime.now();
     }
     
-    public UserViewEntity(String id, String email, String name, String lastname, String passwordHash, UserStatus status, UserRole role) {
+    public UserViewEntity(String id, String email, UserStatus status) {
     	this.id = id;
     	this.email = email;
-    	this.name = name;
-    	this.lastname = lastname;
-    	this.passwordHash = passwordHash;
     	this.status = status;
-    	this.role = role;
     }
 
 }

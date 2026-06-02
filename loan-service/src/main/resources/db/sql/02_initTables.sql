@@ -25,3 +25,13 @@ CREATE TABLE IF NOT EXISTS loan_view (
   updated_at timestamp not null default current_timestamp,
   primary key(id)
 );
+
+CREATE TABLE IF NOT EXISTS user_view(
+	id varchar(36) not null,
+	email varchar(100) not null,
+	role ENUM('READER', 'LIBRARIAN', 'ADMIN') not null default 'READER',
+    created_at timestamp not null default current_timestamp,
+    updated_at timestamp not null default current_timestamp,
+    unique key uq_email (email),
+	primary key(id)
+);

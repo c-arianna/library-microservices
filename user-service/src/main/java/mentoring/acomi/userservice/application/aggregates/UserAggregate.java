@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import mentoring.acomi.sharedlibrary.model.UserRole;
+import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
@@ -16,7 +17,6 @@ import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserUnsubscribedPayload;
 import mentoring.acomi.userservice.domain.model.User;
-import mentoring.acomi.userservice.domain.model.UserStatus;
 
 public class UserAggregate {
 

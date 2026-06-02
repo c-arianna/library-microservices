@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.sharedlibrary.model.UserRole;
+import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserEventType;
@@ -20,7 +21,6 @@ import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
 import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
-import mentoring.acomi.userservice.domain.model.UserStatus;
 
 @SpringBootTest
 @Transactional

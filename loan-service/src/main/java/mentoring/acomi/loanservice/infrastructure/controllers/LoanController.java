@@ -27,7 +27,7 @@ public class LoanController {
 		this.service = service;
 	}
 
-	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'READER')")
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public LoanResponse addLoan(@RequestBody @Valid AddLoanRequest request) {

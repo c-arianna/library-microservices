@@ -1,6 +1,0 @@
-package mentoring.acomi.sharedlibrary.integration.messaging.book;
-
-public sealed interface BookEventIntegrationPayload permits BookBorrowRejectedIntegrationPayload, BookCopiesUpdatedIntegrationPayload,
-BookLoanIntegrationPayload, BookRegisteredIntegrationPayload, BookReservationRejectedIntegrationPayload{
-
-}

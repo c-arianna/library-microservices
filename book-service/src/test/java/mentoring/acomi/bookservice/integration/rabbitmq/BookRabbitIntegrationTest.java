@@ -81,7 +81,7 @@ class BookRabbitIntegrationTest {
 
 	@Test
 	void shouldConsumeLoanRequestedAndReserveBook() {
-		
+
 		publishLoanEvent(IntegrationEventTypes.LOAN_REQUESTED);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
@@ -98,7 +98,7 @@ class BookRabbitIntegrationTest {
 	void shouldConsumeLoanConfirmRequestedAndBorrowBook() {
 
 		publishLoanEvent(IntegrationEventTypes.LOAN_REQUESTED);
-		
+
 		publishLoanEvent(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED);
 
 		await().untilAsserted(() -> {
@@ -129,15 +129,25 @@ class BookRabbitIntegrationTest {
 	@Test
 	void shouldPublishBookReservedEvent() {
 
-		String probeQueue = createTmpQueue(IntegrationEventTypes.BOOK_RESERVED.toString());
+		String routingKey = IntegrationEventTypes.BOOK_RESERVED.getRoutingKey();
+		String tmpQueue = createTmpQueue(routingKey);
+
+		await().atMost(Duration.ofSeconds(1)).until(() -> true);
 
 		publishLoanEvent(IntegrationEventTypes.LOAN_REQUESTED);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			String body = receiveMessageBody(probeQueue);
-			Assertions.assertNotNull(body);
-			Assertions.assertTrue(body.contains("book.reserved"));
+			var book = viewRepository.findById(ISBN).orElseThrow();
+			Assertions.assertEquals(1, book.reservedCopies());
 		});
+
+		String body = waitForMessageBody(tmpQueue);
+		
+		await().atMost(Duration.ofSeconds(5)).pollInterval(Duration.ofMillis(100)).untilAsserted(() -> {
+			Assertions.assertNotNull(body);
+			Assertions.assertTrue(body.contains("BOOK_RESERVED"));
+		});
+
 	}
 
 	private void publishLoanEvent(IntegrationEventTypes type) {
@@ -146,20 +156,35 @@ class BookRabbitIntegrationTest {
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
 				"loan-service", ISBN, Instant.now(), new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.toString(), event);
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
 	}
 
 	private String createTmpQueue(String routingKey) {
 
 		String queueName = String.join(".", "tmp", routingKey, UUID.randomUUID().toString());
 
-		Queue queue = new Queue(queueName, false, false, true);
+		amqpAdmin.declareExchange(eventsExchange);
+		Queue queue = new Queue(queueName);
 		amqpAdmin.declareQueue(queue);
 		amqpAdmin.declareBinding(BindingBuilder.bind(queue).to(eventsExchange).with(routingKey));
 
 		return queueName;
 	}
 
+	private String waitForMessageBody(String queueName) {
+        final String[] holder = new String[1];
+
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .pollInterval(Duration.ofMillis(100))
+            .until(() -> {
+                holder[0] = receiveMessageBody(queueName);
+                return holder[0] != null;
+            });
+
+        return holder[0];
+    }
+	
 	private String receiveMessageBody(String queueName) {
 		var message = rabbitTemplate.receive(queueName, 3000);
 		if (message == null) {
@@ -167,4 +192,5 @@ class BookRabbitIntegrationTest {
 		}
 		return new String(message.getBody(), StandardCharsets.UTF_8);
 	}
+
 }

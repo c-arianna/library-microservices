@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
@@ -20,10 +21,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
+import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
+import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
+import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -42,16 +46,21 @@ public class LoanApiIntegrationTest {
 	int port;
 
 	private RestClient client;
+	
+	@Autowired
+	private UserViewRepository userViewRepository;
 
 	@BeforeEach
 	void setup() {
 		this.client = RestClient.builder().baseUrl(String.format("http://localhost:%d", port)).build();
+		createUser(USER_1);
+		createUser(USER_2);
 	}
 
 	@Test
-	public void readerCannotCreateLoan() {
+	public void readerCanCreateLoan() {
 		ResponseEntity<String> response = addLoan(USER_2, READER_ROLE);
-		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+		Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 	}
 
 	@Test
@@ -73,7 +82,7 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
-	@Disabled("RabbitMQ required")
+	@Disabled("Move to integration-test module")
 	@Test
 	public void librarianCanConfirmLoan() {
 		String loanId = setupLoan();
@@ -81,7 +90,7 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 	}
 
-	@Disabled("RabbitMQ required")
+	@Disabled("Move to integration-test module")
 	@Test
 	public void adminCanConfirmLoan() {
 		String loanId = setupLoan();
@@ -96,7 +105,7 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
-	@Disabled("RabbitMQ required")
+	@Disabled("Move to integration-test module")
 	@Test
 	public void librarianCanCancelLoan() {
 		String loanId = setupLoan();
@@ -104,7 +113,7 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 	}
 
-	@Disabled("RabbitMQ required")
+	@Disabled("Move to integration-test module")
 	@Test
 	public void adminCanCancelLoan() {
 		String loanId = setupLoan();
@@ -119,7 +128,7 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
-	@Disabled("RabbitMQ required")
+	@Disabled("Move to integration-test module")
 	@Test
 	public void librarianCanReturnLoan() {
 		String loanId = setupLoan();
@@ -128,7 +137,7 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 	}
 
-	@Disabled("RabbitMQ required")
+	@Disabled("Move to integration-test module")
 	@Test
 	public void adminCanReturnLoan() {
 		String loanId = setupLoan();
@@ -200,31 +209,34 @@ public class LoanApiIntegrationTest {
 	private String setupLoan(String userId) {
 
 		AddLoanRequest request = new AddLoanRequest("9788804336327", userId, LocalDate.now(), null);
-		ResponseEntity<LoanResponse> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON).headers(h -> addHeaders(h, ADMIN_ROLE, USER_1))
-				.body(request).retrieve().toEntity(LoanResponse.class);
+		ResponseEntity<LoanResponse> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON)
+				.headers(h -> addHeaders(h, ADMIN_ROLE, USER_1)).body(request).retrieve().toEntity(LoanResponse.class);
 
 		Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
 		return response.getBody().loanId();
-	
+
 	}
 
 	private ResponseEntity<String> addLoan(String userId, String role) {
 		AddLoanRequest request = new AddLoanRequest("9788804336327", userId, LocalDate.now(), null);
-		return client.post().uri("/").contentType(MediaType.APPLICATION_JSON).headers(h -> addHeaders(h, role, USER_1))
+		return client.post().uri("/").contentType(MediaType.APPLICATION_JSON).headers(h -> addHeaders(h, role, userId))
 				.body(request).exchange((req, res) -> toEntity(res));
 	}
 
 	private ResponseEntity<String> confirmLoan(String loanId, String role) {
-		return client.post().uri(String.format(CONFIRM_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, loanId)).exchange((req, res) -> toEntity(res));
+		return client.post().uri(String.format(CONFIRM_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, loanId))
+				.exchange((req, res) -> toEntity(res));
 	}
-	
+
 	private ResponseEntity<String> cancelLoan(String loanId, String role) {
-		return client.post().uri(String.format(CANCEL_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, loanId)).exchange((req, res) -> toEntity(res));
+		return client.post().uri(String.format(CANCEL_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, loanId))
+				.exchange((req, res) -> toEntity(res));
 	}
-	
+
 	private ResponseEntity<String> returnLoan(String loanId, String role) {
-		return client.post().uri(String.format(RETURN_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, USER_1)).exchange((req, res) -> toEntity(res));
+		return client.post().uri(String.format(RETURN_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, USER_1))
+				.exchange((req, res) -> toEntity(res));
 	}
 
 	private void addHeaders(HttpHeaders headers, String role, String userId) {
@@ -244,4 +256,9 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
 	}
+
+	private void createUser(String userId) {
+		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), UserStatus.ACTIVE));
+	}
+
 }

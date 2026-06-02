@@ -12,7 +12,6 @@ import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEnt
 
 @Repository
 public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, String>, JpaSpecificationExecutor<LoanViewEntity> {
-
 	@Modifying
 	@Query("UPDATE LoanViewEntity l SET l.status = :status, l.updatedAt = CURRENT_TIMESTAMP WHERE l.id = :id")
 	int updateStatus(@Param("id") String id, @Param("status") LoanStatus status);

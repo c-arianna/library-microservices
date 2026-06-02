@@ -10,11 +10,15 @@ import org.springframework.stereotype.Service;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
+import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
+import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.events.LoanFailedReason;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookBorrowRejectedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookLoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.book.BookReservationRejectedIntegrationPayload;
+import mentoring.acomi.sharedlibrary.integration.messaging.user.UserIntegrationPayload;
+import mentoring.acomi.sharedlibrary.integration.messaging.user.UserSubscribedIntegrationPayload;
 
 @Service
 public class LoanEventService {
@@ -24,13 +28,14 @@ public class LoanEventService {
 	private static final String RESERVATION_MISSING = "RESERVATION_MISSING";
 
 	private final LoanEventRepository eventRepository;
+	private final UserViewRepository userViewRepository;
 	private final EventDispatcher eventDispatcher;
 	private final Logger logger = LogManager.getLogger(LoanEventService.class);
 
-	public LoanEventService(LoanEventRepository eventRepository, EventDispatcher eventDispatcher) {
+	public LoanEventService(LoanEventRepository eventRepository, UserViewRepository userViewRepository, EventDispatcher eventDispatcher) {
 		this.eventRepository = eventRepository;
+		this.userViewRepository = userViewRepository;
 		this.eventDispatcher = eventDispatcher;
-
 	}
 
 	public void handleBookReserved(BookLoanIntegrationPayload payload) {
@@ -66,7 +71,16 @@ public class LoanEventService {
 		}
 
 	}
+	
+	public void handleSubscribeUser(UserSubscribedIntegrationPayload payload) {
+		UserView user = new UserView(payload.userId(), payload.email(), payload.status());
+		userViewRepository.add(user);
+	}
 
+	public void handleUpdateUserStatus(UserIntegrationPayload payload) {
+		userViewRepository.updateStatus(payload.userId(), payload.status());
+	}
+	
 	private LoanAggregate loadLoan(String loanId) {
 
 		List<LoanEvent> events = eventRepository.loadStream(loanId);

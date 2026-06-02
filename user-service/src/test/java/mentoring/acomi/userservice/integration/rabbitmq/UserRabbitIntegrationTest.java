@@ -1,0 +1,298 @@
+package mentoring.acomi.userservice.integration.rabbitmq;
+
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+
+import org.testcontainers.containers.RabbitMQContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.repositories.UserEventRepository;
+import mentoring.acomi.userservice.application.repositories.UserViewRepository;
+import mentoring.acomi.userservice.application.services.UserService;
+import mentoring.acomi.userservice.domain.events.UserEventType;
+import mentoring.acomi.userservice.domain.model.User;
+import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
+import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
+import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
+import mentoring.acomi.userservice.infrastructure.security.GatewayPrincipal;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+
+@SpringBootTest
+@Testcontainers
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+class UserRabbitIntegrationTest {
+
+	@Container
+	static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
+
+	@DynamicPropertySource
+	static void rabbitProps(DynamicPropertyRegistry registry) {
+		registry.add("spring.rabbitmq.host", rabbit::getHost);
+		registry.add("spring.rabbitmq.port", rabbit::getAmqpPort);
+		registry.add("spring.rabbitmq.username", rabbit::getAdminUsername);
+		registry.add("spring.rabbitmq.password", rabbit::getAdminPassword);
+	}
+
+	@Autowired
+	private RabbitTemplate rabbitTemplate;
+
+	@Autowired
+	private AmqpAdmin amqpAdmin;
+
+	@Autowired
+	private TopicExchange eventsExchange;
+
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private UserEventRepository userEventRepository;
+
+	@Autowired
+	private UserViewRepository userViewRepository;
+
+	@Autowired
+	private ObjectMapper objectMapper;
+	
+	private static final String ADMIN_ID = "admin-1";
+	private static final String ADMIN_ROLE = "ADMIN";
+	private static final String READER_ROLE = "READER";
+
+	@AfterEach
+	void clearSecurityContext() {
+		SecurityContextHolder.clearContext();
+	}
+
+	@Test
+	void shouldPublishUserSubscribedWhenUserSubscribes() {
+
+		String routingKey = IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey();
+		String tmpQueue = createTmpQueue(routingKey);
+
+		User user = subscribeUser();
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			assertEquals(UserStatus.ACTIVE, userView.status());
+		});
+
+		var events = userEventRepository.loadStream(user.getId());
+		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSubscribed));
+
+		String body = waitForMessageBody(tmpQueue);
+
+		assertNotNull(body);
+
+		JsonNode json = objectMapper.readTree(body);
+
+		assertEquals("USER_SUBSCRIBED", json.get("eventType").asString());
+
+		assertEquals("user-service", json.get("producer").asString());
+		assertEquals(user.getId(), json.get("aggregateId").asString());
+
+		JsonNode payload = json.get("payload");
+		assertNotNull(payload);
+
+		assertEquals(user.getEmail().getValue(), payload.get("email").asString());
+		assertEquals("ACTIVE", payload.get("status").asString());
+	}
+
+	@Test
+	void shouldPublishUserSuspendedWhenAdminSuspendsUser() {
+
+		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey());
+
+		User user = subscribeUser();
+
+		setAuthenticatedUser(ADMIN_ID, ADMIN_ROLE);
+
+		userService.suspend(new SuspendRequest(user.getId(), "policy violation"));
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			assertEquals(UserStatus.SUSPENDED, userView.status());
+		});
+
+		var events = userEventRepository.loadStream(user.getId());
+		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSuspended));
+
+		String body = waitForMessageBody(tmpQueue);
+
+		assertNotNull(body);
+
+		JsonNode json = objectMapper.readTree(body);
+
+		assertEquals("USER_SUSPENDED", json.get("eventType").asString());
+
+		assertEquals("user-service", json.get("producer").asString());
+		assertEquals(user.getId(), json.get("aggregateId").asString());
+
+		JsonNode payload = json.get("payload");
+		assertNotNull(payload);
+
+		assertEquals(user.getId(), payload.get("userId").asString());
+		assertEquals("SUSPENDED", payload.get("status").asString());
+		
+	}
+
+	@Test
+	void shouldPublishUserUnsuspendedWhenAdminUnsuspendsUser() {
+
+		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey());
+
+		User user = subscribeUser();
+
+		setAuthenticatedUser(ADMIN_ID, ADMIN_ROLE);
+
+		userService.suspend(new SuspendRequest(user.getId(), "temporary suspension"));
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			assertEquals(UserStatus.SUSPENDED, userView.status());
+		});
+
+		userService.unsuspend(new SuspendRequest(user.getId(), "reactivation"));
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			assertEquals(UserStatus.ACTIVE, userView.status());
+		});
+
+		var events = userEventRepository.loadStream(user.getId());
+		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsuspended));
+
+		String body = waitForMessageBody(tmpQueue);
+
+		assertNotNull(body);
+
+		JsonNode json = objectMapper.readTree(body);
+
+		assertEquals("USER_UNSUSPENDED", json.get("eventType").asString());
+
+		assertEquals("user-service", json.get("producer").asString());
+		assertEquals(user.getId(), json.get("aggregateId").asString());
+
+		JsonNode payload = json.get("payload");
+		assertNotNull(payload);
+
+		assertEquals(user.getId(), payload.get("userId").asString());
+		assertEquals("ACTIVE", payload.get("status").asString());
+	
+	}
+
+	@Test
+	void shouldPublishUserUnsubscribedWhenReaderUnsubscribes() {
+
+		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey());
+
+		User user = subscribeUser();
+
+		setAuthenticatedUser(user.getId(), READER_ROLE);
+
+		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			assertEquals(UserStatus.DISABLE, userView.status());
+		});
+
+		var events = userEventRepository.loadStream(user.getId());
+		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsubscribed));
+
+		String body = waitForMessageBody(tmpQueue);
+
+		assertNotNull(body);
+
+		JsonNode json = objectMapper.readTree(body);
+
+		assertEquals("USER_UNSUBSCRIBED", json.get("eventType").asString());
+
+		assertEquals("user-service", json.get("producer").asString());
+		assertEquals(user.getId(), json.get("aggregateId").asString());
+
+		JsonNode payload = json.get("payload");
+		assertNotNull(payload);
+
+		assertEquals(user.getId(), payload.get("userId").asString());
+		assertEquals("DISABLE", payload.get("status").asString());
+		
+	}
+
+	private void setAuthenticatedUser(String userId, String role) {
+		GatewayPrincipal principal = new GatewayPrincipal(userId, role);
+		Authentication auth = new UsernamePasswordAuthenticationToken(principal, null,
+				List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
+		SecurityContextHolder.getContext().setAuthentication(auth);
+	}
+
+	private String createTmpQueue(String routingKey) {
+		String queueName = String.join(".", "probe", routingKey, UUID.randomUUID().toString());
+
+		amqpAdmin.declareExchange(eventsExchange);
+
+		Queue queue = new Queue(queueName, false, false, false);
+		amqpAdmin.declareQueue(queue);
+
+		Binding binding = BindingBuilder.bind(queue).to(eventsExchange).with(routingKey);
+
+		amqpAdmin.declareBinding(binding);
+
+		return queueName;
+
+	}
+
+	private String receiveMessageBody(String queueName) {
+		var message = rabbitTemplate.receive(queueName, 3000);
+		if (message == null) {
+			return null;
+		}
+		return new String(message.getBody(), StandardCharsets.UTF_8);
+	}
+
+	private User subscribeUser() {
+		String email = String.format("test.%s@mail.com", UUID.randomUUID().toString());
+		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
+		return userService.subscribe(request);
+	}
+	
+	private String waitForMessageBody(String queueName) {
+        final String[] holder = new String[1];
+
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .pollInterval(Duration.ofMillis(100))
+            .until(() -> {
+                holder[0] = receiveMessageBody(queueName);
+                return holder[0] != null;
+            });
+
+        return holder[0];
+    }
+}

@@ -19,7 +19,7 @@ public class BookIntegrationEventPublisher {
 	}
 
 	private void publish(IntegrationEventEnvelope<?> eventEnvelope) {
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, eventEnvelope.eventType().toString(), eventEnvelope);
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, eventEnvelope.eventType().getRoutingKey(), eventEnvelope);
 	}
 
 	public void dispatch(BookEvent event) {

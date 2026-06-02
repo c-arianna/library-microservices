@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import mentoring.acomi.loanservice.application.errors.InvalidUser;
+import mentoring.acomi.loanservice.application.errors.UserNotFound;
 import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.errors.LoanNotExist;
@@ -38,15 +40,12 @@ public class ApplicationExceptionHandler {
 	@ExceptionHandler(AuthorizationDeniedException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)
 	public ErrorResponse handleAccessDeniedErorr(AuthorizationDeniedException e) throws Exception {
-
 		return handleException(e, "ACCESS_DENIED", "Invalid permission to access this resource", "SECURITY");
-
 	}
 	
 	@ExceptionHandler(ValidationDomain.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErrorResponse handleValidationDomainError(ValidationDomain e) throws Exception {
-
 		return handleException(e, e.getCode(), e.getMessage(), "VALIDATION_ERROR");
 	}
 
@@ -60,6 +59,18 @@ public class ApplicationExceptionHandler {
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
 	public ErrorResponse handleLoanNotCreatedError(LoanNotExist e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+	
+	@ExceptionHandler(UserNotFound.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleUserNotFoundError(UserNotFound e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "RESOURCE_NOT_FOUND");
+	}
+	
+	@ExceptionHandler(InvalidUser.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ErrorResponse handleInvalidUserError(InvalidUser e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "LOAN_INVALID_USER");
 	}
 	
 	@ExceptionHandler(InvalidLoanStateTransition.class)
