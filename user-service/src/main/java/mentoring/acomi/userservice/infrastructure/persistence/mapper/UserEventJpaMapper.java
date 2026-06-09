@@ -2,6 +2,7 @@ package mentoring.acomi.userservice.infrastructure.persistence.mapper;
 
 import org.springframework.stereotype.Component;
 
+import mentoring.acomi.sharedlibrary.eventstore.EventMapper;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
@@ -16,7 +17,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
-public class UserEventJpaMapper {
+public class UserEventJpaMapper implements EventMapper<UserEvent, UserEventEntity> {
 
 	private final ObjectMapper objectMapper;
 

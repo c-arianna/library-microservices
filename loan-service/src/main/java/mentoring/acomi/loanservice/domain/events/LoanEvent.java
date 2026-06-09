@@ -1,12 +1,8 @@
 package mentoring.acomi.loanservice.domain.events;
 
-import java.time.Instant;
+import mentoring.acomi.sharedlibrary.eventstore.DomainEvent;
 
 
-public sealed interface LoanEvent permits LoanStateEvent, LoanProcessEvent{
-	String aggregateId();
-	String eventId();
-	Instant occurredAt();
+public sealed interface LoanEvent extends DomainEvent permits LoanStateEvent, LoanProcessEvent{
 	LoanEventType type();
-	Object payload();
 }

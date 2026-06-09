@@ -1,11 +1,7 @@
 package mentoring.acomi.userservice.domain.events;
 
-import java.time.Instant;
+import mentoring.acomi.sharedlibrary.eventstore.DomainEvent;
 
-public sealed interface UserEvent permits UserSubscribedEvent, UserUnsubscribeEvent, UserSuspendEvent,UserUnsuspendedEvent {
-	String aggregateId();
-	String eventId();
-	Instant occurredAt();
+public sealed interface UserEvent extends DomainEvent permits UserSubscribedEvent, UserUnsubscribeEvent, UserSuspendEvent,UserUnsuspendedEvent {
 	UserEventType type();
-	Object payload();
 }

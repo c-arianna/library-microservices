@@ -15,11 +15,12 @@ import mentoring.acomi.loanservice.domain.events.payload.LoanFailedPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
+import mentoring.acomi.sharedlibrary.eventstore.EventMapper;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
-public class LoanEventJpaMapper {
+public class LoanEventJpaMapper implements EventMapper<LoanEvent, LoanEventEntity>{
 
 	private final ObjectMapper objectMapper;
 

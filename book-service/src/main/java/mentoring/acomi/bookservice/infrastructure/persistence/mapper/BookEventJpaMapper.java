@@ -23,8 +23,10 @@ import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEn
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import mentoring.acomi.sharedlibrary.eventstore.EventMapper;
+
 @Component
-public class BookEventJpaMapper {
+public class BookEventJpaMapper implements EventMapper<BookEvent, BookEventEntity>{
 
 	private final ObjectMapper objectMapper;
 

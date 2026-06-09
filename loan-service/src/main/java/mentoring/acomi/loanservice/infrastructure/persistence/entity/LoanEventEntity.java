@@ -7,14 +7,12 @@ import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import mentoring.acomi.sharedlibrary.eventstore.BaseEventEntity;
 import tools.jackson.databind.JsonNode;
 
 @Entity
@@ -22,25 +20,11 @@ import tools.jackson.databind.JsonNode;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoanEventEntity {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-
-	private String aggregateId;
-
-	private String eventId;
-
-	private String eventType;
-
-	private int eventVersion;
+public class LoanEventEntity extends BaseEventEntity{
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "json")
 	private JsonNode payload;
-
-	private Instant  occurredAt;
 
 	public LoanEventEntity(String aggregateId, String eventId, String eventType, JsonNode payload, Instant  occurredAt) {
 		this.eventId = eventId;

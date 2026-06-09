@@ -3,15 +3,15 @@ package mentoring.acomi.bookservice.infrastructure.persistence.repositories;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
+import mentoring.acomi.sharedlibrary.eventstore.BaseEventJpaRepository;
 
 @Repository
-public interface BookEventJpaRepository extends JpaRepository<BookEventEntity, Long> {
+public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEventEntity> {
 
 	@Query("""
 			select max(e.eventVersion)

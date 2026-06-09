@@ -1,12 +1,8 @@
 package mentoring.acomi.bookservice.domain.events;
 
-import java.time.Instant;
+import mentoring.acomi.sharedlibrary.eventstore.DomainEvent;
 
-public sealed interface BookEvent permits BookStateEvent, BookProcessEvent{
-	String aggregateId();
-	String eventId();
-	Instant occurredAt();
+public sealed interface BookEvent extends DomainEvent permits BookStateEvent, BookProcessEvent{
 	BookEventType type();
-	Object payload();
 }
 
