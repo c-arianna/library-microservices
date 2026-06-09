@@ -13,8 +13,8 @@ import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.model.ISBN;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.integration.messaging.loan.LoanIntegrationPayload;
 
 @Service
 public class BookEventService {

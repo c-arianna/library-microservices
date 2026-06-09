@@ -10,10 +10,10 @@ import mentoring.acomi.loanservice.domain.events.LoanFailedEvent;
 import mentoring.acomi.loanservice.domain.events.LoanRequestedEvent;
 import mentoring.acomi.loanservice.domain.events.LoanReservedEvent;
 import mentoring.acomi.loanservice.domain.events.LoanReturnedEvent;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.integration.messaging.loan.LoanFailedIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.loan.LoanIntegrationPayload;
 
 @Component
 public class LoanIntegrationEventMapper {

@@ -12,13 +12,13 @@ import mentoring.acomi.bookservice.domain.events.BookReleasedEvent;
 import mentoring.acomi.bookservice.domain.events.BookReservationRejectedEvent;
 import mentoring.acomi.bookservice.domain.events.BookReservedEvent;
 import mentoring.acomi.bookservice.domain.events.BookReturnedEvent;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookBorrowRejectedIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookCopiesUpdatedIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookBorrowRejectedIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookCopiesUpdatedIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookLoanIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookRegisteredIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookReservationRejectedIntegrationPayload;
 
 @Component
 public class BookIntegrationEventMapper {

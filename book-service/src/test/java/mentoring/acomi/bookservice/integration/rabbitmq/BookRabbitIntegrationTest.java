@@ -31,10 +31,10 @@ import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
-import mentoring.acomi.sharedlibrary.integration.messaging.loan.LoanIntegrationPayload;
 
 @SpringBootTest
 @Testcontainers

@@ -4,14 +4,14 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.integration.messaging.user.UserIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.user.UserSubscribedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsubscribeEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsuspendedEvent;
+import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
+import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
 
 @Component
 public class UserIntegrationEventMapper {

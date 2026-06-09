@@ -1,4 +1,4 @@
-package mentoring.acomi.sharedlibrary.integration.messaging.user;
+package mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer;
 
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 

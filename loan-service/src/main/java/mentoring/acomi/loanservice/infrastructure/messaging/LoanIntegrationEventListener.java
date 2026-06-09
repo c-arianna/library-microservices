@@ -5,14 +5,14 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.application.services.LoanEventService;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookBorrowRejectedIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookLoanIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookReservationRejectedIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.user.UserIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.user.UserSubscribedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import tools.jackson.databind.ObjectMapper;
 
 @Component

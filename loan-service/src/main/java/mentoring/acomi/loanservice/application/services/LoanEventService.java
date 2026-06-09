@@ -8,6 +8,11 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
@@ -15,11 +20,6 @@ import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.events.LoanFailedReason;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookBorrowRejectedIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookLoanIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.book.BookReservationRejectedIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.user.UserIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.user.UserSubscribedIntegrationPayload;
 
 @Service
 public class LoanEventService {
