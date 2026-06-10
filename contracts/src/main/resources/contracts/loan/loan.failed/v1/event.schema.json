@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LoanFailedEventV1",
+  "type": "object",
+  "additionalProperties": false,
+
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+
+    "eventType": {
+      "type": "string",
+      "const": "LOAN_FAILED"
+    },
+
+    "producer": {
+      "type": "string",
+      "const": "loan-service"
+    },
+
+    "aggregateId": {
+      "type": "string"
+    },
+
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+
+    "payload": {
+		"properties": {
+		    "loanId": {
+		      "type": "string"
+		    },
+		    "reason": {
+		      "type": "string"
+		    }
+		  },
+
+		  "required": [
+		    "loanId",
+		    "reason"
+		  ]
+    }
+  },
+
+  "required": [
+    "eventId",
+    "eventType",
+    "producer",
+    "aggregateId",
+    "occurredAt",
+    "schemaVersion",
+    "payload"
+  ]
+}

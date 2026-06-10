@@ -1,0 +1,14 @@
+{
+  "eventId": "05c050a3-b9fb-4967-a47d-8717d2a62844",
+  "eventType": "LOAN_CONFIRM_REQUESTED",
+  "producer": "loan-service",
+  "aggregateId": "70a865d6-2766-4dac-b38a-ef5f8b8291b2",
+  "occurredAt": "2026-06-10T10:30:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "loanId": "70a865d6-2766-4dac-b38a-ef5f8b8291b2",
+    "userId": "31dad5ea-9f2b-4b11-aa40-cc623f8220b4"
+  }
+}

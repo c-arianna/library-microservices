@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.event.contract;
+package mentoring.acomi.bookservice.event.contract.producer;
 
 import java.io.InputStream;
 import java.time.Instant;

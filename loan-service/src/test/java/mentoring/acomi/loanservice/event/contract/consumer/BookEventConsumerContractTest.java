@@ -25,7 +25,7 @@ import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.Boo
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 
-public class LoanEventConsumerContractTest {
+public class BookEventConsumerContractTest {
 
 	private static final String BOOK_SCHEMA_PATH = "contracts/book/%s/v1/event.schema.json";
 	private static final String BOOK_SAMPLE_PATH = "contracts/book/%s/v1/sample.json";

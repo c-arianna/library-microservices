@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.event.contract;
+package mentoring.acomi.bookservice.event.contract.producer;
 
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 
