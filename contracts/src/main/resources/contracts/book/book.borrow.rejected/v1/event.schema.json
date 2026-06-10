@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BookBorrowRejectedEventV1",
+  "type": "object",
+  "additionalProperties": false,
+
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+
+    "eventType": {
+      "type": "string",
+      "const": "BOOK_BORROW_REJECTED"
+    },
+
+    "producer": {
+      "type": "string",
+      "const": "book-service"
+    },
+
+    "aggregateId": {
+      "type": "string"
+    },
+
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+
+    "payload": {
+		"properties": {
+		    "isbn": {
+		      "type": "string"
+		    },
+		    "loanId": {
+		      "type": "string"
+		    },
+		    "userId": {
+		      "type": "string"
+		    },
+		    "reason": {
+		      "type": "string"
+		    }
+		  },
+
+		  "required": [
+		    "isbn",
+		    "loanId",
+		    "userId",
+		    "reason"
+		  ]
+    }
+  },
+
+  "required": [
+    "eventId",
+    "eventType",
+    "producer",
+    "aggregateId",
+    "occurredAt",
+    "schemaVersion",
+    "payload"
+  ]
+}

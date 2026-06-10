@@ -210,8 +210,7 @@ class LoanRabbitIntegrationTest {
 
 	private void publishBookReserved(String loanId) {
 		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, Instant.now(),
-				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, Instant.now(), 1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(),
 				event);
@@ -219,8 +218,7 @@ class LoanRabbitIntegrationTest {
 
 	private void publishBookBorrowed(String loanId) {
 		var event = new IntegrationEventEnvelope<>(String.format("evt-book-borrowed-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, Instant.now(),
-				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, Instant.now(), 1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_BORROWED.getRoutingKey(),
 				event);
@@ -228,7 +226,7 @@ class LoanRabbitIntegrationTest {
 
 	private void publishBookReservationRejected(String loanId, String reason) {
 		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reject-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "book-service", ISBN, Instant.now(),
+				IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "book-service", ISBN, Instant.now(), 1, 
 				new BookReservationRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
@@ -236,9 +234,8 @@ class LoanRabbitIntegrationTest {
 	}
 
 	private void publishBookBorrowRejected(String loanId, String reason) {
-		var event = new IntegrationEventEnvelope<>(
-				String.format("evt-book-borrow-reject-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_BORROW_REJECTED, "book-service", ISBN, Instant.now(),
+		var event = new IntegrationEventEnvelope<>(String.format("evt-book-borrow-reject-%s", UUID.randomUUID().toString()),
+				IntegrationEventTypes.BOOK_BORROW_REJECTED, "book-service", ISBN, Instant.now(), 1,
 				new BookBorrowRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,

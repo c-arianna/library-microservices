@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BookRegisteredEventV1",
+  "type": "object",
+  "additionalProperties": false,
+
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+
+    "eventType": {
+      "type": "string",
+      "const": "BOOK_REGISTERED"
+    },
+
+    "producer": {
+      "type": "string",
+      "const": "book-service"
+    },
+
+    "aggregateId": {
+      "type": "string"
+    },
+
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+
+    "payload": {
+		"type": "object",
+		"properties": {
+		    "isbn": {
+		      "type": "string"
+		    },
+		    "author": {
+		      "type": "string"
+		    },
+		    "title": {
+		      "type": "string"
+		    },
+		    "description": {
+		      "type": "string"
+		    }
+		  },
+
+		  "required": [
+		    "isbn",
+		    "author",
+		    "title",
+		    "description"
+		  ]
+  	}
+  },
+
+  "required": [
+    "eventId",
+    "eventType",
+    "producer",
+    "aggregateId",
+    "occurredAt",
+    "schemaVersion",
+    "payload"
+  ]
+}

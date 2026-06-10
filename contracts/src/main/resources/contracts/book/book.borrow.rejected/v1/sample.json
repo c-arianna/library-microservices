@@ -1,0 +1,15 @@
+{
+  "eventId": "7cc5cc4e-9c2a-4239-9e38-143106b2d3a1",
+  "eventType": "BOOK_BORROW_REJECTED",
+  "producer": "book-service",
+  "aggregateId": "9788828606819",
+  "occurredAt": "2026-06-09T14:40:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "loanId": "0138e59f-a16a-4368-a3dd-58b03382fc46",
+    "userId": "0c943a69-ceae-4d93-9659-85ceabba6765",
+    "reason": "RESERVATION_MISSING"
+  }
+}

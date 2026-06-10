@@ -18,6 +18,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<shared.library.version>0.0.1-SNAPSHOT</shared.library.version>
+		<event.contracts.version>0.0.1-SNAPSHOT</event.contracts.version>
 		<testcontainers.version>1.21.4</testcontainers.version>
 	</properties>
 	<dependencies>
@@ -112,6 +113,32 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.networknt</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>1.0.86</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>mentoring.acomi</groupId>
+			<artifactId>event-contracts</artifactId>
+			<version>${event.contracts.version}</version>
 			<scope>test</scope>
 		</dependency>
 

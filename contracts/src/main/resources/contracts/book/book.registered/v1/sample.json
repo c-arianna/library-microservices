@@ -1,0 +1,15 @@
+{
+  "eventId": "8d1b7c5e-9c15-4d5d-a7a1-1d9c55f42b11",
+  "eventType": "BOOK_REGISTERED",
+  "producer": "book-service",
+  "aggregateId": "9788828606819",
+  "occurredAt": "2026-06-09T14:30:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "author": "Italo Calvino",
+    "title": "Il visconte dimezzato",
+    "description": "Il visconte dimezzato è un romanzo di Italo Calvino pubblicato nel 1952. È la prima parte della trilogia I nostri antenati, la quale include anche i romanzi brevi Il barone rampante (1957) e Il cavaliere inesistente (1959)."
+  }
+}

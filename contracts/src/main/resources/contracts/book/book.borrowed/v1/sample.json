@@ -1,0 +1,14 @@
+{
+  "eventId": "11c306e2-8840-4293-a635-aa476a80613e",
+  "eventType": "BOOK_BORROWED",
+  "producer": "book-service",
+  "aggregateId": "9788828606819",
+  "occurredAt": "2026-06-09T14:40:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "loanId": "9d2a4510-751c-47a0-8b1b-71659dfc3e44",
+    "userId": "d547b392-07c5-4d34-8245-6692974dde88"
+  }
+}

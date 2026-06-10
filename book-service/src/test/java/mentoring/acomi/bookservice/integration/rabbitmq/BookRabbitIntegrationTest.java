@@ -117,7 +117,7 @@ class BookRabbitIntegrationTest {
 	void shouldRejectInvalidPayload() {
 
 		IntegrationEventEnvelope<Object> invalidEvent = new IntegrationEventEnvelope<>("evt-invalid",
-				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, Instant.now(), new Object());
+				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, Instant.now(), 1, new Object());
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, "loan.requested", invalidEvent);
 
@@ -156,7 +156,7 @@ class BookRabbitIntegrationTest {
 
 		String eventId = UUID.randomUUID().toString();
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
-				"loan-service", ISBN, Instant.now(), new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
+				"loan-service", ISBN, Instant.now(), 1, new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
 	}

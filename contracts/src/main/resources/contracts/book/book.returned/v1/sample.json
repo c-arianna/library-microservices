@@ -1,0 +1,14 @@
+{
+  "eventId": "f8fad233-b633-4826-92b2-86b0032ef822",
+  "eventType": "BOOK_RETURNED",
+  "producer": "book-service",
+  "aggregateId": "9788828606819",
+  "occurredAt": "2026-06-09T14:40:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "loanId": "f38f5b42-b51a-4002-aaa0-39b6da3b83b0",
+    "userId": "14402de8-2074-4c93-9909-2132745d2a22"
+  }
+}

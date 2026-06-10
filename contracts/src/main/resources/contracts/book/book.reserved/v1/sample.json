@@ -1,0 +1,14 @@
+{
+  "eventId": "10c1f3cd-0a10-42fe-b1d4-15864beb27e4",
+  "eventType": "BOOK_RESERVED",
+  "producer": "book-service",
+  "aggregateId": "9788828606819",
+  "occurredAt": "2026-06-09T14:40:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "loanId": "4b659787-bc8d-481a-86ca-b5d8dbc37e70",
+    "userId": "77230652-e993-41e4-a8b1-7bba476a08e6"
+  }
+}

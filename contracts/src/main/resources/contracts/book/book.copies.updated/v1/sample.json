@@ -1,0 +1,13 @@
+{
+  "eventId": "63164328-507d-4e19-acc8-536fd746786a",
+  "eventType": "BOOK_COPIES_UPDATED",
+  "producer": "book-service",
+  "aggregateId": "9788828606819",
+  "occurredAt": "2026-06-09T14:40:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "quantity": 2
+  }
+}

@@ -55,37 +55,44 @@ public class LoanIntegrationEventMapper {
 
 	private IntegrationEventEnvelope<?> getLoanConfirmRequestedIntegrationEvent(LoanConfirmRequestedEvent e) {
 		LoanIntegrationPayload payload = new LoanIntegrationPayload(e.payload().id(), e.payload().isbn(), e.payload().userId());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, PRODUCER, e.aggregateId(), e.occurredAt(), payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, PRODUCER, e.aggregateId(), e.occurredAt(), 
+				LoanIntegrationEventVersions.LOAN_CONFIRM_REQUESTED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getLoanFailedIntegrationEvent(LoanFailedEvent e) {
 		LoanFailedIntegrationPayload payload = new LoanFailedIntegrationPayload(e.payload().id(), e.payload().reason().toString());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_FAILED, PRODUCER, e.aggregateId(), e.occurredAt(), payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_FAILED, PRODUCER, e.aggregateId(), e.occurredAt(), 
+				LoanIntegrationEventVersions.LOAN_FAILED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getLoanReturnedIntegrationEvent(LoanReturnedEvent e) {
 		LoanIntegrationPayload payload = new LoanIntegrationPayload(e.payload().id(), e.payload().isbn(), e.payload().userId());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_RETURNED, PRODUCER, e.aggregateId(), e.occurredAt(), payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_RETURNED, PRODUCER, e.aggregateId(), e.occurredAt(), 
+				LoanIntegrationEventVersions.LOAN_RETURNED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getLoanCanceledIntegrationEvent(LoanCanceledEvent e) {
 		LoanIntegrationPayload payload = new LoanIntegrationPayload(e.payload().id(), e.payload().isbn(), e.payload().userId());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_CANCELED, PRODUCER, e.aggregateId(), e.occurredAt(), payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_CANCELED, PRODUCER, e.aggregateId(), e.occurredAt(),
+				LoanIntegrationEventVersions.LOAN_CANCELED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getLoanConfirmedIntegrationEvent(LoanConfirmedEvent e) {
 		LoanIntegrationPayload payload = new LoanIntegrationPayload(e.payload().id(), e.payload().isbn(), e.payload().userId());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_CONFIRMED, PRODUCER, e.aggregateId(), e.occurredAt(), payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_CONFIRMED, PRODUCER, e.aggregateId(), e.occurredAt(), 
+				LoanIntegrationEventVersions.LOAN_CONFIRMED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getLoanReservedIntegrationEvent(LoanReservedEvent e) {
 		LoanIntegrationPayload payload = new LoanIntegrationPayload(e.payload().id(), e.payload().isbn(), e.payload().userId());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_RESERVED, PRODUCER, e.aggregateId(), e.occurredAt(), payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_RESERVED, PRODUCER, e.aggregateId(), e.occurredAt(), 
+				LoanIntegrationEventVersions.LOAN_RESERVED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getLoanRequestedIntegrationEvent(LoanRequestedEvent e) {
 		LoanIntegrationPayload payload = new LoanIntegrationPayload(e.payload().id(), e.payload().isbn(), e.payload().userId());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_REQUESTED, PRODUCER, e.aggregateId(), e.occurredAt(), payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.LOAN_REQUESTED, PRODUCER, e.aggregateId(), e.occurredAt(), 
+				LoanIntegrationEventVersions.LOAN_REQUESTED, payload);
 	}
 		
 

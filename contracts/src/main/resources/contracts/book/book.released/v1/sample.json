@@ -1,0 +1,14 @@
+{
+  "eventId": "8abacb28-07a5-4e0a-892e-6538cdb5aeef",
+  "eventType": "BOOK_RELEASED",
+  "producer": "book-service",
+  "aggregateId": "9788828606819",
+  "occurredAt": "2026-06-09T14:40:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "isbn": "9788828606819",
+    "loanId": "74afb6da-658d-475b-9174-586852176f0c",
+    "userId": "addb2a63-0738-45da-b707-53bb4727c9fe"
+  }
+}
