@@ -36,6 +36,15 @@ import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes
 
 public class BookIntegrationEventMapperTest {
 
+	private static final String BOOK_BORROW_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROW_REJECTED.eventName;
+	private static final String BOOK_RESERVATION_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_RESERVATION_REJECTED.eventName;
+	private static final String BOOK_RETURNED_EVENT_NAME = IntegrationEventTypes.BOOK_RETURNED.eventName;
+	private static final String BOOK_RELEASED_EVENT_NAME = IntegrationEventTypes.BOOK_RELEASED.eventName;
+	private static final String BOOK_RESERVED_EVENT_NAME = IntegrationEventTypes.BOOK_RESERVED.eventName;
+	private static final String BOOK_COPIES_UPDATED_EVENT_NAME = IntegrationEventTypes.BOOK_COPIES_UPDATED.eventName;
+	private static final String BOOK_BORROWED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROWED.eventName;
+	private static final String BOOK_REGISTERED_EVENT_NAME = IntegrationEventTypes.BOOK_REGISTERED.eventName;
+	
 	private static final String PRODUCER = "book-service";
 	private final BookIntegrationEventMapper mapper = new BookIntegrationEventMapper();
 
@@ -53,14 +62,14 @@ public class BookIntegrationEventMapperTest {
 
 	static Stream<Arguments> eventCases() {
         return Stream.of(
-                Arguments.of("book.registered", getBookRegisteredEvent(), IntegrationEventTypes.BOOK_REGISTERED),
-                Arguments.of("book.borrowed", getBookBorrowedEvent(), IntegrationEventTypes.BOOK_BORROWED),
-                Arguments.of("book.copies.updated", getBookCopiesAddedEvent(), IntegrationEventTypes.BOOK_COPIES_UPDATED),
-                Arguments.of("book.reserved", getBookReservedEvent(), IntegrationEventTypes.BOOK_RESERVED),
-                Arguments.of("book.released", getBookReleasedEvent(), IntegrationEventTypes.BOOK_RELEASED),
-                Arguments.of("book.returned", getBookReturnedEvent(), IntegrationEventTypes.BOOK_RETURNED),
-                Arguments.of("book.reservation.rejected", getBookReservationRejectedEvent(), IntegrationEventTypes.BOOK_RESERVATION_REJECTED),
-                Arguments.of("book.borrow.rejected", getBookBorrowRejectedEvent(), IntegrationEventTypes.BOOK_BORROW_REJECTED)
+                Arguments.of(BOOK_REGISTERED_EVENT_NAME, getBookRegisteredEvent(), IntegrationEventTypes.BOOK_REGISTERED),
+                Arguments.of(BOOK_BORROWED_EVENT_NAME, getBookBorrowedEvent(), IntegrationEventTypes.BOOK_BORROWED),
+                Arguments.of(BOOK_COPIES_UPDATED_EVENT_NAME, getBookCopiesAddedEvent(), IntegrationEventTypes.BOOK_COPIES_UPDATED),
+                Arguments.of(BOOK_RESERVED_EVENT_NAME, getBookReservedEvent(), IntegrationEventTypes.BOOK_RESERVED),
+                Arguments.of(BOOK_RELEASED_EVENT_NAME, getBookReleasedEvent(), IntegrationEventTypes.BOOK_RELEASED),
+                Arguments.of(BOOK_RETURNED_EVENT_NAME, getBookReturnedEvent(), IntegrationEventTypes.BOOK_RETURNED),
+                Arguments.of(BOOK_RESERVATION_REJECTED_EVENT_NAME, getBookReservationRejectedEvent(), IntegrationEventTypes.BOOK_RESERVATION_REJECTED),
+                Arguments.of(BOOK_BORROW_REJECTED_EVENT_NAME, getBookBorrowRejectedEvent(), IntegrationEventTypes.BOOK_BORROW_REJECTED)
                
         );
     }

@@ -119,7 +119,7 @@ class BookRabbitIntegrationTest {
 		IntegrationEventEnvelope<Object> invalidEvent = new IntegrationEventEnvelope<>("evt-invalid",
 				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, Instant.now(), 1, new Object());
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, "loan.requested", invalidEvent);
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.LOAN_REQUESTED.eventName, invalidEvent);
 
 		await().atMost(Duration.ofSeconds(3));
 

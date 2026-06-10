@@ -22,8 +22,14 @@ import com.networknt.schema.ValidationMessage;
 
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 
 public class LoanEventConsumerContractTest {
+	
+	private static final String LOAN_RETURNED_EVENT_NAME = IntegrationEventTypes.LOAN_RETURNED.eventName;
+	private static final String LOAN_CANCELED_EVENT_NAME = IntegrationEventTypes.LOAN_CANCELED.eventName;
+	private static final String LOAN_CONFIRM_REQUESTED_EVENT_NAME =  IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.eventName;
+	private static final String LOAN_REQUESTED_EVENT_NAME = IntegrationEventTypes.LOAN_REQUESTED.eventName;
 	
 	private static final String LOAN_SCHEMA_PATH = "contracts/loan/%s/v1/event.schema.json";
 	private static final String LOAN_SAMPLE_PATH = "contracts/loan/%s/v1/sample.json";
@@ -38,7 +44,7 @@ public class LoanEventConsumerContractTest {
 	
 	@Test
 	void shouldDeserializeLoanRequestedEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, "loan.requested")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_REQUESTED_EVENT_NAME)));
 
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -47,7 +53,7 @@ public class LoanEventConsumerContractTest {
 	
 	@Test
 	void shouldDeserializeLoanConfirmRequestedEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, "loan.confirm.requested")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_CONFIRM_REQUESTED_EVENT_NAME)));
 
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -56,7 +62,7 @@ public class LoanEventConsumerContractTest {
 	
 	@Test
 	void shouldDeserializeLoanCanceledEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, "loan.canceled")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_CANCELED_EVENT_NAME)));
 
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -65,7 +71,7 @@ public class LoanEventConsumerContractTest {
 	
 	@Test
 	void shouldDeserializeLoanReturnedEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, "loan.returned")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_RETURNED_EVENT_NAME)));
 
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -81,10 +87,10 @@ public class LoanEventConsumerContractTest {
 	}
 
 	static Stream<Arguments> sampleCases() {
-		return Stream.of(Arguments.of("loan.requested", getLoanContractCase("loan.requested")),
-				Arguments.of("loan.confirm.requested", getLoanContractCase("loan.confirm.requested")),
-				Arguments.of("loan.canceled", getLoanContractCase("loan.canceled")),
-				Arguments.of("loan.returned", getLoanContractCase("loan.returned"))
+		return Stream.of(Arguments.of(LOAN_REQUESTED_EVENT_NAME, getLoanContractCase(LOAN_REQUESTED_EVENT_NAME)),
+				Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, getLoanContractCase(LOAN_CONFIRM_REQUESTED_EVENT_NAME)),
+				Arguments.of(LOAN_CANCELED_EVENT_NAME, getLoanContractCase(LOAN_CANCELED_EVENT_NAME)),
+				Arguments.of(LOAN_RETURNED_EVENT_NAME, getLoanContractCase(LOAN_RETURNED_EVENT_NAME))
 		);
 	}
 

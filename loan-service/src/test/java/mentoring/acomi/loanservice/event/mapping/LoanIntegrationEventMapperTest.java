@@ -32,6 +32,14 @@ import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes
 
 public class LoanIntegrationEventMapperTest {
 
+	private static final String LOAN_FAILED_EVENT_NAME = IntegrationEventTypes.LOAN_FAILED.eventName;
+	private static final String LOAN_RESERVED_EVENT_NAME = IntegrationEventTypes.LOAN_RESERVED.eventName;
+	private static final String LOAN_RETURNED_EVENT_NAME = IntegrationEventTypes.LOAN_RETURNED.eventName;
+	private static final String LOAN_CANCELED_EVENT_NAME = IntegrationEventTypes.LOAN_CANCELED.eventName;
+	private static final String LOAN_CONFIRM_REQUESTED_EVENT_NAME = IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.eventName;
+	private static final String LOAN_CONFIRMED_EVENT_NAME = IntegrationEventTypes.LOAN_CONFIRMED.eventName;
+	private static final String LOAN_REQUESTED_EVENT_NAME = IntegrationEventTypes.LOAN_REQUESTED.eventName;
+	
 	private static final String PRODUCER = "loan-service";
 	private final LoanIntegrationEventMapper mapper = new LoanIntegrationEventMapper();
 
@@ -77,13 +85,13 @@ public class LoanIntegrationEventMapperTest {
 	}
 	
 	static Stream<Arguments> eventCases() {
-		return Stream.of(Arguments.of("loan.requested", getLoanRequestedEvent(), IntegrationEventTypes.LOAN_REQUESTED),
-				Arguments.of("loan.confirmed", getLoanConfirmedEvent(), IntegrationEventTypes.LOAN_CONFIRMED),
-				Arguments.of("loan.confirm.requested", getLoanConfirmRequestedEvent(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED),
-				Arguments.of("loan.canceled", getLoanCanceledEvent(), IntegrationEventTypes.LOAN_CANCELED),
-				Arguments.of("loan.returned", getLoanReturnedEvent(), IntegrationEventTypes.LOAN_RETURNED),
-				Arguments.of("loan.reserved", getLoanReservedEvent(), IntegrationEventTypes.LOAN_RESERVED),
-				Arguments.of("loan.failed", getLoanFailedEvent(), IntegrationEventTypes.LOAN_FAILED));
+		return Stream.of(Arguments.of(LOAN_REQUESTED_EVENT_NAME, getLoanRequestedEvent(), IntegrationEventTypes.LOAN_REQUESTED),
+				Arguments.of(LOAN_CONFIRMED_EVENT_NAME, getLoanConfirmedEvent(), IntegrationEventTypes.LOAN_CONFIRMED),
+				Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, getLoanConfirmRequestedEvent(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED),
+				Arguments.of(LOAN_CANCELED_EVENT_NAME, getLoanCanceledEvent(), IntegrationEventTypes.LOAN_CANCELED),
+				Arguments.of(LOAN_RETURNED_EVENT_NAME, getLoanReturnedEvent(), IntegrationEventTypes.LOAN_RETURNED),
+				Arguments.of(LOAN_RESERVED_EVENT_NAME, getLoanReservedEvent(), IntegrationEventTypes.LOAN_RESERVED),
+				Arguments.of(LOAN_FAILED_EVENT_NAME, getLoanFailedEvent(), IntegrationEventTypes.LOAN_FAILED));
 	}
 
 	private static LoanFailedEvent getLoanFailedEvent() {

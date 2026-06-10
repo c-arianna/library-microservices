@@ -33,6 +33,7 @@ import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
 import mentoring.acomi.bookservice.domain.events.payload.BookReservationRejectedPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationEventMapper;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +42,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class BookEventProducerContractTest {
 
+	private static final String BOOK_BORROW_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROW_REJECTED.eventName;
+	private static final String BOOK_RESERVATION_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_RESERVATION_REJECTED.eventName;
+	private static final String BOOK_RETURNED_EVENT_NAME = IntegrationEventTypes.BOOK_RETURNED.eventName;
+	private static final String BOOK_RELEASED_EVENT_NAME = IntegrationEventTypes.BOOK_RELEASED.eventName;
+	private static final String BOOK_RESERVED_EVENT_NAME = IntegrationEventTypes.BOOK_RESERVED.eventName;
+	private static final String BOOK_COPIES_UPDATED_EVENT_NAME = IntegrationEventTypes.BOOK_COPIES_UPDATED.eventName;
+	private static final String BOOK_BORROWED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROWED.eventName;
+	private static final String BOOK_REGISTERED_EVENT_NAME = IntegrationEventTypes.BOOK_REGISTERED.eventName;
+	
 	private static final String SCHEMA_PATH = "contracts/book/%s/v1/event.schema.json";
 	private static final String SAMPLE_PATH = "contracts/book/%s/v1/sample.json";
 	
@@ -68,42 +78,42 @@ public class BookEventProducerContractTest {
 
     static Stream<Arguments> validProducerCases() {
         return Stream.of(
-                Arguments.of("book.registered", bookRegisteredCase()),
-                Arguments.of("book.borrowed", bookBorrowedCase()),
-                Arguments.of("book.copies.updated", bookCopiesUpdateCase()),
-                Arguments.of("book.reserved", bookReservedCase()),
-                Arguments.of("book.released", bookReleasedCase()),
-                Arguments.of("book.returned", bookReturnedCase()),
-                Arguments.of("book.reservation.rejected", bookReservationRejectedCase()),
-                Arguments.of("book.borrow.rejected", bookBorrowRejectedCase())
+                Arguments.of(BOOK_REGISTERED_EVENT_NAME, bookRegisteredCase()),
+                Arguments.of(BOOK_BORROWED_EVENT_NAME, bookBorrowedCase()),
+                Arguments.of(BOOK_COPIES_UPDATED_EVENT_NAME, bookCopiesUpdateCase()),
+                Arguments.of(BOOK_RESERVED_EVENT_NAME, bookReservedCase()),
+                Arguments.of(BOOK_RELEASED_EVENT_NAME, bookReleasedCase()),
+                Arguments.of(BOOK_RETURNED_EVENT_NAME, bookReturnedCase()),
+                Arguments.of(BOOK_RESERVATION_REJECTED_EVENT_NAME, bookReservationRejectedCase()),
+                Arguments.of(BOOK_BORROW_REJECTED_EVENT_NAME, bookBorrowRejectedCase())
                
         );
     }
 
     static Stream<Arguments> sampleCases() {
         return Stream.of(
-                Arguments.of("book.registered", bookRegisteredCase()),
-                Arguments.of("book.borrowed", bookBorrowedCase()),
-                Arguments.of("book.copies.updated", bookCopiesUpdateCase()),
-                Arguments.of("book.reserved", bookReservedCase()),
-                Arguments.of("book.released", bookReleasedCase()),
-                Arguments.of("book.returned", bookReturnedCase()),
-                Arguments.of("book.reservation.rejected", bookReservationRejectedCase()),
-                Arguments.of("book.borrow.rejected", bookBorrowRejectedCase())
+                Arguments.of(BOOK_REGISTERED_EVENT_NAME, bookRegisteredCase()),
+                Arguments.of(BOOK_BORROWED_EVENT_NAME, bookBorrowedCase()),
+                Arguments.of(BOOK_COPIES_UPDATED_EVENT_NAME, bookCopiesUpdateCase()),
+                Arguments.of(BOOK_RESERVED_EVENT_NAME, bookReservedCase()),
+                Arguments.of(BOOK_RELEASED_EVENT_NAME, bookReleasedCase()),
+                Arguments.of(BOOK_RETURNED_EVENT_NAME, bookReturnedCase()),
+                Arguments.of(BOOK_RESERVATION_REJECTED_EVENT_NAME, bookReservationRejectedCase()),
+                Arguments.of(BOOK_BORROW_REJECTED_EVENT_NAME, bookBorrowRejectedCase())
               
         );
     }
 
     static Stream<Arguments> invalidCases() {
         return Stream.of(
-                Arguments.of("book.registered", bookRegisteredCase()),
-                Arguments.of("book.borrowed", bookBorrowedCase()),
-                Arguments.of("book.copies.updated", bookCopiesUpdateCase()),
-                Arguments.of("book.reserved", bookReservedCase()),
-                Arguments.of("book.released", bookReleasedCase()),
-                Arguments.of("book.returned", bookReturnedCase()),
-                Arguments.of("book.reservation.rejected", bookReservationRejectedCase()),
-                Arguments.of("book.borrow.rejected", bookBorrowRejectedCase())
+                Arguments.of(BOOK_REGISTERED_EVENT_NAME, bookRegisteredCase()),
+                Arguments.of(BOOK_BORROWED_EVENT_NAME, bookBorrowedCase()),
+                Arguments.of(BOOK_COPIES_UPDATED_EVENT_NAME, bookCopiesUpdateCase()),
+                Arguments.of(BOOK_RESERVED_EVENT_NAME, bookReservedCase()),
+                Arguments.of(BOOK_RELEASED_EVENT_NAME, bookReleasedCase()),
+                Arguments.of(BOOK_RETURNED_EVENT_NAME, bookReturnedCase()),
+                Arguments.of(BOOK_RESERVATION_REJECTED_EVENT_NAME, bookReservationRejectedCase()),
+                Arguments.of(BOOK_BORROW_REJECTED_EVENT_NAME, bookBorrowRejectedCase())
         );
     }
 
@@ -127,7 +137,7 @@ public class BookEventProducerContractTest {
             }
             """;
 
-        return getBookContractCase("book.registered", event, invalidJson);
+        return getBookContractCase(BOOK_REGISTERED_EVENT_NAME, event, invalidJson);
     }
 
     private static BookContractCase bookBorrowedCase() {
@@ -150,7 +160,7 @@ public class BookEventProducerContractTest {
             }
             """;
 
-        return getBookContractCase("book.borrowed", event, invalidJson);
+        return getBookContractCase(BOOK_BORROWED_EVENT_NAME, event, invalidJson);
     
     }
 
@@ -174,7 +184,7 @@ public class BookEventProducerContractTest {
     	            }
     	            """;
     	 
-    	 return getBookContractCase("book.copies.updated", event, invalidJson);
+    	 return getBookContractCase(BOOK_COPIES_UPDATED_EVENT_NAME, event, invalidJson);
     }
     
     private static BookContractCase bookReservedCase() {
@@ -196,7 +206,7 @@ public class BookEventProducerContractTest {
  	            }
  	            """;
     	 
-    	 return getBookContractCase("book.reserved", event, invalidJson);
+    	 return getBookContractCase(BOOK_RESERVED_EVENT_NAME, event, invalidJson);
     	 
     }
     
@@ -218,7 +228,7 @@ public class BookEventProducerContractTest {
  	              }
  	            }
  	            """;
-    	return getBookContractCase("book.released", event, invalidJson);
+    	return getBookContractCase(BOOK_RELEASED_EVENT_NAME, event, invalidJson);
     	
     }
     
@@ -241,7 +251,7 @@ public class BookEventProducerContractTest {
  	            }
  	            """;
     	 
-    	return getBookContractCase("book.returned", event, invalidJson);
+    	return getBookContractCase(BOOK_RETURNED_EVENT_NAME, event, invalidJson);
     	    	
     }
     
@@ -266,7 +276,7 @@ public class BookEventProducerContractTest {
  	            }
  	            """;
     	 
-    	return getBookContractCase("book.reservation.rejected", event, invalidJson);
+    	return getBookContractCase(BOOK_RESERVATION_REJECTED_EVENT_NAME, event, invalidJson);
     	
     }
     
@@ -291,7 +301,7 @@ public class BookEventProducerContractTest {
  	            }
  	            """;
     	 
-    	return getBookContractCase("book.borrow.rejected", event, invalidJson);
+    	return getBookContractCase(BOOK_BORROW_REJECTED_EVENT_NAME, event, invalidJson);
     	
     }
  

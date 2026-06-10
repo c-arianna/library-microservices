@@ -1,4 +1,4 @@
-package mentoring.acomi.loanservice.event.contract.consumer;
+package mentoring.acomi.loanservice.event.contract.consumer.book;
 
 import java.io.InputStream;
 import java.util.Set;
@@ -24,14 +24,19 @@ import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.Boo
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 
 public class BookEventConsumerContractTest {
 
+	private static final String BOOK_BORROW_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROW_REJECTED.eventName;
+	private static final String BOOK_RESERVATION_REJECTED_EVENT_NAME =IntegrationEventTypes.BOOK_RESERVATION_REJECTED.eventName;
+	private static final String BOOK_RESERVED_EVENT_NAME = IntegrationEventTypes.BOOK_RESERVED.eventName;
+	private static final String BOOK_BORROWED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROWED.eventName;
+	
 	private static final String BOOK_SCHEMA_PATH = "contracts/book/%s/v1/event.schema.json";
 	private static final String BOOK_SAMPLE_PATH = "contracts/book/%s/v1/sample.json";
 
-	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule())
-			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
 	@ParameterizedTest(name = "[{index}] valid sample -> {0}")
 	@MethodSource("sampleCases")
@@ -41,7 +46,7 @@ public class BookEventConsumerContractTest {
 
 	@Test
 	void shouldDeserializeBookBorrowedEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, "book.borrowed")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_BORROWED_EVENT_NAME)));
 
 		IntegrationEventEnvelope<BookLoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -50,7 +55,7 @@ public class BookEventConsumerContractTest {
 
 	@Test
 	void shouldDeserializeBookReservedEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, "book.reserved")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_RESERVED_EVENT_NAME)));
 
 		IntegrationEventEnvelope<BookLoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -59,7 +64,7 @@ public class BookEventConsumerContractTest {
 	
 	@Test
 	void shouldDeserializeBookReserveRejectedEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, "book.reservation.rejected")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_RESERVATION_REJECTED_EVENT_NAME)));
 
 		IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -68,7 +73,7 @@ public class BookEventConsumerContractTest {
 	
 	@Test
 	void shouldDeserializeBookBorrowRejectedEvent() throws Exception {
-		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, "book.borrow.rejected")));
+		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_BORROW_REJECTED_EVENT_NAME)));
 		
 		IntegrationEventEnvelope<BookBorrowRejectedIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
@@ -85,10 +90,10 @@ public class BookEventConsumerContractTest {
 	}
 
 	static Stream<Arguments> sampleCases() {
-		return Stream.of(Arguments.of("book.borrowed", getBookContractCase("book.borrowed")),
-				Arguments.of("book.reserved", getBookContractCase("book.reserved")),
-				Arguments.of("book.reservation.rejected", getBookContractCase("book.reservation.rejected")),
-				Arguments.of("book.borrow.rejected", getBookContractCase("book.borrow.rejected"))
+		return Stream.of(Arguments.of(BOOK_BORROWED_EVENT_NAME, getBookContractCase(BOOK_BORROWED_EVENT_NAME)),
+				Arguments.of(BOOK_RESERVED_EVENT_NAME, getBookContractCase(BOOK_RESERVED_EVENT_NAME)),
+				Arguments.of(BOOK_RESERVATION_REJECTED_EVENT_NAME, getBookContractCase(BOOK_RESERVATION_REJECTED_EVENT_NAME)),
+				Arguments.of(BOOK_BORROW_REJECTED_EVENT_NAME, getBookContractCase(BOOK_BORROW_REJECTED_EVENT_NAME))
 
 		);
 	}

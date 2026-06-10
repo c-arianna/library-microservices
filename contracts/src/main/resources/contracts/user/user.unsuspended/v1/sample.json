@@ -1,0 +1,13 @@
+{
+  "eventId": "74202d83-54a5-4afc-8e68-8b6b98752ea5",
+  "eventType": "USER_UNSUSPENDED",
+  "producer": "user-service",
+  "aggregateId": "3ad089a7-64b1-49b4-9fbc-7278be2b939b",
+  "occurredAt": "2026-06-10T12:45:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "userId": "3ad089a7-64b1-49b4-9fbc-7278be2b939b",
+    "status": "ACTIVE"
+  }
+}

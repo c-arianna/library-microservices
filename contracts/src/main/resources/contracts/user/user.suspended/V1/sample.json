@@ -1,0 +1,13 @@
+{
+  "eventId": "f21d7bd7-4fca-4373-9ff0-c3359b4ee0d2",
+  "eventType": "USER_SUSPENDED",
+  "producer": "user-service",
+  "aggregateId": "3ad089a7-64b1-49b4-9fbc-7278be2b939b",
+  "occurredAt": "2026-06-10T12:45:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "userId": "3ad089a7-64b1-49b4-9fbc-7278be2b939b",
+    "status": "SUSPENDED"
+  }
+}

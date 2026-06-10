@@ -36,9 +36,18 @@ import mentoring.acomi.loanservice.domain.model.DateRange;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationEventMapper;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 
 public class LoanEventProducerContractTest {
 
+	private static final String LOAN_FAILED_EVENT_NAME = IntegrationEventTypes.LOAN_FAILED.eventName;
+	private static final String LOAN_RESERVED_EVENT_NAME = IntegrationEventTypes.LOAN_RESERVED.eventName;
+	private static final String LOAN_RETURNED_EVENT_NAME = IntegrationEventTypes.LOAN_RETURNED.eventName;
+	private static final String LOAN_CANCELED_EVENT_NAME = IntegrationEventTypes.LOAN_CANCELED.eventName;
+	private static final String LOAN_CONFIRM_REQUESTED_EVENT_NAME = IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.eventName;
+	private static final String LOAN_CONFIRMED_EVENT_NAME = IntegrationEventTypes.LOAN_CONFIRMED.eventName;
+	private static final String LOAN_REQUESTED_EVENT_NAME = IntegrationEventTypes.LOAN_REQUESTED.eventName;
+	
 	private static final String SCHEMA_PATH = "contracts/loan/%s/v1/event.schema.json";
 	private static final String SAMPLE_PATH = "contracts/loan/%s/v1/sample.json";
 
@@ -66,37 +75,37 @@ public class LoanEventProducerContractTest {
 
 	static Stream<Arguments> validProducerCases() {
         return Stream.of(
-                Arguments.of("loan.requested",loanRequestedCase()),
-                Arguments.of("loan.confirmed", loanConfirmedCase()),
-                Arguments.of("loan.confirm.requested", loanConfirmRequestedCase()),
-                Arguments.of("loan.canceled", loanCanceledCase()),
-                Arguments.of("loan.returned", loanReturned()),
-                Arguments.of("loan.reserved", loanReservedCase()),
-                Arguments.of("loan.failed", loanFailedCase())              
+                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCase()),
+                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCase()),
+                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCase()),
+                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCase()),
+                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturned()),
+                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCase()),
+                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCase())              
         );
     }
 
 	static Stream<Arguments> sampleCases() {
     	return Stream.of(
-                Arguments.of("loan.requested",loanRequestedCase()),
-                Arguments.of("loan.confirmed", loanConfirmedCase()),
-                Arguments.of("loan.confirm.requested", loanConfirmRequestedCase()),
-                Arguments.of("loan.canceled", loanCanceledCase()),
-                Arguments.of("loan.returned", loanReturned()),
-                Arguments.of("loan.reserved", loanReservedCase()),
-                Arguments.of("loan.failed", loanFailedCase())             
+                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCase()),
+                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCase()),
+                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCase()),
+                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCase()),
+                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturned()),
+                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCase()),
+                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCase())             
         );
     }
 
     static Stream<Arguments> invalidCases() {
     	return Stream.of(
-                Arguments.of("loan.requested",loanRequestedCase()),
-                Arguments.of("loan.confirmed", loanConfirmedCase()),
-                Arguments.of("loan.confirm.requested", loanConfirmRequestedCase()),
-                Arguments.of("loan.canceled", loanCanceledCase()),
-                Arguments.of("loan.returned", loanReturned()),
-                Arguments.of("loan.reserved", loanReservedCase()),
-                Arguments.of("loan.failed", loanFailedCase())            
+                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCase()),
+                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCase()),
+                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCase()),
+                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCase()),
+                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturned()),
+                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCase()),
+                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCase())            
         );
     }
     
@@ -118,7 +127,7 @@ public class LoanEventProducerContractTest {
 	            }
 	            """;
     	
-    	return getLoanContractCase("loan.failed", event, invalidJson);
+    	return getLoanContractCase(LOAN_FAILED_EVENT_NAME, event, invalidJson);
 	}
 
 	private static LoanContractCase loanReservedCase() {
@@ -140,7 +149,7 @@ public class LoanEventProducerContractTest {
 	            }
 	            """;
     	
-    	return getLoanContractCase("loan.reserved", event, invalidJson);
+    	return getLoanContractCase(LOAN_RESERVED_EVENT_NAME, event, invalidJson);
 	}
 
 	private static LoanContractCase loanReturned() {
@@ -162,7 +171,7 @@ public class LoanEventProducerContractTest {
 	            }
 	            """;
     	
-    	return getLoanContractCase("loan.returned", event, invalidJson);
+    	return getLoanContractCase(LOAN_RETURNED_EVENT_NAME, event, invalidJson);
 	}
 
 	private static LoanContractCase loanCanceledCase() {
@@ -184,7 +193,7 @@ public class LoanEventProducerContractTest {
 	            }
 	            """;
     	
-    	return getLoanContractCase("loan.canceled", event, invalidJson);
+    	return getLoanContractCase(LOAN_CANCELED_EVENT_NAME, event, invalidJson);
 	}
 
 	private static LoanContractCase loanConfirmRequestedCase() {
@@ -206,7 +215,7 @@ public class LoanEventProducerContractTest {
 	            }
 	            """;
     	
-    	return getLoanContractCase("loan.confirm.requested", event, invalidJson);
+    	return getLoanContractCase(LOAN_CONFIRM_REQUESTED_EVENT_NAME, event, invalidJson);
 	}
 
 	private static LoanContractCase loanConfirmedCase() {
@@ -228,7 +237,7 @@ public class LoanEventProducerContractTest {
 	            }
 	            """;
     	
-    	return getLoanContractCase("loan.confirmed", event, invalidJson);
+    	return getLoanContractCase(LOAN_CONFIRMED_EVENT_NAME, event, invalidJson);
 	}
     
 	private static LoanContractCase loanRequestedCase() {
@@ -251,7 +260,7 @@ public class LoanEventProducerContractTest {
 	            }
 	            """;
 		
-		return getLoanContractCase("loan.requested", event, invalidJson);
+		return getLoanContractCase(LOAN_REQUESTED_EVENT_NAME, event, invalidJson);
 	}
 
 	private static LoanContractCase getLoanContractCase(String eventName, LoanEvent event, String invalidJson) {
