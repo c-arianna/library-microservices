@@ -42,3 +42,12 @@ spring:
     user:
       name: none
       password: none
+
+  reactor:
+    context-propagation: auto
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0

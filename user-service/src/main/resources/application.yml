@@ -37,7 +37,18 @@ spring:
     port: 5672
     username: libraryApp
     password: libraryAppTest!
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
 
   sql:
     init:
       continue-on-error: true
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0

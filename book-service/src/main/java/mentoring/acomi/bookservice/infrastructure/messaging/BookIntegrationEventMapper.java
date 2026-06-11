@@ -57,7 +57,7 @@ public class BookIntegrationEventMapper {
 		}
 
 		case BookReservationRejectedEvent e -> {
-			yield getBookReservationRejectedIntegrationevent(e);
+			yield getBookReservationRejectedIntegrationEvent(e);
 		}
 
 		case BookBorrowRejectedEvent e -> {
@@ -71,15 +71,17 @@ public class BookIntegrationEventMapper {
 		BookBorrowRejectedIntegrationPayload payload = new BookBorrowRejectedIntegrationPayload(e.payload().isbn(),
 				e.payload().loanId(), e.payload().userId(), e.payload().reason().toString());
 
-		return envelope(e, IntegrationEventTypes.BOOK_BORROW_REJECTED, BookIntegrationEventVersions.BOOK_BORROW_REJECTED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_BORROW_REJECTED,
+				BookIntegrationEventVersions.BOOK_BORROW_REJECTED, payload);
 	}
 
-	private IntegrationEventEnvelope<?> getBookReservationRejectedIntegrationevent(BookReservationRejectedEvent e) {
+	private IntegrationEventEnvelope<?> getBookReservationRejectedIntegrationEvent(BookReservationRejectedEvent e) {
 
 		BookReservationRejectedIntegrationPayload payload = new BookReservationRejectedIntegrationPayload(
 				e.payload().isbn(), e.payload().loanId(), e.payload().userId(), e.payload().reason().toString());
 
-		return envelope(e, IntegrationEventTypes.BOOK_RESERVATION_REJECTED, BookIntegrationEventVersions.BOOK_RESERVATION_REJECTED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_RESERVATION_REJECTED,
+				BookIntegrationEventVersions.BOOK_RESERVATION_REJECTED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookReturnedIntegrationEvent(BookReturnedEvent e) {
@@ -108,16 +110,19 @@ public class BookIntegrationEventMapper {
 
 	private IntegrationEventEnvelope<?> getBookReservedIntegrationEvent(BookReservedEvent e) {
 
-		BookLoanIntegrationPayload payload = new BookLoanIntegrationPayload(e.payload().isbn(), e.payload().loanId(), e.payload().userId());
+		BookLoanIntegrationPayload payload = new BookLoanIntegrationPayload(e.payload().isbn(), e.payload().loanId(),
+				e.payload().userId());
 
 		return envelope(e, IntegrationEventTypes.BOOK_RESERVED, BookIntegrationEventVersions.BOOK_RESERVED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookCopiesRemoveIntegrationEvent(BookCopiesRemovedEvent e) {
 
-		BookCopiesUpdatedIntegrationPayload payload = new BookCopiesUpdatedIntegrationPayload(e.payload().isbn(), -e.payload().quantity());
+		BookCopiesUpdatedIntegrationPayload payload = new BookCopiesUpdatedIntegrationPayload(e.payload().isbn(),
+				-e.payload().quantity());
 
-		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationEventVersions.BOOK_COPIES_UPDATED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationEventVersions.BOOK_COPIES_UPDATED,
+				payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookCopiesAddedIntegrationEvent(BookCopiesAddedEvent e) {
@@ -125,7 +130,8 @@ public class BookIntegrationEventMapper {
 		BookCopiesUpdatedIntegrationPayload payload = new BookCopiesUpdatedIntegrationPayload(e.payload().isbn(),
 				e.payload().quantity());
 
-		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationEventVersions.BOOK_COPIES_UPDATED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationEventVersions.BOOK_COPIES_UPDATED,
+				payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookRegisteredIntegrationEvent(BookRegisteredEvent e) {
@@ -133,7 +139,8 @@ public class BookIntegrationEventMapper {
 		BookRegisteredIntegrationPayload payload = new BookRegisteredIntegrationPayload(e.payload().isbn(),
 				e.payload().author(), e.payload().title(), e.payload().description());
 
-		return envelope(e, IntegrationEventTypes.BOOK_REGISTERED, BookIntegrationEventVersions.BOOK_REGISTERED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_REGISTERED, BookIntegrationEventVersions.BOOK_REGISTERED,
+				payload);
 	}
 
 	private <T> IntegrationEventEnvelope<T> envelope(BookEvent e, IntegrationEventTypes type, int version, T payload) {

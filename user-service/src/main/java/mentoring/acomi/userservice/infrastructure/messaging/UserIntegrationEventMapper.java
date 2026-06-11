@@ -38,26 +38,26 @@ public class UserIntegrationEventMapper {
 
 	private IntegrationEventEnvelope<?> getUserUnsuspendedIntegrationEvent(UserUnsuspendedEvent e) {
 		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.ACTIVE);
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.USER_UNSUSPENDED, PRODUCER, e.aggregateId(), e.occurredAt(), 
-				UserIntegrationEventVersions.USER_UNSUSPENDED, payload);
+		return envelope(e, IntegrationEventTypes.USER_UNSUSPENDED, UserIntegrationEventVersions.USER_UNSUSPENDED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getUserSuspendedIntegrationEvent(UserSuspendEvent e) {
 		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.SUSPENDED);
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.USER_SUSPENDED, PRODUCER, e.aggregateId(), e.occurredAt(), 
-				UserIntegrationEventVersions.USER_SUSPENDED, payload);
+		return envelope(e, IntegrationEventTypes.USER_SUSPENDED, UserIntegrationEventVersions.USER_SUSPENDED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getUserUnsubscribedIntegrationEvent(UserUnsubscribeEvent e) {
 		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.DISABLE);
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.USER_UNSUBSCRIBED, PRODUCER, e.aggregateId(), e.occurredAt(), 
-				UserIntegrationEventVersions.USER_UNSUBSCRIBED, payload);
+		return envelope(e, IntegrationEventTypes.USER_UNSUBSCRIBED, UserIntegrationEventVersions.USER_UNSUBSCRIBED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getUserSubscribedIntegrationEvent(UserSubscribedEvent e) {
 		UserSubscribedIntegrationPayload payload = new UserSubscribedIntegrationPayload(e.payload().id(), e.payload().email(), e.payload().status());
-		return new IntegrationEventEnvelope<>(e.eventId(), IntegrationEventTypes.USER_SUBSCRIBED, PRODUCER, e.aggregateId(), e.occurredAt(), 
-				UserIntegrationEventVersions.USER_SUBSCRIBED, payload);
+		return envelope(e, IntegrationEventTypes.USER_SUBSCRIBED, UserIntegrationEventVersions.USER_SUBSCRIBED, payload);
+	}
+	
+	private <T> IntegrationEventEnvelope<T> envelope(UserEvent e, IntegrationEventTypes type, int version, T payload) {
+		return new IntegrationEventEnvelope<>(e.eventId(), type, PRODUCER, e.aggregateId(), e.occurredAt(), version, payload);
 	}
 
 }

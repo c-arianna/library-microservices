@@ -1,9 +1,9 @@
 spring:
   application:
-    name: user-service    
+    name: loan-service    
     
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/user_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/loan_db}
     username: ${SPRING_DATASOURCE_USERNAME:libraryApp}
     password: ${SPRING_DATASOURCE_PASSWORD:libraryAppTest!}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -37,7 +37,18 @@ spring:
     port: 5672
     username: libraryApp
     password: libraryAppTest!
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
 
   sql:
     init:
       continue-on-error: true
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0

@@ -14,3 +14,9 @@ spring:
   h2:
     console:
       enabled: true
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
