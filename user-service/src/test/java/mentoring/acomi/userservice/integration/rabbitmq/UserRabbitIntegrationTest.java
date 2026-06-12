@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
@@ -19,10 +20,11 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -36,19 +38,20 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.services.UserService;
+import mentoring.acomi.userservice.config.RabbitMQConfigTest;
+import mentoring.acomi.userservice.config.SecurityTestConfig;
 import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.security.GatewayPrincipal;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import(RabbitMQConfigTest.class)
+@Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
 class UserRabbitIntegrationTest {
 
 	@Container
@@ -83,9 +86,10 @@ class UserRabbitIntegrationTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
-	private static final String ADMIN_ID = "admin-1";
 	private static final String ADMIN_ROLE = "ADMIN";
 	private static final String READER_ROLE = "READER";
+	
+	private static final String TOKEN_VALUE = "test-token";
 
 	@AfterEach
 	void clearSecurityContext() {
@@ -133,7 +137,7 @@ class UserRabbitIntegrationTest {
 
 		User user = subscribeUser();
 
-		setAuthenticatedUser(ADMIN_ID, ADMIN_ROLE);
+		setAuthenticatedUser(user.getEmail().getValue(), ADMIN_ROLE);
 
 		userService.suspend(new SuspendRequest(user.getId(), "policy violation"));
 
@@ -171,7 +175,7 @@ class UserRabbitIntegrationTest {
 
 		User user = subscribeUser();
 
-		setAuthenticatedUser(ADMIN_ID, ADMIN_ROLE);
+		setAuthenticatedUser(user.getEmail().getValue(), ADMIN_ROLE);
 
 		userService.suspend(new SuspendRequest(user.getId(), "temporary suspension"));
 
@@ -216,7 +220,7 @@ class UserRabbitIntegrationTest {
 
 		User user = subscribeUser();
 
-		setAuthenticatedUser(user.getId(), READER_ROLE);
+		setAuthenticatedUser(user.getEmail().getValue(), READER_ROLE);
 
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
 
@@ -247,10 +251,13 @@ class UserRabbitIntegrationTest {
 		
 	}
 
-	private void setAuthenticatedUser(String userId, String role) {
-		GatewayPrincipal principal = new GatewayPrincipal(userId, role);
-		Authentication auth = new UsernamePasswordAuthenticationToken(principal, null,
-				List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
+	private void setAuthenticatedUser(String email, String role) {
+		
+		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", email)
+				.claim("realm_access", Map.of("roles", List.of(role))).build();
+		
+		Authentication auth = new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
+
 		SecurityContextHolder.getContext().setAuthentication(auth);
 	}
 

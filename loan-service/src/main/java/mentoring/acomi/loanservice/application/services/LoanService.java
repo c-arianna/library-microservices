@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,6 @@ import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
-import mentoring.acomi.loanservice.infrastructure.security.GatewayPrincipal;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @Service
@@ -42,8 +42,8 @@ public class LoanService {
 
 	private final Logger logger = LogManager.getLogger(LoanService.class);
 
-	public LoanService(LoanEventRepository eventRepository, LoanViewRepository loanViewRepository, UserViewRepository userViewRepository,
-			EventDispatcher eventDispatcher) {
+	public LoanService(LoanEventRepository eventRepository, LoanViewRepository loanViewRepository,
+			UserViewRepository userViewRepository, EventDispatcher eventDispatcher) {
 		this.loanEventRepository = eventRepository;
 		this.loanViewRepository = loanViewRepository;
 		this.userViewRepository = userViewRepository;
@@ -54,8 +54,8 @@ public class LoanService {
 	public LoanResponse addLoan(AddLoanRequest request) {
 
 		String loanId = UUID.randomUUID().toString();
-        String userId = request.userId();
-        
+		String userId = request.userId();
+
 		validateLoanRequest(loanId, userId);
 
 		Loan loan = Loan.create(loanId, request.isbn(), userId, request.startDate(), request.endDate());
@@ -96,7 +96,7 @@ public class LoanService {
 	public LoansResponse findLoans(LoanFilter filter) {
 
 		LoanFilter finalFilter = applyCheckUserFilter(filter);
-		
+
 		List<LoanView> loans = loanViewRepository.find(finalFilter);
 		return toLoansResponse(loans);
 	}
@@ -106,26 +106,27 @@ public class LoanService {
 		if (loanEventRepository.exists(loanId)) {
 			throw new ApplicationConflict("LOAN_ALREADY_EXISTS", String.format("Loan ID: %s", loanId));
 		}
-		
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		
-		if(auth == null) {
-			throw new InvalidUser("User not logged");
+
+		UserInfo userInfo = getUserInfo();
+
+		String email = userInfo.email();
+
+		if (userInfo.isReader()) {
+
+			UserView user = userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+
+			String loggedUserId = user.id();
+			if (!loggedUserId.equals(userId)) {
+				throw new InvalidUser(String.format("User ID request: %s, User ID logged: %s", userId, loggedUserId));
+			}
 		}
-		
-		GatewayPrincipal principal = (GatewayPrincipal) auth.getPrincipal();
-		
-		String role = principal.role();
-		String loggedUserId = principal.userId();
-		
-		if("READER".equals(role) && !userId.equals(loggedUserId)) {
-			throw new InvalidUser(String.format("User ID request: %s, User ID logged: %s", userId, loggedUserId));
-		}
-		
-		UserView user = userViewRepository.findById(userId).orElseThrow(() -> new UserNotFound(String.format("User ID: %s", userId)));
-		
-		if(user.status() != UserStatus.ACTIVE) {
-			throw new InvalidUser(String.format("User ID %s is not active, status: %s", userId, user.status().toString()));
+
+		UserView user = userViewRepository.findById(userId)
+				.orElseThrow(() -> new UserNotFound(String.format("User ID: %s", userId)));
+
+		if (user.status() != UserStatus.ACTIVE) {
+			throw new InvalidUser(
+					String.format("User ID %s is not active, status: %s", userId, user.status().toString()));
 		}
 
 	}
@@ -154,13 +155,44 @@ public class LoanService {
 	}
 
 	private LoanFilter applyCheckUserFilter(LoanFilter filter) {
-		
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		GatewayPrincipal principal = (GatewayPrincipal) auth.getPrincipal();
 
-		String role = principal.role();
-		
-		return "READER".equals(role) ? new LoanFilter(filter.isbn(), principal.userId(), filter.status()) : filter;
+		UserInfo userInfo = getUserInfo();
+
+		String email = userInfo.email();
+
+		if (userInfo.isReader) {
+			UserView user = userViewRepository.findByEmail(email)
+					.orElseThrow(() -> new UserNotFound(String.format("Mail: %s", email)));
+			return new LoanFilter(filter.isbn(), user.id(), filter.status());
+		}
+
+		return filter;
 
 	}
+
+	record UserInfo(String email, boolean isReader) {
+
+	}
+
+	private UserInfo getUserInfo() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		if (auth == null) {
+			throw new InvalidUser("User not logged");
+		}
+
+		Jwt jwt = (Jwt) auth.getPrincipal();
+
+		String email = jwt.getClaim("email");
+
+		if (email == null) {
+			throw new UserNotFound("Email not present in token");
+		}
+
+		boolean isReader = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_READER"));
+
+		return new UserInfo(email, isReader);
+	}
+
 }

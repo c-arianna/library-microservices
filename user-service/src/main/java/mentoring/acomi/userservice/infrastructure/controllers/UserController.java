@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import mentoring.acomi.userservice.application.services.UserService;
+import mentoring.acomi.userservice.domain.model.User;
+import mentoring.acomi.userservice.infrastructure.dto.AuthResponse;
+import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
@@ -37,4 +40,11 @@ public class UserController {
 	public UserResponse unsuspend(@RequestBody @Valid SuspendRequest request) {
 		return service.unsuspend(request);
 	}
+	
+	@PostMapping("/subscribe")
+	public AuthResponse subscribe(@RequestBody @Valid SubscribeRequest request) {
+		User user = service.subscribe(request);
+		return new AuthResponse(user.getId(), "", "");
+	}
+	
 }

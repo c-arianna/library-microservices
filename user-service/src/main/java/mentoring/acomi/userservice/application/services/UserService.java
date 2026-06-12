@@ -9,15 +9,19 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
+import mentoring.acomi.userservice.application.errors.InvalidUser;
+import mentoring.acomi.userservice.application.errors.UserNotFound;
 import mentoring.acomi.userservice.application.messaging.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
+import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.model.Password;
@@ -26,7 +30,6 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
-import mentoring.acomi.userservice.infrastructure.security.GatewayPrincipal;
 
 @Service
 public class UserService {
@@ -68,7 +71,7 @@ public class UserService {
 	public UserResponse unsubscribe(UnsubscribeRequest request) {
 
 		String currentUserId = getLoggedUserId();
-		
+
 		UserAggregate aggregate = loadUser(currentUserId);
 		aggregate.unsubscribe(request.reason());
 		return new UserResponse(currentUserId, aggregate.email(), aggregate.role(), UserStatus.DISABLE);
@@ -76,11 +79,11 @@ public class UserService {
 
 	@Transactional
 	public UserResponse suspend(SuspendRequest request) {
-		
+
 		UserAggregate aggregate = loadUser(request.userId());
-		
+
 		String currentUserId = getLoggedUserId();
-		
+
 		aggregate.suspend(request.reason(), currentUserId);
 		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.SUSPENDED);
 	}
@@ -88,19 +91,33 @@ public class UserService {
 	@Transactional
 	public UserResponse unsuspend(SuspendRequest request) {
 		UserAggregate aggregate = loadUser(request.userId());
-		
+
 		String currentUserId = getLoggedUserId();
-		
+
 		aggregate.unsuspend(request.reason(), currentUserId);
 		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.ACTIVE);
 	}
 
 	private String getLoggedUserId() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		GatewayPrincipal principal = (GatewayPrincipal) auth.getPrincipal();
-		return principal.userId();
+
+		if (auth == null) {
+			throw new InvalidUser("User not logged");
+		}
+
+		Jwt jwt = (Jwt) auth.getPrincipal();
+		String email = jwt.getClaim("email");
+
+		if (email == null) {
+			throw new UserNotFound("Email not present in token");
+		}
+
+		UserView user = userViewRepository.findByEmail(email)
+				.orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+
+		return user.id();
 	}
-	
+
 	private User getUser(String userId, SubscribeRequest request) {
 		String hashedPassowrd = passwordEncoder.encode(request.password());
 		return User.create(userId, request.email(), request.name(), request.lastname(), Password.hashed(hashedPassowrd),

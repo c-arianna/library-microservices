@@ -25,6 +25,10 @@ spring:
     user:
       name: none
       password: none
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/library-microservices
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}

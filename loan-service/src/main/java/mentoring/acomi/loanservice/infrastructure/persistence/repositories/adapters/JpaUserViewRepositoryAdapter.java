@@ -39,4 +39,10 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository {
 		repository.updateStatus(id, status);
 	}
 
+	@Override
+	public Optional<UserView> findByEmail(String email) {
+		Optional<UserViewEntity> entity = repository.findByEmail(email);
+		return entity.isEmpty() ? Optional.empty() : Optional.of(mapper.toDomain(entity.get()));
+	}
+
 }

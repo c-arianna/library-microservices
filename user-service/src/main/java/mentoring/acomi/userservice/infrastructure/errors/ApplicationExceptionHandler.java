@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import mentoring.acomi.sharedlibrary.model.ErrorResponse;
-import mentoring.acomi.userservice.application.errors.InvalidLogin;
-import mentoring.acomi.userservice.application.errors.InvalidRefreshToken;
+import mentoring.acomi.userservice.application.errors.InvalidUser;
 import mentoring.acomi.userservice.application.errors.InvalidUserStatus;
+import mentoring.acomi.userservice.application.errors.UserNotFound;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
 import mentoring.acomi.userservice.domain.errors.ValidationDomain;
@@ -61,16 +61,16 @@ public class ApplicationExceptionHandler {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
 	}
 		
-	@ExceptionHandler(InvalidLogin.class)
+	@ExceptionHandler(InvalidUser.class)
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)
-	public ErrorResponse handleInvalidLoginError(InvalidLogin e) throws Exception {
-		return handleException(e, e.getCode(), e.getMessage(), "LOGIN");
+	public ErrorResponse handleInvalidUserError(InvalidUser e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "USER_NOT_LOGGED");
 	}
 	
-	@ExceptionHandler(InvalidRefreshToken.class)
-	@ResponseStatus(HttpStatus.UNAUTHORIZED)
-	public ErrorResponse handleInvalidRefreshTokenError(InvalidRefreshToken e) throws Exception {
-		return handleException(e, e.getCode(), e.getMessage(), "LOGIN");
+	@ExceptionHandler(UserNotFound.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleUserNotFoundError(UserNotFound e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "RESOURCE_NOT_FOUND");
 	}
 	
 	@ExceptionHandler(InvalidUserStatus.class)

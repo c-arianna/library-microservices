@@ -9,4 +9,5 @@ public interface UserViewRepository {
 	public void add(UserView user);
 	public Optional<UserView> findById(String id);
 	public void updateStatus(String id, UserStatus status);
+	public Optional<UserView> findByEmail(String email);
 }

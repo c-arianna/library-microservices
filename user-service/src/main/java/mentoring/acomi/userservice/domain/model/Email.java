@@ -25,5 +25,9 @@ public class Email {
 		return value;
 
 	}
+	
+	public String getValue() {
+		return value;
+	}
 
 }

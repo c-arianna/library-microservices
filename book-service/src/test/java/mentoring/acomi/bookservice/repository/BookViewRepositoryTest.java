@@ -6,16 +6,19 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.view.BookView;
+import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookViewEntity;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookViewJpaRepository;
 
 @SpringBootTest
 @Transactional
+@Import(SecurityTestConfig.class)
 public class BookViewRepositoryTest {
 
 	@Autowired

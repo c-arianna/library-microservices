@@ -8,17 +8,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
+import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanViewJpaRepository;
 
 @SpringBootTest
 @Transactional
+@Import(SecurityTestConfig.class)
 public class LoanViewRepositoryTest {
 
 	@Autowired

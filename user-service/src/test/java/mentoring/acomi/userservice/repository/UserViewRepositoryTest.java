@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +16,14 @@ import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
+import mentoring.acomi.userservice.config.SecurityTestConfig;
 import mentoring.acomi.userservice.domain.model.Password;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserViewJpaRepository;
 
 @SpringBootTest
 @Transactional
+@Import(SecurityTestConfig.class)
 public class UserViewRepositoryTest {
 
 	@Autowired

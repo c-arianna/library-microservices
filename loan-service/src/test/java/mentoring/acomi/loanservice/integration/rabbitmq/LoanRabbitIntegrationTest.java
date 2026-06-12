@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -20,14 +21,14 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -40,11 +41,12 @@ import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.application.view.UserView;
+import mentoring.acomi.loanservice.config.RabbitMQConfigTest;
+import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
-import mentoring.acomi.loanservice.infrastructure.security.GatewayPrincipal;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
@@ -53,7 +55,7 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 @SpringBootTest
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import(RabbitMQConfigTest.class)
+@Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
 class LoanRabbitIntegrationTest {
 
 	@Container
@@ -87,13 +89,15 @@ class LoanRabbitIntegrationTest {
 
 	@Autowired
 	private UserViewRepository userViewRepository;
-
+	
 	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
 
+	private static final String TOKEN_VALUE = "test-token";
+	
 	@BeforeEach
 	public void setupUser() {
-		userViewRepository.add(new UserView(USER_ID, "test@gmail.com", UserStatus.ACTIVE));
+		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UserStatus.ACTIVE));
 		setAuthenticatedUser(USER_ID, "READER");
 	}
 
@@ -262,9 +266,11 @@ class LoanRabbitIntegrationTest {
 	}
 
 	private void setAuthenticatedUser(String userId, String role) {
-		GatewayPrincipal principal = new GatewayPrincipal(userId, role);
-
-		Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
+		
+		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", String.format("test%s@gmail.com", userId))
+				.claim("realm_access", Map.of("roles", List.of(role))).build();
+		
+		Authentication auth = new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
 
 		SecurityContextHolder.getContext().setAuthentication(auth);
 	}

@@ -22,15 +22,13 @@ spring:
       hibernate.type.json_format_mapper: mentoring.acomi.loanservice.infrastructure.persistence.configuration.Jackson3HibernateJsonFormatMapper
       
   security:
-    jwt:
-      enabled: true
-      issuer: user-service
-      secret: ${JWT_SECRET:d6ISU26dwuewuDCpql4e0kJkCNM5WmrggGtnoqQ35VU=}
-      access-token-expiration-minutes: 15
-      refresh-token-expiration-days: 7
     user:
       name: none
       password: none
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/library-microservices
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}

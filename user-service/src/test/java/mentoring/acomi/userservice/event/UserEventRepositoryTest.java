@@ -9,12 +9,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
+import mentoring.acomi.userservice.config.SecurityTestConfig;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
@@ -24,6 +26,7 @@ import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 
 @SpringBootTest
 @Transactional
+@Import(SecurityTestConfig.class)
 public class UserEventRepositoryTest {
 
 	@Autowired

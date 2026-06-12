@@ -1,9 +1,12 @@
 package mentoring.acomi.loanservice.api;
 
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,17 +15,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.view.UserView;
+import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
@@ -31,8 +39,11 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(SecurityTestConfig.class)
 public class LoanApiIntegrationTest {
 
+	private static final String ADMIN_1 = "admin-1";
+	private static final String LIBRARIAN_1 = "lib-1";
 	private static final String USER_1 = "user-1";
 	private static final String USER_2 = "user-2";
 	private static final String ADMIN_ROLE = "ADMIN";
@@ -42,6 +53,8 @@ public class LoanApiIntegrationTest {
 	private static final String CANCEL_LOAN_ENDPOINT = "/%s/reject";
 	private static final String RETURN_LOAN_ENDPOINT = "/%s/return";
 
+	private static final String TOKEN_VALUE = "test-token";
+	
 	@LocalServerPort
 	int port;
 
@@ -50,11 +63,16 @@ public class LoanApiIntegrationTest {
 	@Autowired
 	private UserViewRepository userViewRepository;
 
+	@MockitoBean
+	private JwtDecoder jwtDecoder;
+	
 	@BeforeEach
 	void setup() {
 		this.client = RestClient.builder().baseUrl(String.format("http://localhost:%d", port)).build();
 		createUser(USER_1);
 		createUser(USER_2);
+		createUser(LIBRARIAN_1);
+		createUser(ADMIN_1);
 	}
 
 	@Test
@@ -152,9 +170,11 @@ public class LoanApiIntegrationTest {
 		setupLoan(USER_1);
 		setupLoan(USER_2);
 
+		generateToken(READER_ROLE, USER_1);
+		
 		ResponseEntity<LoansResponse> response = client.get()
-				.uri(uriBuilder -> uriBuilder.path("").queryParam("userId", "user-2").build())
-				.headers(h -> addHeaders(h, "READER", "user-1")).retrieve().toEntity(LoansResponse.class);
+				.uri(uriBuilder -> uriBuilder.path("").queryParam("userId", USER_2).build())
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).retrieve().toEntity(LoansResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -171,10 +191,12 @@ public class LoanApiIntegrationTest {
 
 		setupLoan(USER_1);
 		setupLoan(USER_2);
+		
+		generateToken(LIBRARIAN_ROLE, LIBRARIAN_1);
 
 		ResponseEntity<LoansResponse> response = client.get()
 				.uri(uriBuilder -> uriBuilder.path("").queryParam("userId", USER_2).build())
-				.headers(h -> addHeaders(h, LIBRARIAN_ROLE, "lib-1")).retrieve().toEntity(LoansResponse.class);
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).retrieve().toEntity(LoansResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -190,9 +212,11 @@ public class LoanApiIntegrationTest {
 		setupLoan(USER_1);
 		setupLoan(USER_2);
 
+		generateToken(ADMIN_ROLE, ADMIN_1);
+		
 		ResponseEntity<LoansResponse> response = client.get()
 				.uri(uriBuilder -> uriBuilder.path("").queryParam("userId", USER_2).build())
-				.headers(h -> addHeaders(h, ADMIN_ROLE, "admin-1")).retrieve().toEntity(LoansResponse.class);
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).retrieve().toEntity(LoansResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -208,9 +232,11 @@ public class LoanApiIntegrationTest {
 
 	private String setupLoan(String userId) {
 
+		generateToken(ADMIN_ROLE, ADMIN_1);
+		
 		AddLoanRequest request = new AddLoanRequest("9788804336327", userId, LocalDate.now(), null);
 		ResponseEntity<LoanResponse> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON)
-				.headers(h -> addHeaders(h, ADMIN_ROLE, USER_1)).body(request).retrieve().toEntity(LoanResponse.class);
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).retrieve().toEntity(LoanResponse.class);
 
 		Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
@@ -219,32 +245,31 @@ public class LoanApiIntegrationTest {
 	}
 
 	private ResponseEntity<String> addLoan(String userId, String role) {
+		generateToken(role, userId);
 		AddLoanRequest request = new AddLoanRequest("9788804336327", userId, LocalDate.now(), null);
-		return client.post().uri("/").contentType(MediaType.APPLICATION_JSON).headers(h -> addHeaders(h, role, userId))
+		return client.post().uri("/").contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
 				.body(request).exchange((req, res) -> toEntity(res));
 	}
 
 	private ResponseEntity<String> confirmLoan(String loanId, String role) {
-		return client.post().uri(String.format(CONFIRM_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, loanId))
+		generateToken(role, ADMIN_1);
+		return client.post().uri(String.format(CONFIRM_LOAN_ENDPOINT, loanId)).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
 				.exchange((req, res) -> toEntity(res));
 	}
 
 	private ResponseEntity<String> cancelLoan(String loanId, String role) {
-		return client.post().uri(String.format(CANCEL_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, loanId))
+		generateToken(role, ADMIN_1);
+		return client.post().uri(String.format(CANCEL_LOAN_ENDPOINT, loanId)).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
 				.exchange((req, res) -> toEntity(res));
 	}
 
 	private ResponseEntity<String> returnLoan(String loanId, String role) {
-		return client.post().uri(String.format(RETURN_LOAN_ENDPOINT, loanId)).headers(h -> addHeaders(h, role, USER_1))
+		generateToken(role, ADMIN_1);
+		return client.post().uri(String.format(RETURN_LOAN_ENDPOINT, loanId)).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
 				.exchange((req, res) -> toEntity(res));
 	}
-
-	private void addHeaders(HttpHeaders headers, String role, String userId) {
-		headers.set("X-User-Id", userId);
-		headers.set("X-User-Email", "test@mail.com");
-		headers.set("X-User-Role", role);
-	}
-
+	
+	
 	private ResponseEntity<String> toEntity(ClientHttpResponse response) throws IOException {
 		String body = StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
 
@@ -259,6 +284,14 @@ public class LoanApiIntegrationTest {
 
 	private void createUser(String userId) {
 		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), UserStatus.ACTIVE));
+	}
+	
+	private void generateToken(String role, String userId) {
+		
+		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", String.format("test%s@gmail.com", userId))
+				.claim("realm_access", Map.of("roles", List.of(role))).build();
+
+		when(jwtDecoder.decode(TOKEN_VALUE)).thenReturn(jwt);
 	}
 
 }

@@ -1,4 +1,4 @@
-package mentoring.acomi.loanservice.integration.rabbitmq;
+package mentoring.acomi.loanservice.config;
 
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;

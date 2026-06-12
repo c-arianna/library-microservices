@@ -1,7 +1,11 @@
 package mentoring.acomi.bookservice.api;
 
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
@@ -24,6 +31,8 @@ import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class BookApiIntegrationTest {
+
+	private static final String TOKEN_VALUE = "test-token";
 
 	private static final String ADMIN_ROLE = "ADMIN";
 
@@ -41,6 +50,9 @@ class BookApiIntegrationTest {
 	private RestClient client;
 
 	private static final String isbn = "9788804336327";
+
+	@MockitoBean
+	private JwtDecoder jwtDecoder;
 
 	@BeforeEach
 	public void setup() {
@@ -126,31 +138,38 @@ class BookApiIntegrationTest {
 	}
 
 	private ResponseEntity<String> getWithRole(String uri, String role) {
-		return client.get().uri(uri).headers(header -> addUserHeaders(header, role))
+		
+		generateToken(role);
+		
+		return client.get().uri(uri).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
 				.exchange((req, res) -> toEntity(res));
 	}
 
 	private ResponseEntity<String> addBook(String role) {
+		
+		generateToken(role);
+		
 		AddBookRequest request = new AddBookRequest(isbn, "Italo Calvino", "Il barone rampante", "");
-		return client.post().uri("/").contentType(MediaType.APPLICATION_JSON).headers(h -> addUserHeaders(h, role))
-				.body(request).exchange((req, res) -> toEntity(res));
-	}
-	
-	private ResponseEntity<String> addCopies(String role) {
-		AddBookCopiesRequest request = new AddBookCopiesRequest(3);
-		return client.post().uri(String.format(ENDPOINT_ADD_COPIES, isbn)).contentType(MediaType.APPLICATION_JSON).headers(h -> addUserHeaders(h, role))
+		return client.post().uri("/").contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
 				.body(request).exchange((req, res) -> toEntity(res));
 	}
 
-	private ResponseEntity<String> removeCopies(String role) {
-		RemoveBookCopiesRequest request = new RemoveBookCopiesRequest(3, "Book Lost");
-		return client.post().uri(String.format(ENDPOINT_REMOVE_COPIES, isbn)).contentType(MediaType.APPLICATION_JSON).headers(h -> addUserHeaders(h, role))
-				.body(request).exchange((req, res) -> toEntity(res));
+	private ResponseEntity<String> addCopies(String role) {
+		
+		generateToken(role);
+		
+		AddBookCopiesRequest request = new AddBookCopiesRequest(3);
+		return client.post().uri(String.format(ENDPOINT_ADD_COPIES, isbn)).contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).exchange((req, res) -> toEntity(res));
 	}
-	
-	private void addUserHeaders(HttpHeaders headers, String role) {
-		headers.set("X-User-Id", "user-1");
-		headers.set("X-User-Role", role);
+
+	private ResponseEntity<String> removeCopies(String role) {
+		
+		generateToken(role);
+		
+		RemoveBookCopiesRequest request = new RemoveBookCopiesRequest(3, "Book Lost");
+		return client.post().uri(String.format(ENDPOINT_REMOVE_COPIES, isbn)).contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).exchange((req, res) -> toEntity(res));
 	}
 
 	private ResponseEntity<String> toEntity(ClientHttpResponse response) throws IOException {
@@ -158,7 +177,7 @@ class BookApiIntegrationTest {
 
 		return ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders()).body(body);
 	}
-	
+
 	private void setupBook(String role) {
 		ResponseEntity<String> response = addBook(role);
 		Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode(), "Setup failed: unable to create book");
@@ -167,6 +186,14 @@ class BookApiIntegrationTest {
 	private void setupCopies(String role) {
 		ResponseEntity<String> response = addCopies(role);
 		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode(), "Setup failed: unable to add copy");
+	}
+	
+	private void generateToken(String role) {
+		
+		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", "user@test.it")
+				.claim("realm_access", Map.of("roles", List.of(role))).build();
+
+		when(jwtDecoder.decode(TOKEN_VALUE)).thenReturn(jwt);
 	}
 
 }

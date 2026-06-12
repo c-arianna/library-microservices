@@ -10,10 +10,12 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
+import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.domain.events.LoanCanceledEvent;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
@@ -25,6 +27,7 @@ import mentoring.acomi.loanservice.domain.model.LoanStatus;
 
 @SpringBootTest
 @Transactional
+@Import(SecurityTestConfig.class)
 public class LoanEventRepositoryTest {
 
 	@Autowired

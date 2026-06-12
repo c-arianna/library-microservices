@@ -9,10 +9,12 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
+import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.domain.events.BookRegisteredEvent;
@@ -22,6 +24,7 @@ import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
 
 @SpringBootTest
 @Transactional
+@Import(SecurityTestConfig.class)
 public class BookEventRepositoryTest {
 
 	@Autowired

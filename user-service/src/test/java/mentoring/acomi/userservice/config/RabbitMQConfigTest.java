@@ -1,4 +1,4 @@
-package mentoring.acomi.userservice.integration.rabbitmq;
+package mentoring.acomi.userservice.config;
 
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.boot.test.context.TestConfiguration;

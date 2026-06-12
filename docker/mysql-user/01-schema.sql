@@ -27,13 +27,3 @@ CREATE TABLE IF NOT EXISTS user_view(
     unique key uq_email (email),
 	primary key(id)
 );
-
-
-CREATE TABLE IF NOT EXISTS refresh_token (
-    id bigint auto_increment,
-    user_id varchar(36) not null,
-    token varchar(128) null unique,
-    expires_at datetime not null,
-    revoked boolean not null,
-    primary key(id)
-);

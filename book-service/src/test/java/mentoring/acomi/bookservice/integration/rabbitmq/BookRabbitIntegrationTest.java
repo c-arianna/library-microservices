@@ -28,6 +28,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.services.BookService;
+import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
+import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
@@ -39,7 +41,7 @@ import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
 @SpringBootTest
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import(RabbitMQConfigTest.class)
+@Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
 class BookRabbitIntegrationTest {
 
 	@Container

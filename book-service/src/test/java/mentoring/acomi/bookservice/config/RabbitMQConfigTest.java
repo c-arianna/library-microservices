@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.integration.rabbitmq;
+package mentoring.acomi.bookservice.config;
 
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;
