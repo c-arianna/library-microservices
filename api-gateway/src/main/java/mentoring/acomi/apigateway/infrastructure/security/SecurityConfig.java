@@ -19,7 +19,7 @@ public class SecurityConfig {
                    .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                    .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                    .exceptionHandling(ex -> ex.authenticationEntryPoint(entryPoint).accessDeniedHandler(accessDeniedHandler))
-                   .authorizeExchange(exchange -> exchange.anyExchange().authenticated())
+                   .authorizeExchange(exchange -> exchange.pathMatchers("/users/subscribe").permitAll().anyExchange().authenticated())
                    .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
                    .build();
     }

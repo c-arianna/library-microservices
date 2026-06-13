@@ -1,6 +1,7 @@
 package mentoring.acomi.userservice.event.mapping;
 
 import java.time.Instant;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -103,8 +104,9 @@ public class UserIntegrationEventMapperTest {
 	}
 
 	private static UserSubscribedEvent getUserSubscribedEvent() {
-		UserSubscribedPayload payload = new UserSubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Test", "Test", "123456789",
-				UserStatus.ACTIVE, UserRole.READER);
+		String identityId = UUID.randomUUID().toString();
+		UserSubscribedPayload payload = new UserSubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Test", "Test", 
+				identityId, UserStatus.ACTIVE, UserRole.READER);
 		return new UserSubscribedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "07bf89ea-fd4e-4080-8fda-eb94679c4f6d", payload, Instant.now());
     }
 }

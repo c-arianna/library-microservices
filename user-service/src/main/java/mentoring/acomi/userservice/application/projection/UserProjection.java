@@ -35,6 +35,6 @@ public class UserProjection {
 	}
 
 	private UserView getUser(UserSubscribedPayload payload) {
-		return new UserView(payload.id(), payload.email(), payload.name(), payload.lastname(), payload.password(), payload.status(), payload.role());
+		return new UserView(payload.id(), payload.email(), payload.name(), payload.lastname(), payload.userIdentityProviderId(), payload.status(), payload.role());
 	}
 }

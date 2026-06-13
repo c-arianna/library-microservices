@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import mentoring.acomi.sharedlibrary.model.ErrorResponse;
 import mentoring.acomi.userservice.application.errors.InvalidUser;
+import mentoring.acomi.userservice.application.errors.InvalidUserData;
 import mentoring.acomi.userservice.application.errors.InvalidUserStatus;
+import mentoring.acomi.userservice.application.errors.UserCreationError;
 import mentoring.acomi.userservice.application.errors.UserNotFound;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
@@ -77,6 +79,18 @@ public class ApplicationExceptionHandler {
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)
 	public ErrorResponse handleInvalidUserStatusError(InvalidUserStatus e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "LOGIN");
+	}
+	
+	@ExceptionHandler(InvalidUserData.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ErrorResponse handleInvalidUserDataError(InvalidUserData e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "IDENTITY_PROVIDER");
+	}
+	
+	@ExceptionHandler(UserCreationError.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ErrorResponse handleUserCreationError(UserCreationError e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "IDENTITY_PROVIDER");
 	}
 	
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

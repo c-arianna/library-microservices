@@ -33,6 +33,7 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import dasniko.testcontainers.keycloak.KeycloakContainer;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
@@ -41,10 +42,10 @@ import mentoring.acomi.userservice.application.services.UserService;
 import mentoring.acomi.userservice.config.RabbitMQConfigTest;
 import mentoring.acomi.userservice.config.SecurityTestConfig;
 import mentoring.acomi.userservice.domain.events.UserEventType;
-import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
+import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -57,6 +58,11 @@ class UserRabbitIntegrationTest {
 	@Container
 	static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
 
+	@SuppressWarnings("resource")
+	@Container
+	static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.3")
+			.withRealmImportFile("keycloak/realm-export-test.json");
+	
 	@DynamicPropertySource
 	static void rabbitProps(DynamicPropertyRegistry registry) {
 		registry.add("spring.rabbitmq.host", rabbit::getHost);
@@ -65,6 +71,20 @@ class UserRabbitIntegrationTest {
 		registry.add("spring.rabbitmq.password", rabbit::getAdminPassword);
 	}
 
+	@DynamicPropertySource
+	static void keycloakProps(DynamicPropertyRegistry registry) {
+
+		keycloak.start();
+		
+		registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
+				() -> keycloak.getAuthServerUrl() + "/realms/library-microservices");
+		registry.add("keycloak.base-url", keycloak::getAuthServerUrl);
+		registry.add("keycloak.realm", () -> "library-microservices");
+		registry.add("keycloak.admin-realm", () -> "library-microservices");
+		registry.add("keycloak.admin-client-id", () -> "user-service-admin");
+		registry.add("keycloak.admin-client-secret", () -> "test-secret");
+	}
+	
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
 
@@ -87,7 +107,6 @@ class UserRabbitIntegrationTest {
 	private ObjectMapper objectMapper;
 	
 	private static final String ADMIN_ROLE = "ADMIN";
-	private static final String READER_ROLE = "READER";
 	
 	private static final String TOKEN_VALUE = "test-token";
 
@@ -102,14 +121,14 @@ class UserRabbitIntegrationTest {
 		String routingKey = IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey();
 		String tmpQueue = createTmpQueue(routingKey);
 
-		User user = subscribeUser();
+		UserResponse user = subscribeUser();
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			var userView = userViewRepository.findById(user.userId()).orElseThrow();
 			assertEquals(UserStatus.ACTIVE, userView.status());
 		});
 
-		var events = userEventRepository.loadStream(user.getId());
+		var events = userEventRepository.loadStream(user.userId());
 		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSubscribed));
 
 		String body = waitForMessageBody(tmpQueue);
@@ -121,12 +140,12 @@ class UserRabbitIntegrationTest {
 		assertEquals("USER_SUBSCRIBED", json.get("eventType").asString());
 
 		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.getId(), json.get("aggregateId").asString());
+		assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
 		assertNotNull(payload);
 
-		assertEquals(user.getEmail().getValue(), payload.get("email").asString());
+		assertEquals(user.email(), payload.get("email").asString());
 		assertEquals("ACTIVE", payload.get("status").asString());
 	}
 
@@ -135,18 +154,18 @@ class UserRabbitIntegrationTest {
 
 		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey());
 
-		User user = subscribeUser();
+		UserResponse user = subscribeUser();
 
-		setAuthenticatedUser(user.getEmail().getValue(), ADMIN_ROLE);
+		setAuthenticatedUser(user.email(), ADMIN_ROLE);
 
-		userService.suspend(new SuspendRequest(user.getId(), "policy violation"));
+		userService.suspend(new SuspendRequest(user.userId(), "policy violation"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			var userView = userViewRepository.findById(user.userId()).orElseThrow();
 			assertEquals(UserStatus.SUSPENDED, userView.status());
 		});
 
-		var events = userEventRepository.loadStream(user.getId());
+		var events = userEventRepository.loadStream(user.userId());
 		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSuspended));
 
 		String body = waitForMessageBody(tmpQueue);
@@ -158,12 +177,12 @@ class UserRabbitIntegrationTest {
 		assertEquals("USER_SUSPENDED", json.get("eventType").asString());
 
 		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.getId(), json.get("aggregateId").asString());
+		assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
 		assertNotNull(payload);
 
-		assertEquals(user.getId(), payload.get("userId").asString());
+		assertEquals(user.userId(), payload.get("userId").asString());
 		assertEquals("SUSPENDED", payload.get("status").asString());
 		
 	}
@@ -173,25 +192,25 @@ class UserRabbitIntegrationTest {
 
 		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey());
 
-		User user = subscribeUser();
+		UserResponse user = subscribeUser();
 
-		setAuthenticatedUser(user.getEmail().getValue(), ADMIN_ROLE);
+		setAuthenticatedUser(user.email(), ADMIN_ROLE);
 
-		userService.suspend(new SuspendRequest(user.getId(), "temporary suspension"));
+		userService.suspend(new SuspendRequest(user.userId(), "temporary suspension"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			var userView = userViewRepository.findById(user.userId()).orElseThrow();
 			assertEquals(UserStatus.SUSPENDED, userView.status());
 		});
 
-		userService.unsuspend(new SuspendRequest(user.getId(), "reactivation"));
+		userService.unsuspend(new SuspendRequest(user.userId(), "reactivation"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			var userView = userViewRepository.findById(user.userId()).orElseThrow();
 			assertEquals(UserStatus.ACTIVE, userView.status());
 		});
 
-		var events = userEventRepository.loadStream(user.getId());
+		var events = userEventRepository.loadStream(user.userId());
 		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsuspended));
 
 		String body = waitForMessageBody(tmpQueue);
@@ -203,12 +222,12 @@ class UserRabbitIntegrationTest {
 		assertEquals("USER_UNSUSPENDED", json.get("eventType").asString());
 
 		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.getId(), json.get("aggregateId").asString());
+		assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
 		assertNotNull(payload);
 
-		assertEquals(user.getId(), payload.get("userId").asString());
+		assertEquals(user.userId(), payload.get("userId").asString());
 		assertEquals("ACTIVE", payload.get("status").asString());
 	
 	}
@@ -218,18 +237,18 @@ class UserRabbitIntegrationTest {
 
 		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey());
 
-		User user = subscribeUser();
+		UserResponse user = subscribeUser();
 
-		setAuthenticatedUser(user.getEmail().getValue(), READER_ROLE);
+		setAuthenticatedUser(user.email(), ADMIN_ROLE);
 
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.getId()).orElseThrow();
+			var userView = userViewRepository.findById(user.userId()).orElseThrow();
 			assertEquals(UserStatus.DISABLE, userView.status());
 		});
 
-		var events = userEventRepository.loadStream(user.getId());
+		var events = userEventRepository.loadStream(user.userId());
 		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsubscribed));
 
 		String body = waitForMessageBody(tmpQueue);
@@ -241,12 +260,12 @@ class UserRabbitIntegrationTest {
 		assertEquals("USER_UNSUBSCRIBED", json.get("eventType").asString());
 
 		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.getId(), json.get("aggregateId").asString());
+		assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
 		assertNotNull(payload);
 
-		assertEquals(user.getId(), payload.get("userId").asString());
+		assertEquals(user.userId(), payload.get("userId").asString());
 		assertEquals("DISABLE", payload.get("status").asString());
 		
 	}
@@ -285,10 +304,10 @@ class UserRabbitIntegrationTest {
 		return new String(message.getBody(), StandardCharsets.UTF_8);
 	}
 
-	private User subscribeUser() {
+	private UserResponse subscribeUser() {
 		String email = String.format("test.%s@mail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
-		return userService.subscribe(request);
+		return userService.subscribe(request, "ROLE_READER");
 	}
 	
 	private String waitForMessageBody(String queueName) {

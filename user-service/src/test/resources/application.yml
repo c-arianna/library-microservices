@@ -14,3 +14,10 @@ spring:
   h2:
     console:
       enabled: true
+
+keycloak:
+  base-url: http://localhost:8084
+  admin-realm: master
+  realm: library-microservices
+  admin-client-id: user-service-admin
+  admin-client-secret: test-secret

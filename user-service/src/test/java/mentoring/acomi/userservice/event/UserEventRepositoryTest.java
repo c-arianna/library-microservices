@@ -129,8 +129,8 @@ public class UserEventRepositoryTest {
 
 	private UserSubscribedEvent createUserSubscribedEvent(String userId) {
 		String eventId = UUID.randomUUID().toString();
-
-		UserSubscribedPayload payload = new UserSubscribedPayload(userId, "test@gmail.com", "Arianna", "Comi", "12345678", UserStatus.ACTIVE, UserRole.READER);
+		String identityId = UUID.randomUUID().toString();
+		UserSubscribedPayload payload = new UserSubscribedPayload(userId, "test@gmail.com", "Arianna", "Comi", identityId, UserStatus.ACTIVE, UserRole.READER);
 		return new UserSubscribedEvent(userId, eventId, payload, Instant.now());
 
 	}

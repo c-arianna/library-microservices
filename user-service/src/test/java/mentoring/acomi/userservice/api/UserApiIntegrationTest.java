@@ -6,36 +6,55 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
+import org.testcontainers.junit.jupiter.Container;
 
-import mentoring.acomi.userservice.config.SecurityTestConfig;
-import mentoring.acomi.userservice.infrastructure.dto.AuthResponse;
+import dasniko.testcontainers.keycloak.KeycloakContainer;
+import mentoring.acomi.sharedlibrary.model.UserRole;
+import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.repositories.UserViewRepository;
+import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
+import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import(SecurityTestConfig.class)
 class UserApiIntegrationTest {
 
+	private static final String USER_EMAIL = "test%s@gmail.com";
+
+	@SuppressWarnings("resource")
+	@Container
+	static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.3")
+			.withRealmImportFile("keycloak/realm-export-test.json");
+
+	@Autowired
+	private UserViewRepository userViewRepository;
+	
 	@LocalServerPort
 	int port;
 
@@ -58,28 +77,48 @@ class UserApiIntegrationTest {
 	private static final String READER_ROLE = "READER";
 
 	private final static String UNSUBSCRIBE_ENDPOINT = "/unsubscribe";
-	
+
 	private static final String TOKEN_VALUE = "test-token";
-	
+
 	@MockitoBean
 	private JwtDecoder jwtDecoder;
 
+	@DynamicPropertySource
+	static void keycloakProps(DynamicPropertyRegistry registry) {
+
+		keycloak.start();
+		
+		registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
+				() -> keycloak.getAuthServerUrl() + "/realms/library-microservices");
+		registry.add("keycloak.base-url", keycloak::getAuthServerUrl);
+		registry.add("keycloak.realm", () -> "library-microservices");
+		registry.add("keycloak.admin-realm", () -> "library-microservices");
+		registry.add("keycloak.admin-client-id", () -> "user-service-admin");
+		registry.add("keycloak.admin-client-secret", () -> "test-secret");
+	}
+	
 	@BeforeEach
 	public void setup() {
 		this.client = RestClient.builder().baseUrl(String.format("http://localhost:%d", port)).build();
+		createUser(LIBRARIAN_1, UserRole.LIBRARIAN);
+		createUser(ADMIN_1, UserRole.ADMIN);
+	}
+
+	@AfterEach
+	void clearSecurityContext() {
+		SecurityContextHolder.clearContext();
 	}
 
 	@Test
 	void shouldCreateUser() {
-		generateToken(READER_ROLE);
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", "test@gmail.com", "12345678");
-		ResponseEntity<AuthResponse> response = client.post().uri("/subscribe")
-				.contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
-				.body(request).retrieve().toEntity(AuthResponse.class);
+		ResponseEntity<UserResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
+				.body(request).retrieve()
+				.toEntity(UserResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
-		AuthResponse body = response.getBody();
+		UserResponse body = response.getBody();
 
 		Assertions.assertNotNull(response.getBody());
 
@@ -89,81 +128,91 @@ class UserApiIntegrationTest {
 
 	@Test
 	public void readerCanUnsubscribe() throws Exception {
-		String userId = createUser();
-		ResponseEntity<String> response = unsubscribeUser(READER_ROLE, userId);
+		UserResponse user = createUser();
+		generateToken(READER_ROLE, user.email());
+		ResponseEntity<String> response = unsubscribeUser();
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 	}
 
 	@Test
 	public void librarianCannotUnsubscribe() throws Exception {
-		ResponseEntity<String> response = unsubscribeUser(LIBRARIAN_ROLE, LIBRARIAN_1);
+		generateToken(LIBRARIAN_ROLE, String.format(USER_EMAIL, LIBRARIAN_1));
+		ResponseEntity<String> response = unsubscribeUser();
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
 	@Test
 	public void adminCannotUnsubscribe() throws Exception {
-		ResponseEntity<String> response = unsubscribeUser(ADMIN_ROLE, ADMIN_1);
+		createUser();
+		generateToken(ADMIN_ROLE, String.format(USER_EMAIL, ADMIN_1));
+		ResponseEntity<String> response = unsubscribeUser();
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
 	@Test
 	void readerCannotSuspendUser() throws Exception {
-		ResponseEntity<String> response = suspendUser(READER_ROLE, USER_1);
+		generateToken(READER_ROLE, String.format(USER_EMAIL, USER_1));
+		ResponseEntity<String> response = suspendUser(USER_1);
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
 	@Test
 	void librarianCannotSuspendUser() throws Exception {
-		ResponseEntity<String> response = suspendUser(LIBRARIAN_ROLE, USER_1);
+		generateToken(LIBRARIAN_ROLE, String.format(USER_EMAIL, LIBRARIAN_1));
+		ResponseEntity<String> response = suspendUser(USER_1);
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
 	@Test
 	void adminCanSuspendUser() throws Exception {
-		String userId = createUser();
-		ResponseEntity<String> response = suspendUser(ADMIN_ROLE, userId);
+		UserResponse user = createUser();
+		generateToken(ADMIN_ROLE, String.format(USER_EMAIL, ADMIN_1));
+		ResponseEntity<String> response = suspendUser(user.userId());
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 	}
 
 	@Test
 	void readerCannotUnsuspendUser() throws Exception {
-		ResponseEntity<String> response = unsuspendUser(READER_ROLE, USER_1);
+		generateToken(READER_ROLE, String.format(USER_EMAIL, USER_1));
+		ResponseEntity<String> response = unsuspendUser(USER_1);
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
 	@Test
 	void librarianCannotUnsuspendUser() throws Exception {
-		ResponseEntity<String> response = unsuspendUser(LIBRARIAN_ROLE, USER_1);
+		generateToken(LIBRARIAN_ROLE, String.format(USER_EMAIL, LIBRARIAN_1));
+		ResponseEntity<String> response = unsuspendUser(USER_1);
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
 	@Test
 	void adminCanUnsuspendUser() throws Exception {
-		String userId = createUser();
-		suspendUser(userId);
-		ResponseEntity<String> response = unsuspendUser(ADMIN_ROLE, userId);
+		UserResponse user = createUser();
+		generateToken(ADMIN_ROLE, String.format(USER_EMAIL, ADMIN_1));
+		suspendUser(user.userId());
+		ResponseEntity<String> response = unsuspendUser(user.userId());
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 	}
 
-	private ResponseEntity<String> unsubscribeUser(String role, String userId) {
-		generateToken(role);
+	private ResponseEntity<String> unsubscribeUser() {
 		UnsubscribeRequest request = new UnsubscribeRequest("Unsubscribe");
 		return client.post().uri(UNSUBSCRIBE_ENDPOINT).contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).exchange((req, res) -> toEntity(res));
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request)
+				.exchange((req, res) -> toEntity(res));
 	}
 
-	private ResponseEntity<String> suspendUser(String role, String userId) {
-		generateToken(role);
+	private ResponseEntity<String> suspendUser(String userId) {
 		SuspendRequest request = new SuspendRequest(userId, "");
 		return client.post().uri(SUSPEND_ENDPOINT).contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).exchange((req, res) -> toEntity(res));
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request)
+				.exchange((req, res) -> toEntity(res));
 	}
 
-	private ResponseEntity<String> unsuspendUser(String role, String userId) {
-		generateToken(role);
+	private ResponseEntity<String> unsuspendUser(String userId) {
 		SuspendRequest request = new SuspendRequest(userId, "");
 		return client.post().uri(UNSUSPEND_ENDPOINT).contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).exchange((req, res) -> toEntity(res));
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request)
+				.exchange((req, res) -> toEntity(res));
 	}
 
 	private ResponseEntity<String> toEntity(ClientHttpResponse response) throws IOException {
@@ -172,31 +221,29 @@ class UserApiIntegrationTest {
 		return ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders()).body(body);
 	}
 
-	private void suspendUser(String userId) {
-		ResponseEntity<String> response = suspendUser(ADMIN_ROLE, userId);
-		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-
-	}
-
-	private String createUser() {
-		generateToken(READER_ROLE);
-		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", "test@gmail.com", "12345678");
-		ResponseEntity<AuthResponse> response = client.post().uri("/subscribe")
-				.contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
-				.body(request).retrieve().toEntity(AuthResponse.class);
+	private UserResponse createUser() {
+		String email = String.format("test.%s@gmail.com", UUID.randomUUID().toString());
+		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
+		ResponseEntity<UserResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
+				.body(request).retrieve()
+				.toEntity(UserResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
-		return response.getBody().userId();
+		return response.getBody();
 	}
 
-	private void generateToken(String role) {
+	private void generateToken(String role, String email) {
 
-		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none")
-				.claim("email", "test@gmail.com")
+		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", email)
 				.claim("realm_access", Map.of("roles", List.of(role))).build();
 
 		when(jwtDecoder.decode(TOKEN_VALUE)).thenReturn(jwt);
+	}
+	
+	private void createUser(String userId, UserRole role) {
+		String identityProvider = UUID.randomUUID().toString();
+		userViewRepository.add(new UserView(userId, String.format(USER_EMAIL, userId), "Test", "Test", identityProvider, UserStatus.ACTIVE, role));
 	}
 
 }

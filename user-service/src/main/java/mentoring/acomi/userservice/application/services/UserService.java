@@ -6,9 +6,10 @@ import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,40 +18,44 @@ import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
 import mentoring.acomi.userservice.application.errors.InvalidUser;
+import mentoring.acomi.userservice.application.errors.InvalidUserData;
+import mentoring.acomi.userservice.application.errors.UserCreationError;
 import mentoring.acomi.userservice.application.errors.UserNotFound;
 import mentoring.acomi.userservice.application.messaging.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
+import mentoring.acomi.userservice.application.sso.IdentityProviderService;
+import mentoring.acomi.userservice.application.sso.ProviderUserCreated;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.events.UserEvent;
-import mentoring.acomi.userservice.domain.model.Password;
 import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakException;
 
 @Service
 public class UserService {
 
 	private final UserViewRepository userViewRepository;
 	private final UserEventRepository userEventRepository;
-	private final PasswordEncoder passwordEncoder;
 	private final EventDispatcher eventDispatcher;
-
+	private final IdentityProviderService identityProviderService;
+	
 	private final Logger logger = LogManager.getLogger(UserService.class);
 
 	public UserService(UserViewRepository userViewRepository, UserEventRepository userEventRepository,
-			PasswordEncoder passwordEncoder, EventDispatcher eventDispatcher) {
+			EventDispatcher eventDispatcher, IdentityProviderService identityProviderService) {
 		this.userViewRepository = userViewRepository;
 		this.userEventRepository = userEventRepository;
-		this.passwordEncoder = passwordEncoder;
 		this.eventDispatcher = eventDispatcher;
+		this.identityProviderService = identityProviderService;
 	}
 
 	@Transactional
-	public User subscribe(SubscribeRequest request) {
+	public UserResponse subscribe(SubscribeRequest request, String role) {
 
 		String userId = UUID.randomUUID().toString();
 		String email = request.email();
@@ -59,22 +64,27 @@ public class UserService {
 			throw new ApplicationConflict("USER_ALREADY_EXISTS", String.format("Email: %s", email));
 		}
 
+		ProviderUserCreated keycloakUser = createIdentityProviderUser(request, role);
+
 		UserAggregate aggregate = loadUser(userId);
-		User user = getUser(userId, request);
+		User user = getUser(userId, request, keycloakUser.identityProviderId());
 		aggregate.subscribe(user);
 
-		return user;
+		return new UserResponse(user.getId(), user.getEmail().getValue(), user.getRole(), user.getStatus());
 
 	}
 
 	@Transactional
 	public UserResponse unsubscribe(UnsubscribeRequest request) {
 
-		String currentUserId = getLoggedUserId();
-
-		UserAggregate aggregate = loadUser(currentUserId);
+		UserView loggedUser = getLoggedUser();
+		String loggedUserId = loggedUser.id();
+		
+		disableIdentityProviderUser(loggedUser.userIdentityProviderId());
+		
+		UserAggregate aggregate = loadUser(loggedUserId);
 		aggregate.unsubscribe(request.reason());
-		return new UserResponse(currentUserId, aggregate.email(), aggregate.role(), UserStatus.DISABLE);
+		return new UserResponse(loggedUserId, aggregate.email(), aggregate.role(), UserStatus.DISABLE);
 	}
 
 	@Transactional
@@ -82,9 +92,9 @@ public class UserService {
 
 		UserAggregate aggregate = loadUser(request.userId());
 
-		String currentUserId = getLoggedUserId();
+		UserView loggedUser = getLoggedUser();
 
-		aggregate.suspend(request.reason(), currentUserId);
+		aggregate.suspend(request.reason(), loggedUser.id());
 		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.SUSPENDED);
 	}
 
@@ -92,13 +102,13 @@ public class UserService {
 	public UserResponse unsuspend(SuspendRequest request) {
 		UserAggregate aggregate = loadUser(request.userId());
 
-		String currentUserId = getLoggedUserId();
+		UserView loggedUser = getLoggedUser();
 
-		aggregate.unsuspend(request.reason(), currentUserId);
+		aggregate.unsuspend(request.reason(), loggedUser.id());
 		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.ACTIVE);
 	}
 
-	private String getLoggedUserId() {
+	private UserView getLoggedUser() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		if (auth == null) {
@@ -112,16 +122,12 @@ public class UserService {
 			throw new UserNotFound("Email not present in token");
 		}
 
-		UserView user = userViewRepository.findByEmail(email)
-				.orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+		return userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
 
-		return user.id();
 	}
 
-	private User getUser(String userId, SubscribeRequest request) {
-		String hashedPassowrd = passwordEncoder.encode(request.password());
-		return User.create(userId, request.email(), request.name(), request.lastname(), Password.hashed(hashedPassowrd),
-				UserRole.READER);
+	private User getUser(String userId, SubscribeRequest request, String identityProviderId) {
+		return User.create(userId, request.email(), request.name(), request.lastname(), identityProviderId, UserRole.READER);
 	}
 
 	private UserAggregate loadUser(String userId) {
@@ -138,4 +144,40 @@ public class UserService {
 		return new UserAggregate(userId, dispatch, events);
 	}
 
+	private ProviderUserCreated createIdentityProviderUser(SubscribeRequest request, String role) {
+		
+		try {	
+			return identityProviderService.createUser(request.email(), request.password(), request.name(), request.lastname(), role);
+		}catch (KeycloakException ex) {
+		    throw mapIdentityProviderException(ex);
+		}
+	}
+
+	private void disableIdentityProviderUser(String userIdentityProviderId) {
+		try {	
+			identityProviderService.disableUser(userIdentityProviderId);
+		}catch (KeycloakException ex) {
+		    throw mapIdentityProviderException(ex);
+		}
+	}
+	
+	private RuntimeException mapIdentityProviderException(KeycloakException ex) {
+		
+		String message = ex.getMessage();
+		
+		if (ex.getHttpStatusCode().equals(HttpStatus.CONFLICT)) {
+		    return new ApplicationConflict("USER_ALREADY_EXISTS", message);
+		}
+
+		if (ex.getHttpStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+		    return new InvalidUserData(message);
+		}
+		
+		if (ex.getHttpStatusCode().equals(HttpStatus.FORBIDDEN)) {
+		    return new AuthorizationDeniedException(message);
+		}
+
+		return new UserCreationError(message);
+	}
+	
 }

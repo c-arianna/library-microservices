@@ -21,8 +21,7 @@ services:
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
     command: 
-      - start 
-      - --hostname=http://keycloak:8080
+      - start
       - --http-enabled=true
       - --hostname-strict=false
       - --import-realm
@@ -30,12 +29,18 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: keycloak
-    
+      
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      
+      KC_HOSTNAME: auth.local
+    extra_hosts:
+      - "auth.local:host-gateway"
     ports:
       - "8084:8080"
     volumes:
@@ -125,6 +130,9 @@ services:
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+    extra_hosts:
+      - "auth.local:host-gateway"
     depends_on:
       mysql-book:
         condition: service_healthy
@@ -143,6 +151,9 @@ services:
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+    extra_hosts:
+      - "auth.local:host-gateway"
     depends_on:
       mysql-loan:
         condition: service_healthy
@@ -160,7 +171,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/user_db
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
+      KEYCLOAK_BASE_URL: http://keycloak:8080
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+    extra_hosts:
+      - "auth.local:host-gateway"
     depends_on:
       mysql-user:
         condition: service_healthy
@@ -176,6 +191,10 @@ services:
       - "8080:8080"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+    extra_hosts:
+      - "auth.local:host-gateway"
+
     depends_on:
       book-service:
         condition: service_started

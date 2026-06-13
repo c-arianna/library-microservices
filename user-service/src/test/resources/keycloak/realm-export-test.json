@@ -1,0 +1,40 @@
+{
+  "realm": "library-microservices",
+  "enabled": true,
+
+  "roles": {
+    "realm": [
+      { "name": "ROLE_READER" },
+	  { "name": "ROLE_ADMIN" },
+	  { "name": "ROLE_LIBRARIAN" }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "user-service-admin",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "secret": "test-secret"
+    }
+  ],
+
+  "users": [
+    {
+      "username": "service-account-user-service-admin",
+      "enabled": true,
+      "serviceAccountClientId": "user-service-admin",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "view-realm"
+        ]
+      }
+    }
+  ]
+}

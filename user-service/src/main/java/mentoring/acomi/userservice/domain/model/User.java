@@ -17,22 +17,22 @@ public class User {
 	private Email email; 
 	private String name;
 	private String lastname;
-	private Password password;
+	private String userIdentityProviderId;
 	private UserStatus status;
 	private UserRole role;
 	
-	private User(String id, Email email, String name, String lastname, Password password, UserStatus status, UserRole role) {
+	private User(String id, Email email, String name, String lastname, String identityProviderId, UserStatus status, UserRole role) {
         this.id = id;
        this.email = email;
        this.name = name;
        this.lastname = lastname;
-       this.password = password;
+       this.userIdentityProviderId = identityProviderId;
        this.status = status;
        this.role = role;
     }
 	
-	public static User create(String id, String email,String name, String lastname, Password password, UserRole role) {
-        return new User(id, new Email(email), name, lastname, password, UserStatus.ACTIVE, role);
+	public static User create(String id, String email,String name, String lastname, String identityProviderId, UserRole role) {
+        return new User(id, new Email(email), name, lastname, identityProviderId, UserStatus.ACTIVE, role);
     }
 
 }

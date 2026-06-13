@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
@@ -17,7 +16,6 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.config.SecurityTestConfig;
-import mentoring.acomi.userservice.domain.model.Password;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserViewJpaRepository;
 
@@ -35,9 +33,6 @@ public class UserViewRepositoryTest {
 	@Autowired
 	private EntityManager entityManager;
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	
 	@Test
 	void shouldSaveUserView() {
 
@@ -45,8 +40,9 @@ public class UserViewRepositoryTest {
 		Optional<UserView> userView = repository.findById(userId);
 		Assertions.assertTrue(userView.isEmpty());
 
-		String hashedPassword = getHashedPassword("12345678");
-		UserView user = new UserView(userId, "test@gmail.com", "Arianna", "Comi", hashedPassword, UserStatus.ACTIVE, UserRole.LIBRARIAN);
+		String identityId = UUID.randomUUID().toString();
+		
+		UserView user = new UserView(userId, "test@gmail.com", "Arianna", "Comi", identityId, UserStatus.ACTIVE, UserRole.LIBRARIAN);
 		repository.add(user);
 		userView = repository.findById(userId);
 
@@ -58,7 +54,7 @@ public class UserViewRepositoryTest {
 				() -> Assertions.assertEquals("test@gmail.com", userViewFound.email()),
 				() -> Assertions.assertEquals("Arianna", userViewFound.name()),
 				() -> Assertions.assertEquals("Comi", userViewFound.lastname()),
-				() -> Assertions.assertTrue(passwordEncoder.matches("12345678", userViewFound.passwordHash())),
+				() -> Assertions.assertEquals(identityId, userViewFound.userIdentityProviderId()),
 				() -> Assertions.assertEquals(UserStatus.ACTIVE, userViewFound.status()),
 				() -> Assertions.assertEquals(UserRole.LIBRARIAN, userViewFound.role()));
 
@@ -79,14 +75,9 @@ public class UserViewRepositoryTest {
 	}
 
 	private void createUser(String userId, String email) {
-		String hashedPassword = getHashedPassword("12345678");
-		UserViewEntity entity = new UserViewEntity(userId, email,"Arianna", "Comi", hashedPassword, UserStatus.ACTIVE, UserRole.READER);
+		String identityProviderId = UUID.randomUUID().toString();
+		UserViewEntity entity = new UserViewEntity(userId, email,"Arianna", "Comi", identityProviderId, UserStatus.ACTIVE, UserRole.READER);
 		jpaRepository.saveAndFlush(entity);
 	}
 	
-	private String getHashedPassword(String password) {
-		return Password.hashed(passwordEncoder.encode(password)).value();
-	}
-
-
 }

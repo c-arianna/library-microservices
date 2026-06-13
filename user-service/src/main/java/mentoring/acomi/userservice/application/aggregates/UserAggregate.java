@@ -72,7 +72,7 @@ public class UserAggregate {
 
 		if (!isCreated) {
 			UserSubscribedPayload payload = new UserSubscribedPayload(user.getId(), user.getEmail().getValue(),
-					user.getName(), user.getLastname(), user.getPassword().value(), user.getStatus(), user.getRole());
+					user.getName(), user.getLastname(), user.getUserIdentityProviderId(), user.getStatus(), user.getRole());
 			UserSubscribedEvent event = new UserSubscribedEvent(id, getEventId(), payload, Instant.now());
 			manageEvent(event);
 		}

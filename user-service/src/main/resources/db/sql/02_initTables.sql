@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS user_view(
 	email varchar(100) not null,
 	name varchar(50) not null,
 	lastname varchar(50) not null,
-	password_hash varchar(100) not null,
+	user_identity_provider_id varchar(100) not null,
 	role ENUM('READER', 'LIBRARIAN', 'ADMIN') not null default 'READER',
 	status ENUM('ACTIVE', 'SUSPENDED', 'DISABLE') not null default 'ACTIVE',
     created_at timestamp not null default current_timestamp,

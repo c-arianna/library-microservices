@@ -9,11 +9,11 @@ import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEnt
 public class UserViewJpaMapper {
 	
 	public UserViewEntity toEntity(UserView user) {
-		return new UserViewEntity(user.id(), user.email(), user.name(), user.lastname(), user.passwordHash(), user.status(), user.role());
+		return new UserViewEntity(user.id(), user.email(), user.name(), user.lastname(), user.userIdentityProviderId(), user.status(), user.role());
 	}
 	
 	public UserView toDomain(UserViewEntity entity) {
-		return new UserView(entity.getId(), entity.getEmail(), entity.getName(), entity.getLastname(),entity.getPasswordHash(), entity.getStatus(), entity.getRole());
+		return new UserView(entity.getId(), entity.getEmail(), entity.getName(), entity.getLastname(), entity.getUserIdentityProviderId(), entity.getStatus(), entity.getRole());
 	}
 
 }

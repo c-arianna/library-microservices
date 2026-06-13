@@ -3,6 +3,7 @@ package mentoring.acomi.userservice.event.contract.producer;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -160,7 +161,9 @@ public class UserEventProducerContractTest {
 	}
 
 	private static UserContractCase userSubscribedCase() {
-		UserSubscribedPayload payload = new UserSubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Test", "Test", "123456789",
+		String identityId = UUID.randomUUID().toString();
+		
+		UserSubscribedPayload payload = new UserSubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Test", "Test",identityId,
 				UserStatus.ACTIVE, UserRole.READER);
 		UserSubscribedEvent event = new UserSubscribedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "07bf89ea-fd4e-4080-8fda-eb94679c4f6d", payload, Instant.now());
 		
