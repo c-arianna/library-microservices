@@ -1,0 +1,39 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>mentoring.acomi</groupId>
+    <artifactId>library-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.6</version>
+	</parent>
+	
+    <modules>
+        <module>shared-library</module>
+		<module>contracts</module>
+        <module>api-gateway</module>
+        <module>book-service</module>
+		<module>loan-service</module>
+        <module>user-service</module>
+    </modules>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>mentoring.acomi</groupId>
+				<artifactId>shared-library</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>mentoring.acomi</groupId>
+				<artifactId>event-contracts</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+</project>
