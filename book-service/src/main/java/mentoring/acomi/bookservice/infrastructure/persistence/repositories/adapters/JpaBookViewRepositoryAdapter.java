@@ -73,4 +73,9 @@ public class JpaBookViewRepositoryAdapter implements BookViewRepository {
 		repository.returnBorrowed(isbn);		
 	}
 
+	@Override
+	public void deleteAll() {
+		repository.deleteAll();		
+	}
+
 }

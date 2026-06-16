@@ -10,12 +10,10 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,7 +28,6 @@ import org.springframework.web.client.RestClient;
 
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.view.UserView;
-import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
@@ -39,7 +36,6 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import(SecurityTestConfig.class)
 public class LoanApiIntegrationTest {
 
 	private static final String ADMIN_1 = "admin-1";
@@ -100,22 +96,6 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
-	@Disabled("Move to integration-test module")
-	@Test
-	public void librarianCanConfirmLoan() {
-		String loanId = setupLoan();
-		ResponseEntity<String> response = confirmLoan(loanId, LIBRARIAN_ROLE);
-		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-	}
-
-	@Disabled("Move to integration-test module")
-	@Test
-	public void adminCanConfirmLoan() {
-		String loanId = setupLoan();
-		ResponseEntity<String> response = confirmLoan(loanId, ADMIN_ROLE);
-		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-	}
-
 	@Test
 	public void readerCannotCancelLoan() {
 		String loanId = setupLoan();
@@ -123,45 +103,11 @@ public class LoanApiIntegrationTest {
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
 
-	@Disabled("Move to integration-test module")
-	@Test
-	public void librarianCanCancelLoan() {
-		String loanId = setupLoan();
-		ResponseEntity<String> response = cancelLoan(loanId, LIBRARIAN_ROLE);
-		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-	}
-
-	@Disabled("Move to integration-test module")
-	@Test
-	public void adminCanCancelLoan() {
-		String loanId = setupLoan();
-		ResponseEntity<String> response = cancelLoan(loanId, ADMIN_ROLE);
-		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-	}
-
 	@Test
 	public void readerCannotReturnLoan() {
 		String loanId = setupLoan();
 		ResponseEntity<String> response = returnLoan(loanId, READER_ROLE);
 		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-	}
-
-	@Disabled("Move to integration-test module")
-	@Test
-	public void librarianCanReturnLoan() {
-		String loanId = setupLoan();
-		confirmLoan(loanId);
-		ResponseEntity<String> response = returnLoan(loanId, LIBRARIAN_ROLE);
-		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-	}
-
-	@Disabled("Move to integration-test module")
-	@Test
-	public void adminCanReturnLoan() {
-		String loanId = setupLoan();
-		confirmLoan(loanId);
-		ResponseEntity<String> response = returnLoan(loanId, ADMIN_ROLE);
-		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 	}
 
 	@Test
@@ -274,12 +220,6 @@ public class LoanApiIntegrationTest {
 		String body = StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
 
 		return ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders()).body(body);
-	}
-
-	private void confirmLoan(String loanId) {
-		ResponseEntity<String> response = confirmLoan(loanId, LIBRARIAN_ROLE);
-		Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-
 	}
 
 	private void createUser(String userId) {

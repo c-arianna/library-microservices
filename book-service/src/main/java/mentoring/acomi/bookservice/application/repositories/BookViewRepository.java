@@ -16,4 +16,5 @@ public interface BookViewRepository {
 	  public void borrow(String isbn);
 	  public void release(String isbn);
 	  public void returnBorrowed(String isbn);
+	  public void deleteAll();
 }

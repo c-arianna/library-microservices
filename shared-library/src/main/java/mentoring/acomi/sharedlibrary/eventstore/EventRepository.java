@@ -8,4 +8,5 @@ public interface EventRepository<E extends DomainEvent> {
 	public List<E> loadStream(String aggregateId);
 	public boolean exists(String aggregateId);
 	public Optional<E> getEvent(String eventType, String aggregateId);
+	public void deleteAll();
 }

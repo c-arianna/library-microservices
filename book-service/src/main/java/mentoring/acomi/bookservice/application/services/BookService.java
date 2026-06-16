@@ -1,6 +1,7 @@
 package mentoring.acomi.bookservice.application.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.bookservice.application.BookFilter;
 import mentoring.acomi.bookservice.application.aggregates.BookAggregate;
+import mentoring.acomi.bookservice.application.errors.BookNotFound;
 import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
@@ -80,7 +82,7 @@ public class BookService {
 	private BooksResponse toBooksResponse(List<BookView> books) {
 
 		List<BookDto> bookResponse = books.stream().map(b -> new BookDto(b.isbn(), b.author(), b.title(),
-				b.description(), b.availableCopies() > 0)).toList();
+				b.description(), b.totalCopies(), b.borrowedCopies(), b.reservedCopies(),   b.availableCopies() > 0)).toList();
 
 		return new BooksResponse(bookResponse);
 	}
@@ -98,5 +100,19 @@ public class BookService {
 		};
 
 		return new BookAggregate(ISBN.of(isbn), dispatch, events);
+	}
+	
+	public BookDto getBook(String isbn) {
+		
+		Optional<BookView> book = bookViewRepository.findById(isbn);
+		
+		if(book.isEmpty()) {
+			throw new BookNotFound(String.format("%s not registered", isbn));
+		}
+		
+		BookView bookView = book.get();
+		
+		return new BookDto(bookView.isbn(), bookView.author(), bookView.title(), bookView.description(), bookView.totalCopies(), 
+				bookView.borrowedCopies(), bookView.reservedCopies(), bookView.availableCopies() > 0);
 	}
 }

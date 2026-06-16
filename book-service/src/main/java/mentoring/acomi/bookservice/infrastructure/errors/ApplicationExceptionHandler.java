@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import mentoring.acomi.bookservice.application.errors.BookNotFound;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.errors.BookNotRegistered;
 import mentoring.acomi.bookservice.domain.errors.CannotRemoveBookCopies;
@@ -73,6 +74,12 @@ public class ApplicationExceptionHandler {
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
 	public ErrorResponse handleCannotRemoveBookCopiesError(CannotRemoveBookCopies e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+	
+	@ExceptionHandler(BookNotFound.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleBookNotFoundError(BookNotFound e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "APPLICATION_ERROR");
 	}
 	
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

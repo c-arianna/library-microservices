@@ -42,4 +42,9 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 		Optional<ENTITY> event = repository.getByEventTypeAndAggregateId(eventType, aggregateId);
 		return event.isEmpty() ? Optional.empty() : Optional.of(mapper.toDomain(event.get()));
 	}
+	
+	@Override
+	public void deleteAll() {
+		repository.deleteAll();
+	}
 }

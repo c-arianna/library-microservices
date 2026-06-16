@@ -15,6 +15,7 @@ import mentoring.acomi.bookservice.application.BookFilter;
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.dto.BookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.BookResponse;
 import mentoring.acomi.bookservice.infrastructure.dto.BooksResponse;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
@@ -56,5 +57,11 @@ public class BookController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void removeBookCopies(@RequestBody RemoveBookCopiesRequest request, @PathVariable String isbn) {
 		service.removeBookCopies(request, isbn);
+	}
+	
+	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")
+	@GetMapping("/{isbn}")
+	public BookDto getBook(@PathVariable String isbn){
+		return service.getBook(isbn);
 	}
 }

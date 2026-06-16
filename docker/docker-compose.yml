@@ -131,6 +131,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_PROFILES_ACTIVE: test
+      APP_TEST_MODE: true
     extra_hosts:
       - "auth.local:host-gateway"
     depends_on:
@@ -152,6 +154,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_PROFILES_ACTIVE: test
+      APP_TEST_MODE: true
     extra_hosts:
       - "auth.local:host-gateway"
     depends_on:
@@ -174,6 +178,8 @@ services:
       KEYCLOAK_BASE_URL: http://keycloak:8080
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_PROFILES_ACTIVE: test
+      APP_TEST_MODE: true
     extra_hosts:
       - "auth.local:host-gateway"
     depends_on:
@@ -192,6 +198,8 @@ services:
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_PROFILES_ACTIVE: test
+      APP_TEST_MODE: true
     extra_hosts:
       - "auth.local:host-gateway"
 
