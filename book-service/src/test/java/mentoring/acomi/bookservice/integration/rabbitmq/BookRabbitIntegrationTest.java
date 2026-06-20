@@ -5,6 +5,7 @@ import static org.awaitility.Awaitility.await;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,9 @@ import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationConsumerEventVersions;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
@@ -41,7 +44,7 @@ import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
 @SpringBootTest
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
+@Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
 class BookRabbitIntegrationTest {
 
 	@Container
@@ -81,12 +84,18 @@ class BookRabbitIntegrationTest {
 	void setupBook() {
 		bookService.addBook(new AddBookRequest(ISBN, "Italo Calvino", "Il barone rampante", ""));
 		bookService.addBookCopies(new AddBookCopiesRequest(3), ISBN);
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var book = viewRepository.findById(ISBN).orElseThrow();
+			Assertions.assertEquals(3, book.availableCopies());
+		});
+
 	}
 
 	@Test
 	void shouldConsumeLoanRequestedAndReserveBook() {
 
-		publishLoanEvent(IntegrationEventTypes.LOAN_REQUESTED);
+		publishLoanRequestedEvent();
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var book = viewRepository.findById(ISBN).orElseThrow();
@@ -101,9 +110,9 @@ class BookRabbitIntegrationTest {
 	@Test
 	void shouldConsumeLoanConfirmRequestedAndBorrowBook() {
 
-		publishLoanEvent(IntegrationEventTypes.LOAN_REQUESTED);
+		publishLoanRequestedEvent();
 
-		publishLoanEvent(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED);
+		publishLoanConfirmedRequestEvent();
 
 		await().untilAsserted(() -> {
 			var book = viewRepository.findById(ISBN).orElseThrow();
@@ -121,7 +130,8 @@ class BookRabbitIntegrationTest {
 		IntegrationEventEnvelope<Object> invalidEvent = new IntegrationEventEnvelope<>("evt-invalid",
 				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, Instant.now(), 1, new Object());
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.LOAN_REQUESTED.eventName, invalidEvent);
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.LOAN_REQUESTED.eventName,
+				invalidEvent);
 
 		await().atMost(Duration.ofSeconds(3));
 
@@ -138,7 +148,7 @@ class BookRabbitIntegrationTest {
 
 		await().atMost(Duration.ofSeconds(1)).until(() -> true);
 
-		publishLoanEvent(IntegrationEventTypes.LOAN_REQUESTED);
+		publishLoanRequestedEvent();
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var book = viewRepository.findById(ISBN).orElseThrow();
@@ -146,7 +156,7 @@ class BookRabbitIntegrationTest {
 		});
 
 		String body = waitForMessageBody(tmpQueue);
-		
+
 		await().atMost(Duration.ofSeconds(5)).pollInterval(Duration.ofMillis(100)).untilAsserted(() -> {
 			Assertions.assertNotNull(body);
 			Assertions.assertTrue(body.contains("BOOK_RESERVED"));
@@ -154,8 +164,26 @@ class BookRabbitIntegrationTest {
 
 	}
 
-	private void publishLoanEvent(IntegrationEventTypes type) {
+	@Test
+	void shouldRejectNotSupportedSchemaVersion() {
 
+		IntegrationEventEnvelope<Object> invalidEvent = new IntegrationEventEnvelope<>("evt-invalid",
+				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, Instant.now(),
+				BookIntegrationConsumerEventVersions.LOAN_REQUESTED + 1, new Object());
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.LOAN_REQUESTED.eventName,
+				invalidEvent);
+
+		await().atMost(Duration.ofSeconds(3));
+
+		var events = eventRepository.loadStream(ISBN);
+
+		Assertions.assertFalse(events.stream().anyMatch(e -> e.type() == BookEventType.BookReserved));
+	}
+
+	private void publishLoanConfirmedRequestEvent() {
+
+		IntegrationEventTypes type = IntegrationEventTypes.LOAN_CONFIRM_REQUESTED;
 		String eventId = UUID.randomUUID().toString();
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
 				"loan-service", ISBN, Instant.now(), 1, new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
@@ -163,6 +191,16 @@ class BookRabbitIntegrationTest {
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
 	}
 
+	private void publishLoanRequestedEvent() {
+
+		IntegrationEventTypes type = IntegrationEventTypes.LOAN_REQUESTED;
+		String eventId = UUID.randomUUID().toString();
+		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
+				"loan-service", ISBN, Instant.now(), 1, new LoanRequestedIntegrationPayload(LOAN_ID, ISBN, USER_ID, LocalDate.now(), LocalDate.now().plusDays(30)));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
+	}
+	
 	private String createTmpQueue(String routingKey) {
 
 		String queueName = String.join(".", "tmp", routingKey, UUID.randomUUID().toString());
@@ -176,19 +214,16 @@ class BookRabbitIntegrationTest {
 	}
 
 	private String waitForMessageBody(String queueName) {
-        final String[] holder = new String[1];
+		final String[] holder = new String[1];
 
-        await()
-            .atMost(Duration.ofSeconds(10))
-            .pollInterval(Duration.ofMillis(100))
-            .until(() -> {
-                holder[0] = receiveMessageBody(queueName);
-                return holder[0] != null;
-            });
+		await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100)).until(() -> {
+			holder[0] = receiveMessageBody(queueName);
+			return holder[0] != null;
+		});
 
-        return holder[0];
-    }
-	
+		return holder[0];
+	}
+
 	private String receiveMessageBody(String queueName) {
 		var message = rabbitTemplate.receive(queueName, 3000);
 		if (message == null) {

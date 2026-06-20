@@ -37,12 +37,22 @@
 				},
 				"userId": {
 					"type": "string"
+				},
+				"start": {
+					"type": "string",
+					"format": "date"
+				},
+				"end": {
+					"type": "string",
+					"format": "date"
 				}
 			},
 			"required": [
 				"loanId",
 				"isbn",
-				"userId"
+				"userId",
+				"start",
+				"end"
 			]
 		}
 	},

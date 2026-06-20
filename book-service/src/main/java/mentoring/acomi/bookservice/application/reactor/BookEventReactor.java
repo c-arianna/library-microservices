@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.application.services;
+package mentoring.acomi.bookservice.application.reactor;
 
 import java.util.List;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.application.aggregates.BookAggregate;
 import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
@@ -16,16 +16,16 @@ import mentoring.acomi.bookservice.domain.model.ISBN;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 
-@Service
-public class BookEventService {
+@Component
+public class BookEventReactor {
 
 	private final Map<IntegrationEventTypes, Consumer<LoanIntegrationPayload>> handlers;
 
 	private final BookEventRepository bookEventRepository;
 	private final EventDispatcher eventDispatcher;
-	private final Logger logger = LogManager.getLogger(BookEventService.class);
+	private final Logger logger = LogManager.getLogger(BookEventReactor.class);
 
-	public BookEventService(BookEventRepository eventRepository, EventDispatcher eventDispatcher) {
+	public BookEventReactor(BookEventRepository eventRepository, EventDispatcher eventDispatcher) {
 		this.bookEventRepository = eventRepository;
 		this.eventDispatcher = eventDispatcher;
 		this.handlers = Map.of(IntegrationEventTypes.LOAN_REQUESTED, this::handleLoanRequested,
@@ -36,7 +36,7 @@ public class BookEventService {
 	public void handle(IntegrationEventTypes type, LoanIntegrationPayload payload) {
 		Consumer<LoanIntegrationPayload> handler = handlers.get(type);
 		if (handler == null) {
-			throw new IllegalArgumentException("Unsupported event type: " + type);
+			throw new IllegalArgumentException(String.format("Unsupported event type: %s", type));
 		}
 		handler.accept(payload);
 	}

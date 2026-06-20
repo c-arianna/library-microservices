@@ -307,7 +307,14 @@ class UserRabbitIntegrationTest {
 	private UserResponse subscribeUser() {
 		String email = String.format("test.%s@mail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
-		return userService.subscribe(request, "ROLE_READER");
+		
+		UserResponse response = userService.subscribe(request, "ROLE_READER");
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			userViewRepository.findById(response.userId()).orElseThrow();
+		});
+
+		return response;
 	}
 	
 	private String waitForMessageBody(String queueName) {

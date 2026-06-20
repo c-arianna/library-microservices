@@ -70,7 +70,7 @@ public class UserService {
 		User user = getUser(userId, request, keycloakUser.identityProviderId());
 		aggregate.subscribe(user);
 
-		return new UserResponse(user.getId(), user.getEmail().getValue(), user.getRole(), user.getStatus());
+		return new UserResponse(user.getId(), user.getEmail().getValue(), user.getUserIdentityProviderId(), user.getRole(), user.getStatus());
 
 	}
 
@@ -84,7 +84,7 @@ public class UserService {
 		
 		UserAggregate aggregate = loadUser(loggedUserId);
 		aggregate.unsubscribe(request.reason());
-		return new UserResponse(loggedUserId, aggregate.email(), aggregate.role(), UserStatus.DISABLE);
+		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.DISABLE);
 	}
 
 	@Transactional
@@ -95,7 +95,7 @@ public class UserService {
 		UserView loggedUser = getLoggedUser();
 
 		aggregate.suspend(request.reason(), loggedUser.id());
-		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.SUSPENDED);
+		return new UserResponse(request.userId(), aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.SUSPENDED);
 	}
 
 	@Transactional
@@ -105,7 +105,7 @@ public class UserService {
 		UserView loggedUser = getLoggedUser();
 
 		aggregate.unsuspend(request.reason(), loggedUser.id());
-		return new UserResponse(request.userId(), aggregate.email(), aggregate.role(), UserStatus.ACTIVE);
+		return new UserResponse(request.userId(), aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.ACTIVE);
 	}
 
 	private UserView getLoggedUser() {

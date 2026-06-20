@@ -21,6 +21,7 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 
@@ -46,7 +47,7 @@ public class LoanEventConsumerContractTest {
 	void shouldDeserializeLoanRequestedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_REQUESTED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
 
 		Assertions.assertEquals("LOAN_REQUESTED", event.eventType().toString());
 	}

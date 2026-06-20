@@ -10,6 +10,7 @@ import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsubscribeEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsuspendedEvent;
+import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
 
@@ -38,22 +39,24 @@ public class UserIntegrationEventMapper {
 
 	private IntegrationEventEnvelope<?> getUserUnsuspendedIntegrationEvent(UserUnsuspendedEvent e) {
 		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.ACTIVE);
-		return envelope(e, IntegrationEventTypes.USER_UNSUSPENDED, UserIntegrationEventVersions.USER_UNSUSPENDED, payload);
+		return envelope(e, IntegrationEventTypes.USER_UNSUSPENDED, UserIntegrationPublisherEventVersions.USER_UNSUSPENDED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getUserSuspendedIntegrationEvent(UserSuspendEvent e) {
 		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.SUSPENDED);
-		return envelope(e, IntegrationEventTypes.USER_SUSPENDED, UserIntegrationEventVersions.USER_SUSPENDED, payload);
+		return envelope(e, IntegrationEventTypes.USER_SUSPENDED, UserIntegrationPublisherEventVersions.USER_SUSPENDED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getUserUnsubscribedIntegrationEvent(UserUnsubscribeEvent e) {
 		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.DISABLE);
-		return envelope(e, IntegrationEventTypes.USER_UNSUBSCRIBED, UserIntegrationEventVersions.USER_UNSUBSCRIBED, payload);
+		return envelope(e, IntegrationEventTypes.USER_UNSUBSCRIBED, UserIntegrationPublisherEventVersions.USER_UNSUBSCRIBED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getUserSubscribedIntegrationEvent(UserSubscribedEvent e) {
-		UserSubscribedIntegrationPayload payload = new UserSubscribedIntegrationPayload(e.payload().id(), e.payload().email(), e.payload().status());
-		return envelope(e, IntegrationEventTypes.USER_SUBSCRIBED, UserIntegrationEventVersions.USER_SUBSCRIBED, payload);
+		UserSubscribedPayload eventPayload = e.payload();
+		UserSubscribedIntegrationPayload payload = new UserSubscribedIntegrationPayload(eventPayload.id(), eventPayload.email(), eventPayload.name(),
+				eventPayload.lastname(), eventPayload.userIdentityProviderId(), eventPayload.status(), eventPayload.role());
+		return envelope(e, IntegrationEventTypes.USER_SUBSCRIBED, UserIntegrationPublisherEventVersions.USER_SUBSCRIBED, payload);
 	}
 	
 	private <T> IntegrationEventEnvelope<T> envelope(UserEvent e, IntegrationEventTypes type, int version, T payload) {

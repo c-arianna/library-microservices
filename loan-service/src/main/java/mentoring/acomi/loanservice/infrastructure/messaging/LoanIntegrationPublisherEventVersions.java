@@ -1,6 +1,6 @@
 package mentoring.acomi.loanservice.infrastructure.messaging;
 
-public final class LoanIntegrationEventVersions {
+public final class LoanIntegrationPublisherEventVersions {
 
 	public static final int LOAN_REQUESTED = 1;
 	public static final int LOAN_CONFIRMED = 1;
@@ -10,6 +10,6 @@ public final class LoanIntegrationEventVersions {
 	public static final int LOAN_RESERVED = 1;
 	public static final int LOAN_FAILED = 1;
 	
-	private LoanIntegrationEventVersions() {}
+	private LoanIntegrationPublisherEventVersions() {}
 
 }

@@ -1,6 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.messaging;
 
-public final class BookIntegrationEventVersions {
+public final class BookIntegrationPublisherEventVersions {
 
 	public static final int BOOK_REGISTERED = 1;
 	public static final int BOOK_COPIES_UPDATED = 1;
@@ -11,6 +11,6 @@ public final class BookIntegrationEventVersions {
 	public static final int BOOK_RESERVATION_REJECTED = 1;
 	public static final int BOOK_BORROW_REJECTED = 1;
 
-	private BookIntegrationEventVersions() {}
+	private BookIntegrationPublisherEventVersions() {}
 
 }

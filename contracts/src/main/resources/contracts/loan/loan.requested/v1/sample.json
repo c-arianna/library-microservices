@@ -9,6 +9,8 @@
   "payload": {
     "isbn": "9788828606819",
     "loanId": "70a865d6-2766-4dac-b38a-ef5f8b8291b2",
-    "userId": "31dad5ea-9f2b-4b11-aa40-cc623f8220b4"
+    "userId": "31dad5ea-9f2b-4b11-aa40-cc623f8220b4",
+	"start": "2026-06-15",
+	"end": "2026-07-15"
   }
 }

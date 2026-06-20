@@ -3,7 +3,7 @@
 cd /d %~dp0
 
 echo === BUILD MAVEN ===
-call mvn  -Dmaven.test.skip clean install
+call mvn clean install
 
 echo === BUILD DOCKER IMAGES ===
 docker build -t api-gateway:dev ./api-gateway

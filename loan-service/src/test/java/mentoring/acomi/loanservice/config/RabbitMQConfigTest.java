@@ -32,7 +32,11 @@ public class RabbitMQConfigTest {
 				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey()),
 				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey()),
 				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey()));
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey()),
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey()),
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_FAILED.getRoutingKey()),
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_RESERVED.getRoutingKey()),
+				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_CONFIRMED.getRoutingKey()));
 	}
 
 }

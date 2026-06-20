@@ -38,13 +38,8 @@ public class JpaBookViewRepositoryAdapter implements BookViewRepository {
 	}
 
 	@Override
-	public void addCopies(String isbn, int quantity) {
-		repository.addCopies(isbn, quantity);		
-	}
-
-	@Override
-	public void removeCopies(String isbn, int quantity) {
-		repository.removeCopies(isbn, quantity);		
+	public void updateCopies(String isbn, int quantity) {
+		repository.updateCopies(isbn, quantity);		
 	}
 
 	@Override

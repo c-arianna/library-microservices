@@ -230,7 +230,11 @@ class UserApiIntegrationTest {
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
-		return response.getBody();
+		UserResponse user = response.getBody();
+		
+		userViewRepository.add(new UserView(user.userId(), user.email(), "Arianna",  "Comi", user.userIdentityProviderId(), UserStatus.ACTIVE, user.role()));
+		
+		return user;
 	}
 
 	private void generateToken(String role, String email) {

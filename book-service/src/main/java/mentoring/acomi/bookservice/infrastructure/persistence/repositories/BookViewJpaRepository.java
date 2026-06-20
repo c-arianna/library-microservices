@@ -20,16 +20,7 @@ public interface BookViewJpaRepository
 				    b.updatedAt = CURRENT_TIMESTAMP
 				WHERE b.isbn = :isbn
 			""")
-	void addCopies(@Param("isbn") String isbn, @Param("quantity") int quantity);
-
-	@Modifying
-	@Query("""
-			    UPDATE BookViewEntity b
-			    SET b.totalCopies = b.totalCopies - :quantity,
-			        b.updatedAt = CURRENT_TIMESTAMP
-			    WHERE b.isbn = :isbn
-			""")
-	void removeCopies(@Param("isbn") String isbn, @Param("quantity") int quantity);
+	void updateCopies(@Param("isbn") String isbn, @Param("quantity") int quantity);
 	
 	@Modifying
 	@Query("""

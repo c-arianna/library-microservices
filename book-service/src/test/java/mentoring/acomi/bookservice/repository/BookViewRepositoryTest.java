@@ -131,7 +131,7 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 1, 1);
 
-		repository.addCopies(BOOK_ISBN, QUANTITY);
+		repository.updateCopies(BOOK_ISBN, QUANTITY);
 
 		entityManager.clear();
 		
@@ -146,7 +146,7 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 1, 1);
 
-		repository.removeCopies(BOOK_ISBN, QUANTITY);
+		repository.updateCopies(BOOK_ISBN, -QUANTITY);
 
 		entityManager.clear();
 		

@@ -1,44 +1,38 @@
-package mentoring.acomi.loanservice.application.services;
+package mentoring.acomi.loanservice.application.reactor;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
-import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
-import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.events.LoanFailedReason;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 
-@Service
-public class LoanEventService {
-
+@Component
+public class LoanReactor {
+	
 	private static final String BOOK_NOT_AVAILABLE = "BOOK_NOT_AVAILABLE";
 	private static final String BOOK_NOT_REGISTERED = "BOOK_NOT_REGISTERED";
 	private static final String RESERVATION_MISSING = "RESERVATION_MISSING";
-
+	
 	private final LoanEventRepository eventRepository;
-	private final UserViewRepository userViewRepository;
 	private final EventDispatcher eventDispatcher;
-	private final Logger logger = LogManager.getLogger(LoanEventService.class);
-
-	public LoanEventService(LoanEventRepository eventRepository, UserViewRepository userViewRepository, EventDispatcher eventDispatcher) {
+	
+	private final Logger logger = LogManager.getLogger(LoanReactor.class);
+	
+	public LoanReactor(LoanEventRepository eventRepository, EventDispatcher eventDispatcher) {
 		this.eventRepository = eventRepository;
-		this.userViewRepository = userViewRepository;
 		this.eventDispatcher = eventDispatcher;
 	}
-
+	
 	public void handleBookReserved(BookLoanIntegrationPayload payload) {
 		LoanAggregate loan = loadLoan(payload.loanId());
 		loan.reserve();
@@ -73,17 +67,6 @@ public class LoanEventService {
 
 	}
 	
-	@Transactional
-	public void handleSubscribeUser(UserSubscribedIntegrationPayload payload) {
-		UserView user = new UserView(payload.userId(), payload.email(), payload.status());
-		userViewRepository.add(user);
-	}
-
-	@Transactional
-	public void handleUpdateUserStatus(UserIntegrationPayload payload) {
-		userViewRepository.updateStatus(payload.userId(), payload.status());
-	}
-	
 	private LoanAggregate loadLoan(String loanId) {
 
 		List<LoanEvent> events = eventRepository.loadStream(loanId);
@@ -98,5 +81,6 @@ public class LoanEventService {
 
 		return new LoanAggregate(loanId, dispatch, events);
 	}
+
 
 }

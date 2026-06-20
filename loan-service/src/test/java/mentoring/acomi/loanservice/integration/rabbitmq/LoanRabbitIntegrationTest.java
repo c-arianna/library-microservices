@@ -33,6 +33,7 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationConsumerEventVersions;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
@@ -203,6 +204,23 @@ class LoanRabbitIntegrationTest {
 		});
 	}
 
+	@Test
+	void shouldRejectNotSupportedSchemaVersion() {
+
+		String loanId = createLoan();
+		
+		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
+				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, Instant.now(), LoanIntegrationConsumerEventVersions.BOOK_RESERVED +1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(),
+				event);
+		
+		await().atMost(Duration.ofSeconds(5));
+
+		var events = loanEventRepository.loadStream(loanId);
+		Assertions.assertFalse(events.stream().anyMatch(e -> e.type() == LoanEventType.LoanReserved));
+	}
+	
 	private String createLoan() {
 
 		LoanResponse response = loanService.addLoan(new AddLoanRequest(ISBN, USER_ID, LocalDate.now(), null));

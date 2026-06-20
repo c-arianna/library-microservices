@@ -72,7 +72,7 @@ public class BookIntegrationEventMapper {
 				e.payload().loanId(), e.payload().userId(), e.payload().reason().toString());
 
 		return envelope(e, IntegrationEventTypes.BOOK_BORROW_REJECTED,
-				BookIntegrationEventVersions.BOOK_BORROW_REJECTED, payload);
+				BookIntegrationPublisherEventVersions.BOOK_BORROW_REJECTED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookReservationRejectedIntegrationEvent(BookReservationRejectedEvent e) {
@@ -81,7 +81,7 @@ public class BookIntegrationEventMapper {
 				e.payload().isbn(), e.payload().loanId(), e.payload().userId(), e.payload().reason().toString());
 
 		return envelope(e, IntegrationEventTypes.BOOK_RESERVATION_REJECTED,
-				BookIntegrationEventVersions.BOOK_RESERVATION_REJECTED, payload);
+				BookIntegrationPublisherEventVersions.BOOK_RESERVATION_REJECTED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookReturnedIntegrationEvent(BookReturnedEvent e) {
@@ -89,7 +89,7 @@ public class BookIntegrationEventMapper {
 		BookLoanIntegrationPayload payload = new BookLoanIntegrationPayload(e.payload().isbn(), e.payload().loanId(),
 				e.payload().userId());
 
-		return envelope(e, IntegrationEventTypes.BOOK_RETURNED, BookIntegrationEventVersions.BOOK_RETURNED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_RETURNED, BookIntegrationPublisherEventVersions.BOOK_RETURNED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookReleasedIntegrationEvent(BookReleasedEvent e) {
@@ -97,7 +97,7 @@ public class BookIntegrationEventMapper {
 		BookLoanIntegrationPayload payload = new BookLoanIntegrationPayload(e.payload().isbn(), e.payload().loanId(),
 				e.payload().userId());
 
-		return envelope(e, IntegrationEventTypes.BOOK_RELEASED, BookIntegrationEventVersions.BOOK_RELEASED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_RELEASED, BookIntegrationPublisherEventVersions.BOOK_RELEASED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookBorrowedIntegrationEvent(BookBorrowedEvent e) {
@@ -105,7 +105,7 @@ public class BookIntegrationEventMapper {
 		BookLoanIntegrationPayload payload = new BookLoanIntegrationPayload(e.payload().isbn(), e.payload().loanId(),
 				e.payload().userId());
 
-		return envelope(e, IntegrationEventTypes.BOOK_BORROWED, BookIntegrationEventVersions.BOOK_BORROWED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_BORROWED, BookIntegrationPublisherEventVersions.BOOK_BORROWED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookReservedIntegrationEvent(BookReservedEvent e) {
@@ -113,7 +113,7 @@ public class BookIntegrationEventMapper {
 		BookLoanIntegrationPayload payload = new BookLoanIntegrationPayload(e.payload().isbn(), e.payload().loanId(),
 				e.payload().userId());
 
-		return envelope(e, IntegrationEventTypes.BOOK_RESERVED, BookIntegrationEventVersions.BOOK_RESERVED, payload);
+		return envelope(e, IntegrationEventTypes.BOOK_RESERVED, BookIntegrationPublisherEventVersions.BOOK_RESERVED, payload);
 	}
 
 	private IntegrationEventEnvelope<?> getBookCopiesRemoveIntegrationEvent(BookCopiesRemovedEvent e) {
@@ -121,7 +121,7 @@ public class BookIntegrationEventMapper {
 		BookCopiesUpdatedIntegrationPayload payload = new BookCopiesUpdatedIntegrationPayload(e.payload().isbn(),
 				-e.payload().quantity());
 
-		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationEventVersions.BOOK_COPIES_UPDATED,
+		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationPublisherEventVersions.BOOK_COPIES_UPDATED,
 				payload);
 	}
 
@@ -130,7 +130,7 @@ public class BookIntegrationEventMapper {
 		BookCopiesUpdatedIntegrationPayload payload = new BookCopiesUpdatedIntegrationPayload(e.payload().isbn(),
 				e.payload().quantity());
 
-		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationEventVersions.BOOK_COPIES_UPDATED,
+		return envelope(e, IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationPublisherEventVersions.BOOK_COPIES_UPDATED,
 				payload);
 	}
 
@@ -139,7 +139,7 @@ public class BookIntegrationEventMapper {
 		BookRegisteredIntegrationPayload payload = new BookRegisteredIntegrationPayload(e.payload().isbn(),
 				e.payload().author(), e.payload().title(), e.payload().description());
 
-		return envelope(e, IntegrationEventTypes.BOOK_REGISTERED, BookIntegrationEventVersions.BOOK_REGISTERED,
+		return envelope(e, IntegrationEventTypes.BOOK_REGISTERED, BookIntegrationPublisherEventVersions.BOOK_REGISTERED,
 				payload);
 	}
 

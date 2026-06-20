@@ -13,17 +13,17 @@ import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
 @TestConfiguration
 public class RabbitMQConfigTest {
 
-    @Bean
-    TopicExchange eventsExchange() {
-        return new TopicExchange(MessagingTopology.EVENTS_EXCHANGE);
-    }
+	@Bean
+	TopicExchange eventsExchange() {
+		return new TopicExchange(MessagingTopology.EVENTS_EXCHANGE);
+	}
 
-    @Bean
-    Queue bookQueue() {
-        return new Queue(MessagingTopology.BOOK_QUEUE, true);
-    }
+	@Bean
+	Queue bookQueue() {
+		return new Queue(MessagingTopology.BOOK_QUEUE, true);
+	}
 
-    @Bean
+	@Bean
     Declarables bookBindings(Queue bookQueue, TopicExchange exchange) {
         return new Declarables(
             BindingBuilder.bind(bookQueue).to(exchange)
@@ -36,7 +36,19 @@ public class RabbitMQConfigTest {
                 .with(IntegrationEventTypes.LOAN_CANCELED.getRoutingKey()),
 
             BindingBuilder.bind(bookQueue).to(exchange)
-                .with(IntegrationEventTypes.LOAN_RETURNED.getRoutingKey())
+                .with(IntegrationEventTypes.LOAN_RETURNED.getRoutingKey()),
+
+            BindingBuilder.bind(bookQueue).to(exchange)
+                .with(IntegrationEventTypes.BOOK_REGISTERED.getRoutingKey()),
+                
+            BindingBuilder.bind(bookQueue).to(exchange)
+                .with(IntegrationEventTypes.BOOK_COPIES_UPDATED.getRoutingKey()),
+                
+            BindingBuilder.bind(bookQueue).to(exchange)
+                .with(IntegrationEventTypes.BOOK_RESERVED.getRoutingKey()),
+                
+            BindingBuilder.bind(bookQueue).to(exchange)
+                .with(IntegrationEventTypes.BOOK_BORROWED.getRoutingKey())
         );
     }
 

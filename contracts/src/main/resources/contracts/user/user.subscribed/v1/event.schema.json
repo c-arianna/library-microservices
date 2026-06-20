@@ -35,15 +35,31 @@
 				"email": {
 					"type": "string"
 				},
+				"name": {
+					"type": "string"
+				},
+				"lastname": {
+					"type": "string"
+				},
+				"userIdentityProviderId": {
+					"type": "string"
+				},
 				"status": {
 					"type": "string",
 					"const": "ACTIVE"
+				},
+				"role": {
+					"type": "string"
 				}
 			},
 			"required": [
 				"userId",
 				"email",
-				"status"
+				"name",
+				"lastname",
+				"userIdentityProviderId",
+				"status",
+				"role"
 			]
 		}
 	},

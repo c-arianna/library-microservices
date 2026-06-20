@@ -26,8 +26,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
+import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
+import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.application.view.UserView;
+import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
@@ -58,6 +61,9 @@ public class LoanApiIntegrationTest {
 	
 	@Autowired
 	private UserViewRepository userViewRepository;
+	
+	@Autowired
+	private LoanViewRepository loanViewRepository;
 
 	@MockitoBean
 	private JwtDecoder jwtDecoder;
@@ -186,7 +192,11 @@ public class LoanApiIntegrationTest {
 
 		Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-		return response.getBody().loanId();
+		String loanId = response.getBody().loanId();
+		
+		loanViewRepository.insertRequest(new LoanView(loanId, "9788804336327", userId, LocalDate.now(), null, LoanStatus.PENDING));
+		
+		return loanId;
 
 	}
 
