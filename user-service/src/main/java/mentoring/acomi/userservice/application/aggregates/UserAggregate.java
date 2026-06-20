@@ -28,6 +28,8 @@ public class UserAggregate {
 	private UserStatus status;
 	private UserRole role;
 
+	private int version = -1;
+	
 	public UserAggregate(String id, Consumer<UserEvent> dispatcher, List<UserEvent> events) {
 		this.id = id;
 		this.dispatcher = dispatcher;
@@ -41,12 +43,20 @@ public class UserAggregate {
 	}
 
 	public void apply(UserEvent event) {
+		
+		int expectedVersion = version + 1;
+		if (event.eventVersion() != expectedVersion) {
+			throw new IllegalStateException(String.format("Invalid event version, expected %d, actual %d", expectedVersion, event.eventVersion()));
+		}
+		
 		switch (event) {
 		case UserSubscribedEvent e -> applyUserSubscribed(e);
 		case UserUnsubscribeEvent e -> applyUserUnsubscribe(e);
 		case UserSuspendEvent e -> applyUserSuspended(e);
 		case UserUnsuspendedEvent e -> applyUserUnsuspended(e);
 		}
+		
+		version++;
 	}
 
 	private void applyUserSubscribed(UserSubscribedEvent event) {
@@ -73,7 +83,7 @@ public class UserAggregate {
 		if (!isCreated) {
 			UserSubscribedPayload payload = new UserSubscribedPayload(user.getId(), user.getEmail().getValue(),
 					user.getName(), user.getLastname(), user.getUserIdentityProviderId(), user.getStatus(), user.getRole());
-			UserSubscribedEvent event = new UserSubscribedEvent(id, getEventId(), payload, Instant.now());
+			UserSubscribedEvent event = new UserSubscribedEvent(id, getEventId(), nextVersion(), payload, Instant.now());
 			manageEvent(event);
 		}
 	}
@@ -84,7 +94,7 @@ public class UserAggregate {
 		
 		if(UserStatus.ACTIVE.equals(status)) {
 			UserUnsubscribedPayload payload = new UserUnsubscribedPayload(id, email, reason);
-			UserUnsubscribeEvent event = new UserUnsubscribeEvent(id, getEventId(), payload, Instant.now());
+			UserUnsubscribeEvent event = new UserUnsubscribeEvent(id, getEventId(), nextVersion(), payload, Instant.now());
 			manageEvent(event);
 		}
 	}
@@ -95,7 +105,7 @@ public class UserAggregate {
 		
 		if(UserStatus.ACTIVE.equals(status)) {
 			UserPayload payload = new UserPayload(id, email, reason, suspendedBy);
-			UserSuspendEvent event = new UserSuspendEvent(id, getEventId(), payload, Instant.now());
+			UserSuspendEvent event = new UserSuspendEvent(id, getEventId(), nextVersion(), payload, Instant.now());
 			manageEvent(event);
 		}
 		
@@ -107,7 +117,7 @@ public class UserAggregate {
 		
 		if(UserStatus.SUSPENDED.equals(status)) {
 			UserPayload payload = new UserPayload(id, email, reason, suspendedBy);
-			UserUnsuspendedEvent event = new UserUnsuspendedEvent(id, getEventId(), payload, Instant.now());
+			UserUnsuspendedEvent event = new UserUnsuspendedEvent(id, getEventId(), nextVersion(), payload, Instant.now());
 			manageEvent(event);
 		}
 		
@@ -134,7 +144,10 @@ public class UserAggregate {
 		if (!isCreated) {
 			throw new UserNotExist(String.format("User not exists: %s", id));
 		}
-
+	}
+	
+	private int nextVersion() {
+		return version + 1;
 	}
 
 }

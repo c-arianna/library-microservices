@@ -121,7 +121,7 @@ public class BookEventProducerContractTest {
         
     	BookRegisteredPayload payload = new BookRegisteredPayload("9788828606819", "Italo Calvino", "Il visconte dimezzato", "Trilogia");
 
-        BookRegisteredEvent event = new BookRegisteredEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c6", payload, Instant.now());
+        BookRegisteredEvent event = new BookRegisteredEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c6", 0, payload, Instant.now());
 
         String invalidJson = """
             {
@@ -144,7 +144,7 @@ public class BookEventProducerContractTest {
     	
         BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
 
-        BookBorrowedEvent event = new BookBorrowedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+        BookBorrowedEvent event = new BookBorrowedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
 
         String invalidJson = """
             {
@@ -168,7 +168,7 @@ public class BookEventProducerContractTest {
     	
     	BookCopiesAddedPayload payload = new BookCopiesAddedPayload("9788828606819", 2);
     	
-    	BookCopiesAddedEvent event = new BookCopiesAddedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	BookCopiesAddedEvent event = new BookCopiesAddedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
     	
     	 String invalidJson = """
     	            {
@@ -190,7 +190,7 @@ public class BookEventProducerContractTest {
     private static BookContractCase bookReservedCase() {
     	
     	BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
-    	BookReservedEvent event = new BookReservedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	BookReservedEvent event = new BookReservedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
     	
     	 String invalidJson = """
  	            {
@@ -213,7 +213,7 @@ public class BookEventProducerContractTest {
     private static BookContractCase bookReleasedCase() {
     	
     	BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
-    	BookReleasedEvent event = new BookReleasedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	BookReleasedEvent event = new BookReleasedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
     	
     	String invalidJson = """
  	            {
@@ -235,7 +235,7 @@ public class BookEventProducerContractTest {
     private static BookContractCase bookReturnedCase() {
     	
     	BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
-    	BookReturnedEvent event = new BookReturnedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	BookReturnedEvent event = new BookReturnedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
     	
     	String invalidJson = """
  	            {
@@ -260,7 +260,7 @@ public class BookEventProducerContractTest {
     	BookReservationRejectedPayload payload = new BookReservationRejectedPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", 
     			"203a9860-cdd8-4c33-a67f-45a6cf6e2799", BookReservationRejectReason.BOOK_NOT_AVAILABLE);
     	
-    	BookReservationRejectedEvent event = new BookReservationRejectedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	BookReservationRejectedEvent event = new BookReservationRejectedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
     	
     	String invalidJson = """
  	            {
@@ -285,7 +285,7 @@ public class BookEventProducerContractTest {
 	 BookBorrowRejectedPayload payload = new BookBorrowRejectedPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", 
     			"203a9860-cdd8-4c33-a67f-45a6cf6e2799", BookBorrowRejectReason.BOOK_NOT_REGISTERED);
     	
-    	BookBorrowRejectedEvent event = new BookBorrowRejectedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	BookBorrowRejectedEvent event = new BookBorrowRejectedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
     	
     	String invalidJson = """
  	            {

@@ -136,7 +136,7 @@ public class LoanEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		LoanRequestPayload payload = new LoanRequestPayload(loanId, isbn, "user01", new DateRange(LocalDate.now(), null), LoanStatus.PENDING);
-		return new LoanRequestedEvent(loanId, eventId, payload, Instant.now());
+		return new LoanRequestedEvent(loanId, eventId, 0, payload, Instant.now());
 
 	}
 
@@ -145,7 +145,7 @@ public class LoanEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		LoanPayload payload = new LoanPayload(loanId, isbn, "user-01");
-		return new LoanCanceledEvent(loanId, eventId, payload, Instant.now());
+		return new LoanCanceledEvent(loanId, eventId, 0, payload, Instant.now());
 
 	}
 

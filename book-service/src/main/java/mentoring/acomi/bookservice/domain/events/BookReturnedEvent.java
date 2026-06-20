@@ -7,6 +7,7 @@ import mentoring.acomi.bookservice.domain.events.payload.BookLoanPayload;
 public record BookReturnedEvent(
 		String aggregateId,
 		String eventId,
+		int eventVersion,
 	    BookLoanPayload payload,
         Instant occurredAt
         )implements BookStateEvent {

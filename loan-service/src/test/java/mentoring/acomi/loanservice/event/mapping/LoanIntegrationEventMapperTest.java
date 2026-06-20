@@ -97,39 +97,37 @@ public class LoanIntegrationEventMapperTest {
 	private static LoanFailedEvent getLoanFailedEvent() {
 		LoanFailedPayload payload = new LoanFailedPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0",
 				LoanFailedReason.BOOK_NOT_FOUND);
-		return new LoanFailedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d4cc156e-04f8-4fa8-866e-359515bcc104",
-				payload, Instant.now());
+		return new LoanFailedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d4cc156e-04f8-4fa8-866e-359515bcc104", 0, payload, Instant.now());
 	}
 
 	private static LoanReservedEvent getLoanReservedEvent() {
 		LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
-		return new LoanReservedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "f1972050-5803-47e8-9c4c-1f8d46716600",
-				payload, Instant.now());
+		return new LoanReservedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "f1972050-5803-47e8-9c4c-1f8d46716600", 0, payload, Instant.now());
 	}
 
 	private static LoanReturnedEvent getLoanReturnedEvent() {
 		LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
-		return new LoanReturnedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d282a0bd-0bec-4257-861d-c1585e0a0e93", payload, Instant.now());
+		return new LoanReturnedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d282a0bd-0bec-4257-861d-c1585e0a0e93", 0, payload, Instant.now());
 	}
 
 	private static LoanCanceledEvent getLoanCanceledEvent() {
 		LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
-		return new LoanCanceledEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "046f099d-41f9-4c05-8da9-470b789f6a3b", payload, Instant.now());
+		return new LoanCanceledEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "046f099d-41f9-4c05-8da9-470b789f6a3b", 0, payload, Instant.now());
 	}
 
 	private static LoanConfirmRequestedEvent getLoanConfirmRequestedEvent() {
 		LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
-		return new LoanConfirmRequestedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "355d2c7b-dc0d-4b8a-b27f-acc8375eeaee", payload, Instant.now());
+		return new LoanConfirmRequestedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "355d2c7b-dc0d-4b8a-b27f-acc8375eeaee", 0, payload, Instant.now());
 	}
 
 	private static LoanConfirmedEvent getLoanConfirmedEvent() {
 		LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
-		return new LoanConfirmedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "ebe0e803-afb9-4998-beb0-200773e7c764", payload, Instant.now());
+		return new LoanConfirmedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "ebe0e803-afb9-4998-beb0-200773e7c764", 0, payload, Instant.now());
 	}
 
 	private static LoanRequestedEvent getLoanRequestedEvent() {
 		LoanRequestPayload payload = new LoanRequestPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b", 
 				new DateRange(LocalDate.now(), null), LoanStatus.PENDING);
-		return new LoanRequestedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "3d209d01-4b1d-4d64-991f-d0a63a7ddecd", payload, Instant.now());
+		return new LoanRequestedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "3d209d01-4b1d-4d64-991f-d0a63a7ddecd", 0, payload, Instant.now());
 	}
 }

@@ -7,6 +7,7 @@ import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 public record LoanConfirmRequestedEvent(
 	    String aggregateId,
 	    String eventId,
+	    int eventVersion,
 	    LoanPayload payload,
         Instant occurredAt
         )implements LoanProcessEvent {

@@ -129,7 +129,7 @@ public class BookEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		BookRegisteredPayload payload = new BookRegisteredPayload(isbn, "Italo Calvino", "Il barone rampante", "");
-		return new BookRegisteredEvent(isbn, eventId, payload, Instant.now());
+		return new BookRegisteredEvent(isbn, eventId, 0, payload, Instant.now());
 
 	}
 
@@ -138,7 +138,7 @@ public class BookEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		BookLoanPayload payload = new BookLoanPayload(isbn, "loan-01", "user-01");
-		return new BookReservedEvent(isbn, eventId, payload, Instant.now());
+		return new BookReservedEvent(isbn, eventId, 0, payload, Instant.now());
 
 	}
 

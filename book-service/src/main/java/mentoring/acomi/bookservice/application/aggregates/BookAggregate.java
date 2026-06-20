@@ -32,15 +32,17 @@ import mentoring.acomi.bookservice.domain.events.payload.BookReservationRejected
 import mentoring.acomi.bookservice.domain.model.Book;
 import mentoring.acomi.bookservice.domain.model.ISBN;
 
-public class BookAggregate  {
+public class BookAggregate {
 
 	private Consumer<BookEvent> dispatcher;
-	
+
 	private ISBN id;
 	private boolean isRegistered = false;
 	private int totalCopies = 0;
 	private int borrowed = 0;
 	private int reserved = 0;
+
+	private int version = -1;
 
 	private Set<String> reservedLoans = new HashSet<>();
 	private Set<String> borrowedLoans = new HashSet<>();
@@ -56,19 +58,28 @@ public class BookAggregate  {
 			apply(event);
 		}
 	}
-	
+
 	public void apply(BookEvent event) {
-		switch (event) {
-		case BookRegisteredEvent e -> applyBookEventRegistered(e);
-		case BookCopiesAddedEvent e -> applyBookCopiesAdded(e);
-		case BookCopiesRemovedEvent e -> applyBookCopiesRemoved(e);
-		case BookReservedEvent e -> applyBookReserved(e);
-		case BookBorrowedEvent e -> applyBookBorrowed(e);
-		case BookReleasedEvent e -> applyBookReleased(e);
-		case BookReturnedEvent e -> applyBookReturned(e);
-		case BookReservationRejectedEvent e -> {}
-		case BookBorrowRejectedEvent e  -> {}
+
+		int expectedVersion = version + 1;
+		if (event.eventVersion() != expectedVersion) {
+			throw new IllegalStateException(String.format("Invalid event version, expected %d, actual %d", expectedVersion, event.eventVersion()));
 		}
+
+		switch (event) {
+			case BookRegisteredEvent e -> applyBookEventRegistered(e);
+			case BookCopiesAddedEvent e -> applyBookCopiesAdded(e);
+			case BookCopiesRemovedEvent e -> applyBookCopiesRemoved(e);
+			case BookReservedEvent e -> applyBookReserved(e);
+			case BookBorrowedEvent e -> applyBookBorrowed(e);
+			case BookReleasedEvent e -> applyBookReleased(e);
+			case BookReturnedEvent e -> applyBookReturned(e);
+			case BookReservationRejectedEvent e -> {}
+			case BookBorrowRejectedEvent e -> {}
+		}
+
+		version++;
+
 	}
 
 	private void applyBookEventRegistered(BookRegisteredEvent event) {
@@ -133,7 +144,8 @@ public class BookAggregate  {
 		if (!isRegistered) {
 			BookRegisteredPayload payload = new BookRegisteredPayload(book.getIsbn(), book.getAuthor(), book.getTitle(),
 					book.getDescription());
-			BookRegisteredEvent event = new BookRegisteredEvent(book.getIsbn(), getEventId(), payload, Instant.now());
+			BookRegisteredEvent event = new BookRegisteredEvent(book.getIsbn(), getEventId(), nextVersion(), payload,
+					Instant.now());
 			manageEvent(event);
 		}
 
@@ -147,7 +159,7 @@ public class BookAggregate  {
 			throw new InvalidQuantity("quantity must be > 0");
 		}
 
-		BookCopiesAddedEvent event = new BookCopiesAddedEvent(id.getValue(), getEventId(),
+		BookCopiesAddedEvent event = new BookCopiesAddedEvent(id.getValue(), getEventId(), nextVersion(),
 				new BookCopiesAddedPayload(id.getValue(), quantity), Instant.now());
 		manageEvent(event);
 
@@ -167,7 +179,7 @@ public class BookAggregate  {
 					String.format("Cannot remove %d copies, total copies available %d", quantity, copiesAvailable));
 		}
 
-		BookCopiesRemovedEvent event = new BookCopiesRemovedEvent(id.getValue(), getEventId(),
+		BookCopiesRemovedEvent event = new BookCopiesRemovedEvent(id.getValue(), getEventId(), nextVersion(),
 				new BookCopiesRemovedPayload(id.getValue(), quantity, reason), Instant.now());
 		manageEvent(event);
 
@@ -175,20 +187,21 @@ public class BookAggregate  {
 
 	public void reserve(String loanId, String userId) {
 
-		if(!isRegistered || availableCopies() <= 0) {
-			
-			BookReservationRejectReason reason = availableCopies() <= 0 ? BookReservationRejectReason.BOOK_NOT_AVAILABLE : 
-				BookReservationRejectReason.BOOK_NOT_REGISTERED;
-			
+		if (!isRegistered || availableCopies() <= 0) {
+
+			BookReservationRejectReason reason = availableCopies() <= 0 ? BookReservationRejectReason.BOOK_NOT_AVAILABLE
+					: BookReservationRejectReason.BOOK_NOT_REGISTERED;
+
 			BookReservationRejectedEvent event = new BookReservationRejectedEvent(id.getValue(), getEventId(),
-					new BookReservationRejectedPayload(id.getValue(), loanId, userId, reason), Instant.now());
+					nextVersion(), new BookReservationRejectedPayload(id.getValue(), loanId, userId, reason),
+					Instant.now());
 			manageEvent(event);
 			return;
 		}
 
-
 		if (!reservedLoans.contains(loanId) && !borrowedLoans.contains(loanId)) {
-			BookReservedEvent event = new BookReservedEvent(id.getValue(), getEventId(), new BookLoanPayload(id.getValue(), loanId, userId), Instant.now());
+			BookReservedEvent event = new BookReservedEvent(id.getValue(), getEventId(), nextVersion(),
+					new BookLoanPayload(id.getValue(), loanId, userId), Instant.now());
 			manageEvent(event);
 		}
 	}
@@ -196,9 +209,10 @@ public class BookAggregate  {
 	public void borrow(String loanId, String userId) {
 
 		if (!isRegistered) {
-			BookBorrowRejectedEvent event = new BookBorrowRejectedEvent(id.getValue(), getEventId(),
-		            new BookBorrowRejectedPayload(id.getValue(), loanId, userId, BookBorrowRejectReason.BOOK_NOT_REGISTERED),
-		            Instant.now());
+			BookBorrowRejectedEvent event = new BookBorrowRejectedEvent(id.getValue(), getEventId(), nextVersion(),
+					new BookBorrowRejectedPayload(id.getValue(), loanId, userId,
+							BookBorrowRejectReason.BOOK_NOT_REGISTERED),
+					Instant.now());
 			manageEvent(event);
 			return;
 		}
@@ -206,14 +220,15 @@ public class BookAggregate  {
 		if (!borrowedLoans.contains(loanId)) {
 
 			if (!reservedLoans.contains(loanId)) {
-				BookBorrowRejectedEvent event = new BookBorrowRejectedEvent(id.getValue(), getEventId(),
-			            new BookBorrowRejectedPayload(id.getValue(), loanId, userId, BookBorrowRejectReason.RESERVATION_MISSING),
-			            Instant.now());
+				BookBorrowRejectedEvent event = new BookBorrowRejectedEvent(id.getValue(), getEventId(), nextVersion(),
+						new BookBorrowRejectedPayload(id.getValue(), loanId, userId,
+								BookBorrowRejectReason.RESERVATION_MISSING),
+						Instant.now());
 				manageEvent(event);
 				return;
 			}
 
-			BookBorrowedEvent event = new BookBorrowedEvent(id.getValue(), getEventId(), 
+			BookBorrowedEvent event = new BookBorrowedEvent(id.getValue(), getEventId(), nextVersion(),
 					new BookLoanPayload(id.getValue(), loanId, userId), Instant.now());
 			manageEvent(event);
 
@@ -225,7 +240,7 @@ public class BookAggregate  {
 		ensureRegistered();
 
 		if (reservedLoans.contains(loanId)) {
-			BookReleasedEvent event = new BookReleasedEvent(id.getValue(), getEventId(), 
+			BookReleasedEvent event = new BookReleasedEvent(id.getValue(), getEventId(), nextVersion(),
 					new BookLoanPayload(id.getValue(), loanId, userId), Instant.now());
 			manageEvent(event);
 		}
@@ -238,7 +253,7 @@ public class BookAggregate  {
 
 		if (borrowedLoans.contains(loanId)) {
 
-			BookReturnedEvent event = new BookReturnedEvent(id.getValue(), getEventId(), 
+			BookReturnedEvent event = new BookReturnedEvent(id.getValue(), getEventId(), nextVersion(),
 					new BookLoanPayload(id.getValue(), loanId, userId), Instant.now());
 			manageEvent(event);
 		}
@@ -255,15 +270,18 @@ public class BookAggregate  {
 	private int availableCopies() {
 		return totalCopies - reserved - borrowed;
 	}
-	
+
 	private void manageEvent(BookEvent event) {
 		apply(event);
 		dispatcher.accept(event);
 	}
-	
+
 	private String getEventId() {
 		return UUID.randomUUID().toString();
 	}
 
+	private int nextVersion() {
+		return version + 1;
+	}
 
 }

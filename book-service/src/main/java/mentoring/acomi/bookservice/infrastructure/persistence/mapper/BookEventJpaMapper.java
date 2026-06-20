@@ -47,55 +47,55 @@ public class BookEventJpaMapper implements EventMapper<BookEvent, BookEventEntit
 
 		case BookRegistered -> {
 			BookRegisteredPayload payload = objectMapper.treeToValue(event.getPayload(), BookRegisteredPayload.class);
-			yield new BookRegisteredEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookRegisteredEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 
 		case BookCopiesAdded -> {
 			BookCopiesAddedPayload payload = objectMapper.treeToValue(event.getPayload(), BookCopiesAddedPayload.class);
-			yield new BookCopiesAddedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookCopiesAddedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 
 		case BookCopiesRemoved -> {
 			BookCopiesRemovedPayload payload = objectMapper.treeToValue(event.getPayload(),
 					BookCopiesRemovedPayload.class);
-			yield new BookCopiesRemovedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookCopiesRemovedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 
 		case BookReserved -> {
 			BookLoanPayload payload = objectMapper.treeToValue(event.getPayload(),
 					BookLoanPayload.class);
-			yield new BookReservedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookReservedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 			
 		}
 		
 		case BookReservationRejected -> {
 			BookReservationRejectedPayload payload = objectMapper.treeToValue(event.getPayload(),
 					BookReservationRejectedPayload.class);
-			yield new BookReservationRejectedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookReservationRejectedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 			
 		}
 		
 		case BookBorrowed -> {
 			BookLoanPayload payload = objectMapper.treeToValue(event.getPayload(), BookLoanPayload.class);
-			yield new BookBorrowedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookBorrowedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 			
 		}
 		
 		case BookBorrowRejected -> {
 			BookBorrowRejectedPayload payload = objectMapper.treeToValue(event.getPayload(), BookBorrowRejectedPayload.class);
-			yield new BookBorrowRejectedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookBorrowRejectedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 			
 		}
 		
 		case BookReleased -> {
 			BookLoanPayload payload = objectMapper.treeToValue(event.getPayload(), BookLoanPayload.class);
-			yield new BookReleasedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookReleasedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 			
 		}
 		
 		case BookReturned -> {
 			BookLoanPayload payload = objectMapper.treeToValue(event.getPayload(), BookLoanPayload.class);
-			yield new BookReturnedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new BookReturnedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 			
 		}
 		
@@ -105,8 +105,7 @@ public class BookEventJpaMapper implements EventMapper<BookEvent, BookEventEntit
 	}
 
 	public BookEventEntity toEntity(BookEvent event) {
-		return new BookEventEntity(event.aggregateId(), event.type().name(), event.eventId(),
-				toJsonNode(event.payload()), event.occurredAt());
+		return new BookEventEntity(event.aggregateId(), event.type().name(), event.eventId(), event.eventVersion(),	toJsonNode(event.payload()), event.occurredAt());
 
 	}
 

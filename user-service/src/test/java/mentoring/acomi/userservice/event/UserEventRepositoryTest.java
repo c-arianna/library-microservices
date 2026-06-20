@@ -131,7 +131,7 @@ public class UserEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 		String identityId = UUID.randomUUID().toString();
 		UserSubscribedPayload payload = new UserSubscribedPayload(userId, "test@gmail.com", "Arianna", "Comi", identityId, UserStatus.ACTIVE, UserRole.READER);
-		return new UserSubscribedEvent(userId, eventId, payload, Instant.now());
+		return new UserSubscribedEvent(userId, eventId, 0, payload, Instant.now());
 
 	}
 
@@ -140,7 +140,7 @@ public class UserEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		UserPayload payload = new UserPayload(userId, "test@gmail.com", "User not respect the loan deadline", "admin01");
-		return new UserSuspendEvent(userId, eventId, payload, Instant.now());
+		return new UserSuspendEvent(userId, eventId, 0, payload, Instant.now());
 
 	}
 

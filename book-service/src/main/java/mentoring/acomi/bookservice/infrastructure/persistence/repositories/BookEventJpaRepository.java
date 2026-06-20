@@ -14,13 +14,6 @@ import mentoring.acomi.sharedlibrary.eventstore.BaseEventJpaRepository;
 public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEventEntity> {
 
 	@Query("""
-			select max(e.eventVersion)
-			from BookEventEntity e
-			where e.aggregateId = :aggregateId
-			""")
-	Optional<Integer> findLastVersion(@Param("aggregateId") String aggregateId);
-
-	@Query("""
 			    select e
 			    from BookEventEntity e
 			    where e.aggregateId = :aggregateId

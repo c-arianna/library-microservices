@@ -14,13 +14,6 @@ import mentoring.acomi.userservice.infrastructure.persistence.entity.UserEventEn
 public interface UserEventJpaRepository extends BaseEventJpaRepository<UserEventEntity> {
 
 	@Query("""
-			select max(e.eventVersion)
-			from UserEventEntity e
-			where e.aggregateId = :aggregateId
-			""")
-	Optional<Integer> findLastVersion(@Param("aggregateId") String aggregateId);
-
-	@Query("""
 			    select e
 			    from UserEventEntity e
 			    where e.aggregateId = :aggregateId

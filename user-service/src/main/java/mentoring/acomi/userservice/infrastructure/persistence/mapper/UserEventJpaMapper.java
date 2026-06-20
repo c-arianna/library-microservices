@@ -38,23 +38,23 @@ public class UserEventJpaMapper implements EventMapper<UserEvent, UserEventEntit
 
 		case UserSubscribed -> {
 			UserSubscribedPayload payload = objectMapper.treeToValue(event.getPayload(), UserSubscribedPayload.class);
-			yield new UserSubscribedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new UserSubscribedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 
 		case UserUnsubscribed -> {
 			UserUnsubscribedPayload payload = objectMapper.treeToValue(event.getPayload(),
 					UserUnsubscribedPayload.class);
-			yield new UserUnsubscribeEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new UserUnsubscribeEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 
 		case UserSuspended -> {
 			UserPayload payload = objectMapper.treeToValue(event.getPayload(), UserPayload.class);
-			yield new UserSuspendEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new UserSuspendEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 
 		case UserUnsuspended -> {
 			UserPayload payload = objectMapper.treeToValue(event.getPayload(), UserPayload.class);
-			yield new UserUnsuspendedEvent(event.getAggregateId(), event.getEventId(), payload, event.getOccurredAt());
+			yield new UserUnsuspendedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 
 		};
@@ -62,8 +62,7 @@ public class UserEventJpaMapper implements EventMapper<UserEvent, UserEventEntit
 	}
 
 	public UserEventEntity toEntity(UserEvent event) {
-		return new UserEventEntity(event.aggregateId(), event.type().name(), event.eventId(),
-				toJsonNode(event.payload()), event.occurredAt());
+		return new UserEventEntity(event.aggregateId(), event.type().name(), event.eventId(), event.eventVersion(),	toJsonNode(event.payload()), event.occurredAt());
 
 	}
 

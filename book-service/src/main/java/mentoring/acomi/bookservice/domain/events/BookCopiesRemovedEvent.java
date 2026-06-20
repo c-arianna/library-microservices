@@ -7,6 +7,7 @@ import mentoring.acomi.bookservice.domain.events.payload.BookCopiesRemovedPayloa
 public record BookCopiesRemovedEvent(
 	    String aggregateId,
 	    String eventId,
+	    int eventVersion,
 	    BookCopiesRemovedPayload payload,
         Instant occurredAt
         )implements BookStateEvent {

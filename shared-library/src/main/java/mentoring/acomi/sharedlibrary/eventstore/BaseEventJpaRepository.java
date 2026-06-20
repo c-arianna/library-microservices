@@ -8,9 +8,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface BaseEventJpaRepository<ENTITY extends BaseEventEntity> extends JpaRepository<ENTITY, Long> {
-
-    Optional<Integer> findLastVersion(String aggregateId);
-
     List<ENTITY> findEventsForAggregate(String aggregateId);
 
     boolean existsByAggregateId(String aggregateId);

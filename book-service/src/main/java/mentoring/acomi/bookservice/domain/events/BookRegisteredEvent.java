@@ -7,6 +7,7 @@ import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
 public record BookRegisteredEvent(
     String aggregateId,
     String eventId,
+    int eventVersion,
     BookRegisteredPayload payload,
     Instant occurredAt   
 ) implements BookStateEvent {

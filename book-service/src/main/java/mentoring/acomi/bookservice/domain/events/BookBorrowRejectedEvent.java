@@ -7,6 +7,7 @@ import mentoring.acomi.bookservice.domain.events.payload.BookBorrowRejectedPaylo
 public record BookBorrowRejectedEvent(
 		String aggregateId,
 		String eventId,
+		int eventVersion,
 		BookBorrowRejectedPayload payload,
         Instant occurredAt
         )implements BookProcessEvent {

@@ -39,6 +39,8 @@ public class LoanAggregate  {
 	private String isbn;
 	private String userId;
 	
+	private int version = -1;
+	
 	private Consumer<LoanEvent> dispatcher;
 	
 	public LoanAggregate(String id, Consumer<LoanEvent> dispatcher, List<LoanEvent> events) {
@@ -54,16 +56,23 @@ public class LoanAggregate  {
 	}
 	
 	public void apply(LoanEvent event) {
+		
+		int expectedVersion = version + 1;
+		if (event.eventVersion() != expectedVersion) {
+			throw new IllegalStateException(String.format("Invalid event version, expected %d, actual %d", expectedVersion, event.eventVersion()));
+		}
+		
 		switch (event) {
-		case LoanRequestedEvent e -> applyLoanRequestedEvent(e);
-		case LoanFailedEvent e -> applyLoanFailedEvent(e);
-		case LoanReservedEvent e -> applyLoanReservedEvent(e);
-		case LoanConfirmedEvent e -> applyLoanConfirmedEvent(e);
-		case LoanCanceledEvent e -> applyLoanCanceledEvent(e);
-		case LoanReturnedEvent e -> applyLoanReturnedEvent(e);
-		case LoanConfirmRequestedEvent e -> {}
+			case LoanRequestedEvent e -> applyLoanRequestedEvent(e);
+			case LoanFailedEvent e -> applyLoanFailedEvent(e);
+			case LoanReservedEvent e -> applyLoanReservedEvent(e);
+			case LoanConfirmedEvent e -> applyLoanConfirmedEvent(e);
+			case LoanCanceledEvent e -> applyLoanCanceledEvent(e);
+			case LoanReturnedEvent e -> applyLoanReturnedEvent(e);
+			case LoanConfirmRequestedEvent e -> {}
 		}
 
+		version++;
 	}
 
 	private void applyLoanRequestedEvent(LoanRequestedEvent event) {
@@ -102,7 +111,7 @@ public class LoanAggregate  {
 
 		LoanRequestPayload payload = new LoanRequestPayload(loan.getId(), loan.getIsbn(), loan.getUserId(),
 				loan.getPeriod(), LoanStatus.PENDING);
-		LoanRequestedEvent event = new LoanRequestedEvent(loan.getId(), getEventId(), payload, Instant.now());
+		LoanRequestedEvent event = new LoanRequestedEvent(loan.getId(), getEventId(), nextVersion(), payload, Instant.now());
 		manageEvent(event);
 	}
 
@@ -114,7 +123,7 @@ public class LoanAggregate  {
 
 			ensureTransitionAllowed(LoanStatus.RESERVED);
 
-			LoanReservedEvent event = new LoanReservedEvent(id, getEventId(), new LoanPayload(id, isbn, userId), Instant.now());
+			LoanReservedEvent event = new LoanReservedEvent(id, getEventId(), nextVersion(), new LoanPayload(id, isbn, userId), Instant.now());
 			manageEvent(event);
 		}
 
@@ -129,7 +138,7 @@ public class LoanAggregate  {
 
 			ensureTransitionAllowed(LoanStatus.FAILED);
 
-			LoanFailedEvent event = new LoanFailedEvent(id, getEventId(), new LoanFailedPayload(id, reason), Instant.now());
+			LoanFailedEvent event = new LoanFailedEvent(id, getEventId(), nextVersion(), new LoanFailedPayload(id, reason), Instant.now());
 			manageEvent(event);
 		}
 
@@ -143,7 +152,7 @@ public class LoanAggregate  {
 
 			ensureTransitionAllowed(LoanStatus.CONFIRMED);
 
-			LoanConfirmedEvent event = new LoanConfirmedEvent(id, getEventId(), new LoanPayload(id, isbn, userId), Instant.now());
+			LoanConfirmedEvent event = new LoanConfirmedEvent(id, getEventId(), nextVersion(), new LoanPayload(id, isbn, userId), Instant.now());
 			manageEvent(event);
 		}
 
@@ -157,7 +166,7 @@ public class LoanAggregate  {
 
 			ensureTransitionAllowed(LoanStatus.CANCELED);
 
-			LoanCanceledEvent event = new LoanCanceledEvent(id, getEventId(), new LoanPayload(id, isbn, userId),
+			LoanCanceledEvent event = new LoanCanceledEvent(id, getEventId(), nextVersion(), new LoanPayload(id, isbn, userId),
 					Instant.now());
 			manageEvent(event);
 		}
@@ -172,8 +181,7 @@ public class LoanAggregate  {
 
 			ensureTransitionAllowed(LoanStatus.RETURNED);
 
-			LoanReturnedEvent event = new LoanReturnedEvent(id, getEventId(), new LoanPayload(id, isbn, userId),
-					Instant.now());
+			LoanReturnedEvent event = new LoanReturnedEvent(id, getEventId(), nextVersion(), new LoanPayload(id, isbn, userId), Instant.now());
 			manageEvent(event);
 		}
 
@@ -185,7 +193,7 @@ public class LoanAggregate  {
 
 		if (LoanStatus.RESERVED.equals(status)) {
 			ensureTransitionAllowed(LoanStatus.CONFIRMED);
-			LoanConfirmRequestedEvent event = new LoanConfirmRequestedEvent(id, getEventId(), new LoanPayload(id, isbn, userId), Instant.now());
+			LoanConfirmRequestedEvent event = new LoanConfirmRequestedEvent(id, getEventId(), nextVersion(), new LoanPayload(id, isbn, userId), Instant.now());
 			manageEvent(event);
 		}
 	}
@@ -225,6 +233,10 @@ public class LoanAggregate  {
 	
 	private String getEventId() {
 		return UUID.randomUUID().toString();
+	}
+	
+	private int nextVersion() {
+		return version + 1;
 	}
 
 }

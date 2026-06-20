@@ -7,6 +7,7 @@ import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 public record UserSuspendEvent(
 		String aggregateId,
 		String eventId,
+		int eventVersion,
 		UserPayload payload,
         Instant occurredAt
         )implements UserEvent {

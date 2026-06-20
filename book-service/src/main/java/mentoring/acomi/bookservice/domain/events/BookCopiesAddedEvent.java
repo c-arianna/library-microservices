@@ -7,6 +7,7 @@ import mentoring.acomi.bookservice.domain.events.payload.BookCopiesAddedPayload;
 public record BookCopiesAddedEvent (
 	    String aggregateId,
 	    String eventId,
+	    int eventVersion,
         BookCopiesAddedPayload payload,
         Instant occurredAt
         )implements BookStateEvent {

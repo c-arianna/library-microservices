@@ -90,23 +90,23 @@ public class UserIntegrationEventMapperTest {
 	
 	private static UserUnsuspendedEvent getUserUnsuspendedEvent() {
 		UserPayload payload = new UserPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Policy Violation", "admin1");
-		return new UserUnsuspendedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "d50cc664-0391-4833-8414-18c4c9e1bd45", payload, Instant.now());
+		return new UserUnsuspendedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "d50cc664-0391-4833-8414-18c4c9e1bd45", 0, payload, Instant.now());
 	}
 
 	private static UserSuspendEvent getUserSuspendedEvent() {
 		UserPayload payload = new UserPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Policy Violation", "admin1");
-		return new UserSuspendEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "92e57621-d491-4c02-9a21-d910107e71d0", payload, Instant.now());
+		return new UserSuspendEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "92e57621-d491-4c02-9a21-d910107e71d0", 0, payload, Instant.now());
 	}
 
 	private static UserUnsubscribeEvent getUserUnsubscribedEvent() {
 		UserUnsubscribedPayload payload = new UserUnsubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Unsubscribed");
-		return new UserUnsubscribeEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "9c8db1b1-38d0-4717-aa34-702365299081", payload, Instant.now()); 
+		return new UserUnsubscribeEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "9c8db1b1-38d0-4717-aa34-702365299081", 0, payload, Instant.now()); 
 	}
 
 	private static UserSubscribedEvent getUserSubscribedEvent() {
 		String identityId = UUID.randomUUID().toString();
 		UserSubscribedPayload payload = new UserSubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Test", "Test", 
 				identityId, UserStatus.ACTIVE, UserRole.READER);
-		return new UserSubscribedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "07bf89ea-fd4e-4080-8fda-eb94679c4f6d", payload, Instant.now());
+		return new UserSubscribedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "07bf89ea-fd4e-4080-8fda-eb94679c4f6d", 0, payload, Instant.now());
     }
 }

@@ -159,45 +159,45 @@ public class BookIntegrationEventMapperTest {
 
 	private static BookRegisteredEvent getBookRegisteredEvent() {
 		BookRegisteredPayload payload = new BookRegisteredPayload("9788828606819", "Italo Calvino", "Il visconte dimezzato", "trilogia");
-		return new BookRegisteredEvent("9788828606819", "event-1", payload, Instant.now());
+		return new BookRegisteredEvent("9788828606819", "event-1", 0, payload, Instant.now());
 	}
 	
 	private static BookBorrowRejectedEvent getBookBorrowRejectedEvent() {
 		BookBorrowRejectedPayload payload = new BookBorrowRejectedPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", 
     			"203a9860-cdd8-4c33-a67f-45a6cf6e2799", BookBorrowRejectReason.BOOK_NOT_REGISTERED);
 		
-		return new BookBorrowRejectedEvent("9788828606819", "event-1", payload, Instant.now());
+		return new BookBorrowRejectedEvent("9788828606819", "event-1", 0, payload, Instant.now());
 	}
 	
 	private static BookCopiesAddedEvent getBookCopiesAddedEvent() {
 		BookCopiesAddedPayload payload = new BookCopiesAddedPayload("9788828606819", 3);
-		return new BookCopiesAddedEvent("9788828606819", "event-1", payload, Instant.now());
+		return new BookCopiesAddedEvent("9788828606819", "event-1", 0, payload, Instant.now());
 	}
 	
 	private static BookReservedEvent getBookReservedEvent() {
 		BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
-		return new BookReservedEvent("9788828606819", "event-1", payload, Instant.now());
+		return new BookReservedEvent("9788828606819", "event-1", 0, payload, Instant.now());
 	}
 	
 	private static BookReservationRejectedEvent getBookReservationRejectedEvent() {
 		BookReservationRejectedPayload payload = new BookReservationRejectedPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", 
     			"203a9860-cdd8-4c33-a67f-45a6cf6e2799", BookReservationRejectReason.BOOK_NOT_REGISTERED);
-		return new BookReservationRejectedEvent("9788828606819", "event-1", payload, Instant.now());
+		return new BookReservationRejectedEvent("9788828606819", "event-1", 0, payload, Instant.now());
 	}
 	
 	private static BookReturnedEvent getBookReturnedEvent() {
 		BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
-    	return new BookReturnedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	return new BookReturnedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
 	}
 
 	private static BookReleasedEvent getBookReleasedEvent() {
 		BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
-    	return new BookReleasedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+    	return new BookReleasedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
 	}
 
 	private static BookBorrowedEvent getBookBorrowedEvent() {
 		BookLoanPayload payload = new BookLoanPayload("9788828606819", "228473c9-d482-462b-b5b5-cf96cdb0d195", "203a9860-cdd8-4c33-a67f-45a6cf6e2799");
-        return new BookBorrowedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", payload, Instant.now());
+        return new BookBorrowedEvent("9788828606819", "34105d72-a109-4c9c-aa0e-3e31a677d3c7", 0, payload, Instant.now());
 	}
 	
 }

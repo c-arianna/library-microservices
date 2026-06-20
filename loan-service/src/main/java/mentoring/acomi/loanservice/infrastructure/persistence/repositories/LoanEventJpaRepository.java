@@ -12,14 +12,7 @@ import mentoring.acomi.sharedlibrary.eventstore.BaseEventJpaRepository;
 
 @Repository
 public interface LoanEventJpaRepository extends BaseEventJpaRepository<LoanEventEntity> {
-
-	@Query("""
-			select max(e.eventVersion)
-			from LoanEventEntity e
-			where e.aggregateId = :aggregateId
-			""")
-	Optional<Integer> findLastVersion(@Param("aggregateId") String aggregateId);
-
+	
 	@Query("""
 			    select e
 			    from LoanEventEntity e

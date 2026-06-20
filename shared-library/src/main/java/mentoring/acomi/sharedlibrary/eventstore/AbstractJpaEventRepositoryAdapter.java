@@ -16,14 +16,7 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 
 	@Override
 	public void appendToStream(E event) {
-
-		Optional<Integer> version = repository.findLastVersion(event.aggregateId());
-
-		Integer nextVersion = version.isEmpty() ? 0 : version.get() + 1;
-
 		ENTITY entity = mapper.toEntity(event);
-		entity.setEventVersion(nextVersion);
-
 		repository.save(entity);
 	}
 

@@ -26,10 +26,11 @@ public class BookEventEntity extends BaseEventEntity {
 	@Column(columnDefinition = "json")
 	private JsonNode payload;
 
-	public BookEventEntity(String aggregateId, String eventType, String eventId, JsonNode payload, Instant  occurredAt) {
+	public BookEventEntity(String aggregateId, String eventType, String eventId, int eventVersion, JsonNode payload, Instant  occurredAt) {
 		this.eventId = eventId;
 		this.aggregateId = aggregateId;
 		this.eventType = eventType;
+		this.eventVersion = eventVersion;
 		this.payload = payload;
 		this.occurredAt = occurredAt;
 	}
