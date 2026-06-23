@@ -3,13 +3,18 @@ use loan_db;
 CREATE TABLE IF NOT EXISTS loan_events (
     id bigint not null auto_increment,
     aggregate_id varchar(100) not null,
+    aggregate_type varchar(50) not null,
     event_type varchar(50) not null,
     event_id char(36) NOT NULL,
     event_version int not null,
+    schema_version int,
+    event_category ENUM('PRODUCER', 'CONSUMER') not null default 'PRODUCER',
     payload json not null,
+     processed boolean not null default false,
     occurred_at timestamp not null,
     primary key (id),
     unique key uq_aggregate_version (aggregate_id, event_version),
+    unique key uq_aggregateType_version (event_id, aggregate_type),
     key idx_aggregate (aggregate_id),
     key idx_event_type (event_type)
 );

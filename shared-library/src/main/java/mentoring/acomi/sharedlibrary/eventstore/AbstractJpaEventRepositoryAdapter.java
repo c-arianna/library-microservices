@@ -6,7 +6,7 @@ import java.util.Optional;
 public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, ENTITY extends BaseEventEntity>
 		implements EventRepository<E> {
 
-	private final BaseEventJpaRepository<ENTITY> repository;
+	protected final BaseEventJpaRepository<ENTITY> repository;
 	private final EventMapper<E, ENTITY> mapper;
 
 	protected AbstractJpaEventRepositoryAdapter(BaseEventJpaRepository<ENTITY> repository, EventMapper<E, ENTITY> mapper) {
@@ -17,17 +17,18 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 	@Override
 	public void appendToStream(E event) {
 		ENTITY entity = mapper.toEntity(event);
+		entity.setEventCategory(EventCategory.PRODUCER.name());
 		repository.save(entity);
 	}
 
 	@Override
 	public List<E> loadStream(String aggregateId) {
-		return repository.findEventsForAggregate(aggregateId).stream().map(mapper::toDomain).toList();
+		return repository.findByAggregateIdAndEventCategory(aggregateId, EventCategory.PRODUCER.name()).stream().map(mapper::toDomain).toList();
 	}
 
 	@Override
-	public boolean exists(String aggregateId) {
-		return repository.existsByAggregateId(aggregateId);
+	public boolean exists(String aggregateId, String aggregateType) {
+		return repository.existsByAggregateIdAndAggregateType(aggregateId, aggregateType);
 	}
 
 	@Override
@@ -40,4 +41,26 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 	public void deleteAll() {
 		repository.deleteAll();
 	}
+	
+	@Override
+	public Optional<Integer> findMaxProcessedVersion(String aggregateId, String aggregateType){
+		return repository.findMaxProcessedVersion(aggregateId, aggregateType);
+	}
+	
+	@Override
+	public void markProcessed(String eventId, String aggregateType) {
+		repository.markProcessed(eventId, aggregateType);
+	}
+	
+	@Override
+	public Optional<E> findNextEventToProcess(String aggregateId,  String aggregateType, int eventVersion){
+		Optional<ENTITY> event = repository.findNextEventToProcess(aggregateId, aggregateType, eventVersion);
+		return event.isEmpty() ? Optional.empty() : Optional.of(mapper.toDomain(event.get()));
+	}
+	
+	@Override
+	public boolean existsEventProcessed(String eventId, String aggregateType) {
+		return repository.existsByEventIdAndAggregateTypeAndProcessedTrue(eventId, aggregateType);
+	}
+	
 }

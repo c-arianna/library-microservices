@@ -19,6 +19,13 @@
 		"aggregateId": {
 			"type": "string"
 		},
+		"aggregateType": {
+			"type": "string",
+			"const": "USER"
+		},
+		"eventVersion": {
+			"type": "integer"
+		},
 		"occurredAt": {
 			"type": "string",
 			"format": "date-time"
@@ -48,6 +55,8 @@
 		"eventType",
 		"producer",
 		"aggregateId",
+		"aggregateType",
+		"eventVersion",
 		"occurredAt",
 		"schemaVersion",
 		"payload"

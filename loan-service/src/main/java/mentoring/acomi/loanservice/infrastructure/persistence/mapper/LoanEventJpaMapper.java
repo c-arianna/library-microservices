@@ -80,7 +80,7 @@ public class LoanEventJpaMapper implements EventMapper<LoanEvent, LoanEventEntit
 	}
 
 	public LoanEventEntity toEntity(LoanEvent event) {
-		return new LoanEventEntity(event.aggregateId(), event.eventId(), event.type().name(), event.eventVersion(), toJsonNode(event.payload()), event.occurredAt());
+		return new LoanEventEntity(event.aggregateId(), event.aggregateType(), event.eventId(), event.type().name(), event.eventVersion(), null, toJsonNode(event.payload()), event.occurredAt());
 
 	}
 

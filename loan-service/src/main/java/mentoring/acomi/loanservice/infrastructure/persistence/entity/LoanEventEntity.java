@@ -26,11 +26,13 @@ public class LoanEventEntity extends BaseEventEntity{
 	@Column(columnDefinition = "json")
 	private JsonNode payload;
 
-	public LoanEventEntity(String aggregateId, String eventId, String eventType, int eventVersion, JsonNode payload, Instant  occurredAt) {
+	public LoanEventEntity(String aggregateId, String aggregateType, String eventId, String eventType, int eventVersion, Integer schemaVersion, JsonNode payload, Instant  occurredAt) {
 		this.eventId = eventId;
 		this.aggregateId = aggregateId;
+		this.aggregateType = aggregateType;
 		this.eventType = eventType;
 		this.eventVersion = eventVersion;
+		this.schemaVersion = schemaVersion;
 		this.payload = payload;
 		this.occurredAt = occurredAt;
 	}

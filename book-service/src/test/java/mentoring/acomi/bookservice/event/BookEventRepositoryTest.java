@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
+import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.domain.events.BookRegisteredEvent;
@@ -78,7 +79,7 @@ public class BookEventRepositoryTest {
 
 		entityManager.clear();
 
-		boolean exists = repository.exists(isbn);
+		boolean exists = repository.exists(isbn, AggregateType.BOOK.name());
 
 		Assertions.assertTrue(exists);
 	}
@@ -86,7 +87,7 @@ public class BookEventRepositoryTest {
 	@Test
 	public void shouldReturnFalseIfAggregateDoesNotExist() {
 
-		boolean exists = repository.exists("isbn1");
+		boolean exists = repository.exists("isbn1", AggregateType.BOOK.name());
 
 		Assertions.assertFalse(exists);
 	}

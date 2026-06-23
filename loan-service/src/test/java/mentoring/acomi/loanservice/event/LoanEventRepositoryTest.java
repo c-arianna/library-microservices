@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
+import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanCanceledEvent;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
@@ -83,7 +84,7 @@ public class LoanEventRepositoryTest {
 
 		entityManager.clear();
 
-		boolean exists = repository.exists(loanId);
+		boolean exists = repository.exists(loanId, AggregateType.LOAN.name());
 
 		Assertions.assertTrue(exists);
 	}
@@ -91,7 +92,7 @@ public class LoanEventRepositoryTest {
 	@Test
 	public void shouldReturnFalseIfAggregateDoesNotExist() {
 
-		boolean exists = repository.exists("loan01");
+		boolean exists = repository.exists("loan01", AggregateType.LOAN.name());
 
 		Assertions.assertFalse(exists);
 	}

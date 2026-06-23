@@ -9,15 +9,14 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
+import mentoring.acomi.loanservice.application.reactor.command.CommandBookEvent;
+import mentoring.acomi.loanservice.application.reactor.command.CommandBookRejectedEvent;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.events.LoanFailedReason;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 
 @Component
-public class LoanReactor {
+public class LoanEventReactor {
 	
 	private static final String BOOK_NOT_AVAILABLE = "BOOK_NOT_AVAILABLE";
 	private static final String BOOK_NOT_REGISTERED = "BOOK_NOT_REGISTERED";
@@ -26,21 +25,21 @@ public class LoanReactor {
 	private final LoanEventRepository eventRepository;
 	private final EventDispatcher eventDispatcher;
 	
-	private final Logger logger = LogManager.getLogger(LoanReactor.class);
+	private final Logger logger = LogManager.getLogger(LoanEventReactor.class);
 	
-	public LoanReactor(LoanEventRepository eventRepository, EventDispatcher eventDispatcher) {
+	public LoanEventReactor(LoanEventRepository eventRepository, EventDispatcher eventDispatcher) {
 		this.eventRepository = eventRepository;
 		this.eventDispatcher = eventDispatcher;
 	}
 	
-	public void handleBookReserved(BookLoanIntegrationPayload payload) {
-		LoanAggregate loan = loadLoan(payload.loanId());
+	public void handleBookReserved(CommandBookEvent command) {
+		LoanAggregate loan = loadLoan(command.loanId());
 		loan.reserve();
 	}
 
-	public void handleBookReservationRejected(BookReservationRejectedIntegrationPayload payload) {
-		LoanAggregate loan = loadLoan(payload.loanId());
-		String reason = payload.reason();
+	public void handleBookReservationRejected(CommandBookRejectedEvent command) {
+		LoanAggregate loan = loadLoan(command.loanId());
+		String reason = command.reason();
 
 		switch (reason) {
 		case BOOK_NOT_AVAILABLE -> loan.fail(LoanFailedReason.BOOK_NOT_AVAILABLE);
@@ -50,14 +49,14 @@ public class LoanReactor {
 
 	}
 
-	public void handleBookBorrowed(BookLoanIntegrationPayload payload) {
-		LoanAggregate loan = loadLoan(payload.loanId());
+	public void handleBookBorrowed(CommandBookEvent command) {
+		LoanAggregate loan = loadLoan(command.loanId());
 		loan.confirm();
 	}
 
-	public void handleBookBorrowRejected(BookBorrowRejectedIntegrationPayload payload) {
-		LoanAggregate loan = loadLoan(payload.loanId());
-		String reason = payload.reason();
+	public void handleBookBorrowRejected(CommandBookRejectedEvent command) {
+		LoanAggregate loan = loadLoan(command.loanId());
+		String reason = command.reason();
 
 		switch (reason) {
 		case BOOK_NOT_REGISTERED -> loan.fail(LoanFailedReason.BOOK_NOT_FOUND);

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.userservice.domain.events.AggregateType;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
@@ -60,7 +61,7 @@ public class UserIntegrationEventMapper {
 	}
 	
 	private <T> IntegrationEventEnvelope<T> envelope(UserEvent e, IntegrationEventTypes type, int version, T payload) {
-		return new IntegrationEventEnvelope<>(e.eventId(), type, PRODUCER, e.aggregateId(), e.occurredAt(), version, payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), type, PRODUCER, e.aggregateId(), AggregateType.USER.name(), e.eventVersion(), e.occurredAt(), version, payload);
 	}
 
 }

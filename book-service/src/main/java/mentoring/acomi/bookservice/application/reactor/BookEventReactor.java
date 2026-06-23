@@ -10,16 +10,16 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.application.aggregates.BookAggregate;
 import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
+import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.model.ISBN;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
 public class BookEventReactor {
 
-	private final Map<IntegrationEventTypes, Consumer<LoanIntegrationPayload>> handlers;
+	private final Map<IntegrationEventTypes, Consumer<CommandLoanEvent>> handlers;
 
 	private final BookEventRepository bookEventRepository;
 	private final EventDispatcher eventDispatcher;
@@ -29,47 +29,49 @@ public class BookEventReactor {
 		this.bookEventRepository = eventRepository;
 		this.eventDispatcher = eventDispatcher;
 		this.handlers = Map.of(IntegrationEventTypes.LOAN_REQUESTED, this::handleLoanRequested,
-				IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, this::handleLoanConfirmRequested, IntegrationEventTypes.LOAN_CANCELED,
-				this::handleLoanCanceled, IntegrationEventTypes.LOAN_RETURNED, this::handleLoanReturned);
+				IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, this::handleLoanConfirmRequested,
+				IntegrationEventTypes.LOAN_CANCELED, this::handleLoanCanceled, IntegrationEventTypes.LOAN_RETURNED,
+				this::handleLoanReturned);
 	}
 
-	public void handle(IntegrationEventTypes type, LoanIntegrationPayload payload) {
-		Consumer<LoanIntegrationPayload> handler = handlers.get(type);
+	public void handle(IntegrationEventTypes eventType, CommandLoanEvent command) {
+		Consumer<CommandLoanEvent> handler = handlers.get(eventType);
 		if (handler == null) {
-			throw new IllegalArgumentException(String.format("Unsupported event type: %s", type));
+			throw new IllegalArgumentException(String.format("Unsupported event type: %s", eventType));
 		}
-		handler.accept(payload);
+		handler.accept(command);
+
 	}
 
-	private void handleLoanRequested(LoanIntegrationPayload payload) {
-		BookAggregate book = loadBook(payload.isbn());
-		book.reserve(payload.loanId(), payload.userId());
+	private void handleLoanRequested(CommandLoanEvent command) {
+		BookAggregate book = loadBook(command.isbn());
+		book.reserve(command.loanId(), command.userId());
 	}
 
-	private void handleLoanConfirmRequested(LoanIntegrationPayload payload) {
-		BookAggregate book = loadBook(payload.isbn());
-		book.borrow(payload.loanId(), payload.userId());
+	private void handleLoanConfirmRequested(CommandLoanEvent command) {
+		BookAggregate book = loadBook(command.isbn());
+		book.borrow(command.loanId(), command.userId());
 	}
 
-	private void handleLoanCanceled(LoanIntegrationPayload payload) {
+	private void handleLoanCanceled(CommandLoanEvent command) {
 
-		String loanId = payload.loanId();
+		String loanId = command.loanId();
 
 		try {
-			BookAggregate book = loadBook(payload.isbn());
-			book.release(loanId, payload.userId());
+			BookAggregate book = loadBook(command.isbn());
+			book.release(loanId, command.userId());
 		} catch (Exception e) {
 			logger.warn("Ignoring error on LoanCanceled, loanId={}", loanId, e);
 		}
 	}
 
-	private void handleLoanReturned(LoanIntegrationPayload payload) {
+	private void handleLoanReturned(CommandLoanEvent command) {
 
-		String loanId = payload.loanId();
+		String loanId = command.loanId();
 
 		try {
-			BookAggregate book = loadBook(payload.isbn());
-			book.returnBorrowed(loanId, payload.userId());
+			BookAggregate book = loadBook(command.isbn());
+			book.returnBorrowed(loanId, command.userId());
 
 		} catch (Exception e) {
 			logger.warn("Ignoring error on LoanReturned, loanId={}", loanId, e);

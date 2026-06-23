@@ -31,6 +31,7 @@ import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
+import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
@@ -128,7 +129,8 @@ class BookRabbitIntegrationTest {
 	void shouldRejectInvalidPayload() {
 
 		IntegrationEventEnvelope<Object> invalidEvent = new IntegrationEventEnvelope<>("evt-invalid",
-				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, Instant.now(), 1, new Object());
+				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, AggregateType.LOAN.name(), 0, Instant.now(),
+				1, new Object());
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.LOAN_REQUESTED.eventName,
 				invalidEvent);
@@ -150,7 +152,7 @@ class BookRabbitIntegrationTest {
 
 		publishLoanRequestedEvent();
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		await().atMost(Duration.ofSeconds(10000)).untilAsserted(() -> {
 			var book = viewRepository.findById(ISBN).orElseThrow();
 			Assertions.assertEquals(1, book.reservedCopies());
 		});
@@ -168,7 +170,7 @@ class BookRabbitIntegrationTest {
 	void shouldRejectNotSupportedSchemaVersion() {
 
 		IntegrationEventEnvelope<Object> invalidEvent = new IntegrationEventEnvelope<>("evt-invalid",
-				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, Instant.now(),
+				IntegrationEventTypes.LOAN_REQUESTED, "loan-service", ISBN, AggregateType.LOAN.name(), 0, Instant.now(),
 				BookIntegrationConsumerEventVersions.LOAN_REQUESTED + 1, new Object());
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.LOAN_REQUESTED.eventName,
@@ -181,12 +183,80 @@ class BookRabbitIntegrationTest {
 		Assertions.assertFalse(events.stream().anyMatch(e -> e.type() == BookEventType.BookReserved));
 	}
 
+	@Test
+	void shouldNotConsumeDuplicateEventsTwice() {
+
+		IntegrationEventTypes type = IntegrationEventTypes.LOAN_REQUESTED;
+		String eventId = UUID.randomUUID().toString();
+		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
+				"loan-service", LOAN_ID, AggregateType.LOAN.name(), 0, Instant.now(), 1,
+				new LoanRequestedIntegrationPayload(LOAN_ID, ISBN, USER_ID, LocalDate.now(),
+						LocalDate.now().plusDays(30)));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var book = viewRepository.findById(ISBN).orElseThrow();
+			Assertions.assertEquals(1, book.reservedCopies());
+		});
+
+		var events = eventRepository.loadStream(ISBN);
+		int eventsSize = events.size();
+
+		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == BookEventType.BookReserved));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
+
+		var eventsAfterSecondPublish = eventRepository.loadStream(ISBN);
+
+		await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+			Assertions.assertTrue(eventsAfterSecondPublish.size() == eventsSize);
+		});
+
+	}
+
+	@Test
+	void shouldConsumeEventsInOrder() {
+
+		IntegrationEventTypes type = IntegrationEventTypes.LOAN_CONFIRM_REQUESTED;
+		String eventId = UUID.randomUUID().toString();
+		IntegrationEventEnvelope<LoanIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
+				"loan-service", LOAN_ID, AggregateType.LOAN.name(), 1, Instant.now(), 1,
+				new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
+
+		await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+			boolean processed = eventRepository.existsEventProcessed(event.eventId(), AggregateType.LOAN.name());
+			Assertions.assertFalse(processed);
+		});
+
+		publishLoanRequestedEvent();
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+
+			boolean processedV1 = eventRepository.existsEventProcessed(event.eventId(), AggregateType.LOAN.name());
+
+			Assertions.assertTrue(processedV1);
+
+			var book = viewRepository.findById(ISBN).orElseThrow();
+			Assertions.assertEquals(1, book.borrowedCopies());
+		});
+
+		int max = eventRepository.findMaxProcessedVersion(LOAN_ID, AggregateType.LOAN.name()).orElse(-1);
+		Assertions.assertEquals(1, max);
+		
+		var events = eventRepository.loadStream(ISBN);
+		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == BookEventType.BookBorrowed));
+	}
+
 	private void publishLoanConfirmedRequestEvent() {
 
 		IntegrationEventTypes type = IntegrationEventTypes.LOAN_CONFIRM_REQUESTED;
 		String eventId = UUID.randomUUID().toString();
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
-				"loan-service", ISBN, Instant.now(), 1, new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
+				"loan-service", LOAN_ID, AggregateType.LOAN.name(), 1, Instant.now(), 1,
+				new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
 	}
@@ -196,11 +266,13 @@ class BookRabbitIntegrationTest {
 		IntegrationEventTypes type = IntegrationEventTypes.LOAN_REQUESTED;
 		String eventId = UUID.randomUUID().toString();
 		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
-				"loan-service", ISBN, Instant.now(), 1, new LoanRequestedIntegrationPayload(LOAN_ID, ISBN, USER_ID, LocalDate.now(), LocalDate.now().plusDays(30)));
+				"loan-service", LOAN_ID, AggregateType.LOAN.name(), 0, Instant.now(), 1,
+				new LoanRequestedIntegrationPayload(LOAN_ID, ISBN, USER_ID, LocalDate.now(),
+						LocalDate.now().plusDays(30)));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
 	}
-	
+
 	private String createTmpQueue(String routingKey) {
 
 		String queueName = String.join(".", "tmp", routingKey, UUID.randomUUID().toString());

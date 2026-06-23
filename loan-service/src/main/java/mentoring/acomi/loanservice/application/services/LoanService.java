@@ -24,6 +24,7 @@ import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
+import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.domain.model.Loan;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
@@ -103,7 +104,7 @@ public class LoanService {
 
 	private void validateLoanRequest(String loanId, String userId) {
 
-		if (loanEventRepository.exists(loanId)) {
+		if (loanEventRepository.exists(loanId, AggregateType.LOAN.name())) {
 			throw new ApplicationConflict("LOAN_ALREADY_EXISTS", String.format("Loan ID: %s", loanId));
 		}
 

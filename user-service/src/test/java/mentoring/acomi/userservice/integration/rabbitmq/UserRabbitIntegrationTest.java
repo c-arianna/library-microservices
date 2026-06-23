@@ -1,7 +1,6 @@
 package mentoring.acomi.userservice.integration.rabbitmq;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -10,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
@@ -125,28 +125,28 @@ class UserRabbitIntegrationTest {
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			assertEquals(UserStatus.ACTIVE, userView.status());
+			Assertions.assertEquals(UserStatus.ACTIVE, userView.status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
-		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSubscribed));
+		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSubscribed));
 
 		String body = waitForMessageBody(tmpQueue);
 
-		assertNotNull(body);
+		Assertions.assertNotNull(body);
 
 		JsonNode json = objectMapper.readTree(body);
 
-		assertEquals("USER_SUBSCRIBED", json.get("eventType").asString());
+		Assertions.assertEquals("USER_SUBSCRIBED", json.get("eventType").asString());
 
-		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.userId(), json.get("aggregateId").asString());
+		Assertions.assertEquals("user-service", json.get("producer").asString());
+		Assertions.assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
-		assertNotNull(payload);
+		Assertions.assertNotNull(payload);
 
-		assertEquals(user.email(), payload.get("email").asString());
-		assertEquals("ACTIVE", payload.get("status").asString());
+		Assertions.assertEquals(user.email(), payload.get("email").asString());
+		Assertions.assertEquals("ACTIVE", payload.get("status").asString());
 	}
 
 	@Test
@@ -162,28 +162,28 @@ class UserRabbitIntegrationTest {
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			assertEquals(UserStatus.SUSPENDED, userView.status());
+			Assertions.assertEquals(UserStatus.SUSPENDED, userView.status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
-		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSuspended));
+		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSuspended));
 
 		String body = waitForMessageBody(tmpQueue);
 
-		assertNotNull(body);
+		Assertions.assertNotNull(body);
 
 		JsonNode json = objectMapper.readTree(body);
 
-		assertEquals("USER_SUSPENDED", json.get("eventType").asString());
+		Assertions.assertEquals("USER_SUSPENDED", json.get("eventType").asString());
 
-		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.userId(), json.get("aggregateId").asString());
+		Assertions.assertEquals("user-service", json.get("producer").asString());
+		Assertions.assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
-		assertNotNull(payload);
+		Assertions.assertNotNull(payload);
 
-		assertEquals(user.userId(), payload.get("userId").asString());
-		assertEquals("SUSPENDED", payload.get("status").asString());
+		Assertions.assertEquals(user.userId(), payload.get("userId").asString());
+		Assertions.assertEquals("SUSPENDED", payload.get("status").asString());
 		
 	}
 
@@ -200,35 +200,35 @@ class UserRabbitIntegrationTest {
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			assertEquals(UserStatus.SUSPENDED, userView.status());
+			Assertions.assertEquals(UserStatus.SUSPENDED, userView.status());
 		});
 
 		userService.unsuspend(new SuspendRequest(user.userId(), "reactivation"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			assertEquals(UserStatus.ACTIVE, userView.status());
+			Assertions.assertEquals(UserStatus.ACTIVE, userView.status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
-		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsuspended));
+		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsuspended));
 
 		String body = waitForMessageBody(tmpQueue);
 
-		assertNotNull(body);
+		Assertions.assertNotNull(body);
 
 		JsonNode json = objectMapper.readTree(body);
 
-		assertEquals("USER_UNSUSPENDED", json.get("eventType").asString());
+		Assertions.assertEquals("USER_UNSUSPENDED", json.get("eventType").asString());
 
-		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.userId(), json.get("aggregateId").asString());
+		Assertions.assertEquals("user-service", json.get("producer").asString());
+		Assertions.assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
-		assertNotNull(payload);
+		Assertions.assertNotNull(payload);
 
-		assertEquals(user.userId(), payload.get("userId").asString());
-		assertEquals("ACTIVE", payload.get("status").asString());
+		Assertions.assertEquals(user.userId(), payload.get("userId").asString());
+		Assertions.assertEquals("ACTIVE", payload.get("status").asString());
 	
 	}
 
@@ -245,31 +245,31 @@ class UserRabbitIntegrationTest {
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			assertEquals(UserStatus.DISABLE, userView.status());
+			Assertions.assertEquals(UserStatus.DISABLE, userView.status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
-		assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsubscribed));
+		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsubscribed));
 
 		String body = waitForMessageBody(tmpQueue);
 
-		assertNotNull(body);
+		Assertions.assertNotNull(body);
 
 		JsonNode json = objectMapper.readTree(body);
 
-		assertEquals("USER_UNSUBSCRIBED", json.get("eventType").asString());
+		Assertions.assertEquals("USER_UNSUBSCRIBED", json.get("eventType").asString());
 
-		assertEquals("user-service", json.get("producer").asString());
-		assertEquals(user.userId(), json.get("aggregateId").asString());
+		Assertions.assertEquals("user-service", json.get("producer").asString());
+		Assertions.assertEquals(user.userId(), json.get("aggregateId").asString());
 
 		JsonNode payload = json.get("payload");
-		assertNotNull(payload);
+		Assertions.assertNotNull(payload);
 
-		assertEquals(user.userId(), payload.get("userId").asString());
-		assertEquals("DISABLE", payload.get("status").asString());
+		Assertions.assertEquals(user.userId(), payload.get("userId").asString());
+		Assertions.assertEquals("DISABLE", payload.get("status").asString());
 		
 	}
-
+		
 	private void setAuthenticatedUser(String email, String role) {
 		
 		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", email)

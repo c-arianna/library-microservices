@@ -99,14 +99,15 @@ public class BookEventJpaMapper implements EventMapper<BookEvent, BookEventEntit
 			
 		}
 		
+		default -> throw new IllegalArgumentException(String.format("Unexpected value: %s", eventType.name()));
+		
 				
 		};
 
 	}
 
 	public BookEventEntity toEntity(BookEvent event) {
-		return new BookEventEntity(event.aggregateId(), event.type().name(), event.eventId(), event.eventVersion(),	toJsonNode(event.payload()), event.occurredAt());
-
+		return new BookEventEntity(event.aggregateId(), event.aggregateType(), event.type().name(), event.eventId(), event.eventVersion(), null, toJsonNode(event.payload()), event.occurredAt());
 	}
 
 	private JsonNode toJsonNode(Object payload) {

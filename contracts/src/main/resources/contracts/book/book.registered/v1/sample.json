@@ -3,6 +3,8 @@
   "eventType": "BOOK_REGISTERED",
   "producer": "book-service",
   "aggregateId": "9788828606819",
+  "aggregateType": "BOOK",
+  "eventVersion": 0,
   "occurredAt": "2026-06-09T14:30:00Z",
   "schemaVersion": 1,
 

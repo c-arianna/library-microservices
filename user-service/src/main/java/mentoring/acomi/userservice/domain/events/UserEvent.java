@@ -4,4 +4,5 @@ import mentoring.acomi.sharedlibrary.eventstore.DomainEvent;
 
 public sealed interface UserEvent extends DomainEvent permits UserSubscribedEvent, UserUnsubscribeEvent, UserSuspendEvent,UserUnsuspendedEvent {
 	UserEventType type();
+	@Override public default String aggregateType() { return AggregateType.USER.name(); }
 }

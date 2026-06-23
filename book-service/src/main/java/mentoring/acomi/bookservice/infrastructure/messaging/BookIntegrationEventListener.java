@@ -1,7 +1,5 @@
 package mentoring.acomi.bookservice.infrastructure.messaging;
 
-import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -10,12 +8,7 @@ import org.springframework.stereotype.Component;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import mentoring.acomi.bookservice.application.errors.NonRetryableEventException;
-import mentoring.acomi.bookservice.application.projection.BookProjection;
-import mentoring.acomi.bookservice.application.reactor.BookEventReactor;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookCopiesUpdatedIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
@@ -25,33 +18,15 @@ import tools.jackson.databind.ObjectMapper;
 public class BookIntegrationEventListener {
 
 	private final ObjectMapper mapper;
-	private final BookEventReactor reactor;
-	private final BookProjection projection;
 	private final Tracer tracer;
-
+	private final BookEventProcessor eventProcessor;
+	
 	private final Logger logger = LogManager.getLogger(BookIntegrationEventListener.class);
-
-	private Map<IntegrationEventTypes, Integer> consumerSupportedVersion = 
-			Map.ofEntries(Map.entry(IntegrationEventTypes.LOAN_REQUESTED, BookIntegrationConsumerEventVersions.LOAN_REQUESTED),
-					      Map.entry(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, BookIntegrationConsumerEventVersions.LOAN_CONFIRM_REQUESTED), 
-						  Map.entry(IntegrationEventTypes.LOAN_CANCELED, BookIntegrationConsumerEventVersions.LOAN_CANCELED), 
-						  Map.entry(IntegrationEventTypes.LOAN_RETURNED, BookIntegrationConsumerEventVersions.LOAN_RETURNED),
-						  Map.entry(IntegrationEventTypes.BOOK_REGISTERED, BookIntegrationConsumerEventVersions.BOOK_REGISTERED),
-						  Map.entry(IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED),
-						  Map.entry(IntegrationEventTypes.BOOK_RESERVED, BookIntegrationConsumerEventVersions.BOOK_RESERVED),
-						  Map.entry(IntegrationEventTypes.BOOK_BORROWED, BookIntegrationConsumerEventVersions.BOOK_BORROWED),
-						  Map.entry(IntegrationEventTypes.BOOK_RELEASED, BookIntegrationConsumerEventVersions.BOOK_RELEASED),
-						  Map.entry(IntegrationEventTypes.BOOK_RETURNED, BookIntegrationConsumerEventVersions.BOOK_RETURNED),
-						  Map.entry(IntegrationEventTypes.BOOK_RESERVATION_REJECTED, BookIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED),
-						  Map.entry(IntegrationEventTypes.BOOK_BORROW_REJECTED, BookIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED)
-				   );
-
-	public BookIntegrationEventListener(ObjectMapper mapper, BookEventReactor reactor, BookProjection projection,
-			Tracer tracer) {
+	
+	public BookIntegrationEventListener(ObjectMapper mapper, Tracer tracer, BookEventProcessor eventProcessor) {
 		this.mapper = mapper;
-		this.reactor = reactor;
-		this.projection = projection;
 		this.tracer = tracer;
+		this.eventProcessor = eventProcessor;
 	}
 
 	@RabbitListener(queues = MessagingTopology.BOOK_QUEUE)
@@ -68,57 +43,32 @@ public class BookIntegrationEventListener {
 
 			switch (eventEnvelope.eventType()) {
 
-				case LOAN_REQUESTED, LOAN_CONFIRM_REQUESTED, LOAN_CANCELED, LOAN_RETURNED -> {
-					handleLoanEvent(eventEnvelope.eventType(), mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class));
-				}
-				
-				case BOOK_REGISTERED -> {
-					projection.addBook(mapper.convertValue(eventEnvelope.payload(), BookRegisteredIntegrationPayload.class));
-				}
-				
-				case BOOK_COPIES_UPDATED -> {
-					projection.updateCopies(mapper.convertValue(eventEnvelope.payload(), BookCopiesUpdatedIntegrationPayload.class));
-				}
-				
-				case BOOK_RESERVED -> {
-					projection.reserve(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
-				}
-				
-				case BOOK_BORROWED -> {
-					projection.borrow(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
-				}
-				
-				case BOOK_RELEASED -> {
-					projection.release(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
-				}
-				
-				case BOOK_RETURNED -> {
-					projection.returnBorrowed(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
-				}
-			
-				default -> 
-				throw new IllegalArgumentException(String.format("Unknown event type: %s", eventEnvelope.eventType()));
+			case LOAN_REQUESTED, LOAN_CONFIRM_REQUESTED, LOAN_CANCELED, LOAN_RETURNED -> {
+				eventProcessor.processConsumerEvent(eventEnvelope,
+						mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class));
 			}
-			
-			logger.info("Event processed successfully");
+
+			case BOOK_REGISTERED , BOOK_COPIES_UPDATED, BOOK_RESERVED, BOOK_BORROWED, BOOK_RELEASED, BOOK_RETURNED -> {
+				eventProcessor.processProducerEvent(eventEnvelope);
+			}
+
+			default ->
+				throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));
+			}
+
 		} catch (NonRetryableEventException e) {
 			logger.warn("Dropping incompatible event {} version {}, {}", eventEnvelope.eventType(),
 					eventEnvelope.schemaVersion(), e.getMessage());
 			return;
 		} catch (Exception e) {
-			logger.error("Failed to process event {}", eventEnvelope.eventType(), e);
+			logger.error("Failed to process event {}, {}", eventEnvelope.eventType(), e);
 			throw e;
 		}
 	}
-
-	private void handleLoanEvent(IntegrationEventTypes eventType, LoanIntegrationPayload payload) {
-	    validatePayload(eventType, payload);
-	    reactor.handle(eventType, payload);
-	}
-
+	
 	private void checkEventSchemaVersion(IntegrationEventTypes eventType, int eventSchemaVersion) {
 
-		int supportedVersion = consumerSupportedVersion.getOrDefault(eventType, -1);
+		int supportedVersion = BookEventProcessor.consumerSupportedVersion.getOrDefault(eventType, -1);
 
 		if (supportedVersion == -1) {
 			throw new NonRetryableEventException(String.format("Unknown event type: %s", eventType));
@@ -134,13 +84,6 @@ public class BookIntegrationEventListener {
 			return;
 		}
 
-	}
-
-	private void validatePayload(IntegrationEventTypes eventType, LoanIntegrationPayload payload) {
-
-		if (payload == null || payload.loanId() == null || payload.userId() == null || payload.isbn() == null) {
-			throw new IllegalArgumentException(String.format("Invalid payload for event %s", eventType));
-		}
 	}
 
 }

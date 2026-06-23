@@ -17,6 +17,7 @@ import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.config.SecurityTestConfig;
+import mentoring.acomi.userservice.domain.events.AggregateType;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
@@ -80,7 +81,7 @@ public class UserEventRepositoryTest {
 
 		entityManager.clear();
 
-		boolean exists = repository.exists(userId);
+		boolean exists = repository.exists(userId, AggregateType.USER.name());
 
 		Assertions.assertTrue(exists);
 	}
@@ -88,7 +89,7 @@ public class UserEventRepositoryTest {
 	@Test
 	public void shouldReturnFalseIfAggregateDoesNotExist() {
 
-		boolean exists = repository.exists("user01");
+		boolean exists = repository.exists("user01", AggregateType.USER.name());
 
 		Assertions.assertFalse(exists);
 	}

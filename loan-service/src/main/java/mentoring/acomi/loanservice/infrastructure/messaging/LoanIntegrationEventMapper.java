@@ -2,6 +2,7 @@ package mentoring.acomi.loanservice.infrastructure.messaging;
 
 import org.springframework.stereotype.Component;
 
+import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanCanceledEvent;
 import mentoring.acomi.loanservice.domain.events.LoanConfirmRequestedEvent;
 import mentoring.acomi.loanservice.domain.events.LoanConfirmedEvent;
@@ -95,7 +96,7 @@ public class LoanIntegrationEventMapper {
 	}
 	
 	private <T> IntegrationEventEnvelope<T> envelope(LoanEvent e, IntegrationEventTypes type, int version, T payload) {
-		return new IntegrationEventEnvelope<>(e.eventId(), type, PRODUCER, e.aggregateId(), e.occurredAt(), version, payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), type, PRODUCER, e.aggregateId(), AggregateType.LOAN.name(), e.eventVersion(), e.occurredAt(), version, payload);
 	}
 		
 

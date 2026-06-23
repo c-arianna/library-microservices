@@ -1,67 +1,67 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "LoanConfirmedEventV1",
-  "type": "object",
-  "additionalProperties": false,
-
-  "properties": {
-    "eventId": {
-      "type": "string",
-      "format": "uuid"
-    },
-
-    "eventType": {
-      "type": "string",
-      "const": "LOAN_CONFIRMED"
-    },
-
-    "producer": {
-      "type": "string",
-      "const": "loan-service"
-    },
-
-    "aggregateId": {
-      "type": "string"
-    },
-
-    "occurredAt": {
-      "type": "string",
-      "format": "date-time"
-    },
-
-    "schemaVersion": {
-      "type": "integer",
-      "const": 1
-    },
-
-    "payload": {
-		"properties": {
-		    "loanId": {
-		      "type": "string"
-		    },
-		    "isbn": {
-		      "type": "string"
-		    },
-		    "userId": {
-		      "type": "string"
-		    }
-		  },
-
-		  "required": [
-		    "loanId",
-		    "isbn",
-		    "userId"
-		  ]
-    }
-  },
-
-  "required": [
-    "eventId",
-    "eventType",
-    "producer",
-    "aggregateId",
-    "occurredAt",
-    "schemaVersion",
-    "payload"
-  ]
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "LoanConfirmedEventV1",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"eventId": {
+			"type": "string",
+			"format": "uuid"
+		},
+		"eventType": {
+			"type": "string",
+			"const": "LOAN_CONFIRMED"
+		},
+		"producer": {
+			"type": "string",
+			"const": "loan-service"
+		},
+		"aggregateId": {
+			"type": "string"
+		},
+		"aggregateType": {
+			"type": "string",
+			"const": "LOAN"
+		},
+		"eventVersion": {
+			"type": "integer"
+		},
+		"occurredAt": {
+			"type": "string",
+			"format": "date-time"
+		},
+		"schemaVersion": {
+			"type": "integer",
+			"const": 1
+		},
+		"payload": {
+			"properties": {
+				"loanId": {
+					"type": "string"
+				},
+				"isbn": {
+					"type": "string"
+				},
+				"userId": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"loanId",
+				"isbn",
+				"userId"
+			]
+		}
+	},
+	"required": [
+		"eventId",
+		"eventType",
+		"producer",
+		"aggregateId",
+		"aggregateType",
+		"eventVersion",
+		"occurredAt",
+		"schemaVersion",
+		"payload"
+	]
 }

@@ -44,6 +44,7 @@ import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.config.RabbitMQConfigTest;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
+import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
@@ -56,7 +57,7 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 @SpringBootTest
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
+@Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
 class LoanRabbitIntegrationTest {
 
 	@Container
@@ -90,12 +91,12 @@ class LoanRabbitIntegrationTest {
 
 	@Autowired
 	private UserViewRepository userViewRepository;
-	
+
 	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
 
 	private static final String TOKEN_VALUE = "test-token";
-	
+
 	@BeforeEach
 	public void setupUser() {
 		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UserStatus.ACTIVE));
@@ -176,7 +177,7 @@ class LoanRabbitIntegrationTest {
 		createLoan();
 
 		String body = waitForMessageBody(queue);
-		
+
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			Assertions.assertNotNull(body);
 			Assertions.assertTrue(body.contains("\"eventType\":\"LOAN_REQUESTED\""));
@@ -195,7 +196,7 @@ class LoanRabbitIntegrationTest {
 		publishBookReserved(loanId);
 
 		String body = waitForMessageBody(queue);
-		
+
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			Assertions.assertNotNull(body);
 			Assertions.assertTrue(body.contains("\"eventType\":\"LOAN_RESERVED\""));
@@ -208,19 +209,85 @@ class LoanRabbitIntegrationTest {
 	void shouldRejectNotSupportedSchemaVersion() {
 
 		String loanId = createLoan();
-		
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, Instant.now(), LoanIntegrationConsumerEventVersions.BOOK_RESERVED +1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(),
-				event);
-		
+		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
+				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, AggregateType.BOOK.name(), 0, Instant.now(),
+				LoanIntegrationConsumerEventVersions.BOOK_RESERVED,
+				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(), event);
+
 		await().atMost(Duration.ofSeconds(5));
 
 		var events = loanEventRepository.loadStream(loanId);
 		Assertions.assertFalse(events.stream().anyMatch(e -> e.type() == LoanEventType.LoanReserved));
 	}
-	
+
+	@Test
+	void shouldNotConsumeDuplicateEventsTwice() {
+
+		String loanId = createLoan();
+
+		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
+				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, AggregateType.BOOK.name(), 0, Instant.now(),
+				LoanIntegrationConsumerEventVersions.BOOK_RESERVED,
+				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(), event);
+
+		await().atMost(Duration.ofSeconds(5));
+
+		var events = loanEventRepository.loadStream(loanId);
+		int eventsSize = events.size();
+		Assertions.assertFalse(events.stream().anyMatch(e -> e.type() == LoanEventType.LoanReserved));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(), event);
+
+		var eventsAfterSecondPublish = loanEventRepository.loadStream(loanId);
+
+		await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+			Assertions.assertTrue(eventsAfterSecondPublish.size() == eventsSize);
+		});
+	}
+
+	@Test
+	void shouldConsumeEventsInOrder() {
+
+		String loanId = createLoan();
+
+		var event = new IntegrationEventEnvelope<>(String.format("evt-book-borrowed-%s", UUID.randomUUID().toString()),
+				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, AggregateType.BOOK.name(), 1, Instant.now(),
+				1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.BOOK_BORROWED.getRoutingKey(), event);
+
+		await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+			boolean processed = loanEventRepository.existsEventProcessed(event.eventId(), AggregateType.BOOK.name());
+			Assertions.assertFalse(processed);
+		});
+
+		publishBookReserved(loanId);
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+
+			boolean processedV1 = loanEventRepository.existsEventProcessed(event.eventId(), AggregateType.BOOK.name());
+
+			Assertions.assertTrue(processedV1);
+
+			var loan = loanViewRepository.findById(loanId).orElseThrow();
+			Assertions.assertEquals(LoanStatus.CONFIRMED, loan.status());
+		});
+
+		int max = loanEventRepository.findMaxProcessedVersion(ISBN, AggregateType.BOOK.name()).orElse(-1);
+		Assertions.assertEquals(1, max);
+		
+		var events = loanEventRepository.loadStream(loanId);
+		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == LoanEventType.LoanConfirmed));
+	}
+
 	private String createLoan() {
 
 		LoanResponse response = loanService.addLoan(new AddLoanRequest(ISBN, USER_ID, LocalDate.now(), null));
@@ -232,33 +299,36 @@ class LoanRabbitIntegrationTest {
 
 	private void publishBookReserved(String loanId) {
 		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, Instant.now(), 1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, AggregateType.BOOK.name(), 0, Instant.now(),
+				1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(),
-				event);
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(), event);
 	}
 
 	private void publishBookBorrowed(String loanId) {
 		var event = new IntegrationEventEnvelope<>(String.format("evt-book-borrowed-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, Instant.now(), 1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, AggregateType.BOOK.name(), 1, Instant.now(),
+				1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
 
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, IntegrationEventTypes.BOOK_BORROWED.getRoutingKey(),
-				event);
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.BOOK_BORROWED.getRoutingKey(), event);
 	}
 
 	private void publishBookReservationRejected(String loanId, String reason) {
 		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reject-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "book-service", ISBN, Instant.now(), 1, 
-				new BookReservationRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
+				IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "book-service", ISBN, AggregateType.BOOK.name(), 0,
+				Instant.now(), 0, new BookReservationRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_RESERVATION_REJECTED.getRoutingKey(), event);
 	}
 
 	private void publishBookBorrowRejected(String loanId, String reason) {
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-borrow-reject-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_BORROW_REJECTED, "book-service", ISBN, Instant.now(), 1,
-				new BookBorrowRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
+		var event = new IntegrationEventEnvelope<>(
+				String.format("evt-book-borrow-reject-%s", UUID.randomUUID().toString()),
+				IntegrationEventTypes.BOOK_BORROW_REJECTED, "book-service", ISBN, AggregateType.BOOK.name(), 0,
+				Instant.now(), 1, new BookBorrowRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_BORROW_REJECTED.getRoutingKey(), event);
@@ -284,27 +354,26 @@ class LoanRabbitIntegrationTest {
 	}
 
 	private void setAuthenticatedUser(String userId, String role) {
-		
-		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", String.format("test%s@gmail.com", userId))
+
+		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none")
+				.claim("email", String.format("test%s@gmail.com", userId))
 				.claim("realm_access", Map.of("roles", List.of(role))).build();
-		
-		Authentication auth = new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
+
+		Authentication auth = new JwtAuthenticationToken(jwt,
+				List.of(new SimpleGrantedAuthority(String.join("_", "ROLE", role))));
 
 		SecurityContextHolder.getContext().setAuthentication(auth);
 	}
-	
+
 	private String waitForMessageBody(String queueName) {
-        final String[] holder = new String[1];
+		final String[] holder = new String[1];
 
-        await()
-            .atMost(Duration.ofSeconds(10))
-            .pollInterval(Duration.ofMillis(100))
-            .until(() -> {
-                holder[0] = receiveMessageBody(queueName);
-                return holder[0] != null;
-            });
+		await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100)).until(() -> {
+			holder[0] = receiveMessageBody(queueName);
+			return holder[0] != null;
+		});
 
-        return holder[0];
-    }
+		return holder[0];
+	}
 
 }

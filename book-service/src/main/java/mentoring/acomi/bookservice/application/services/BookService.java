@@ -17,6 +17,7 @@ import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
+import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.model.Book;
 import mentoring.acomi.bookservice.domain.model.ISBN;
@@ -47,7 +48,7 @@ public class BookService {
 
 		String isbn = request.isbn();
 
-		if (bookEventRepository.exists(isbn)) {
+		if (bookEventRepository.exists(isbn, AggregateType.BOOK.name())) {
 			throw new ApplicationConflict("BOOK_ALREADY_EXISTS", String.format("ISBN: %s", isbn));
 		}
 

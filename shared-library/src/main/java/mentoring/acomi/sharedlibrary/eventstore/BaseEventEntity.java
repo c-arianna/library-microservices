@@ -7,9 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
+import lombok.Setter;
 
 @MappedSuperclass
 @Getter
+@Setter
 public abstract class BaseEventEntity {
 
     @Id
@@ -17,6 +19,8 @@ public abstract class BaseEventEntity {
     protected Long id;
 
     protected String aggregateId;
+    
+    protected String aggregateType;
 
     protected String eventId;
 
@@ -24,5 +28,11 @@ public abstract class BaseEventEntity {
 
     protected int eventVersion;
     
+    protected String eventCategory;
+    
+    protected boolean processed = false;
+    
+    protected Integer schemaVersion;
+        
 	protected Instant  occurredAt;
 }

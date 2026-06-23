@@ -2,6 +2,7 @@ package mentoring.acomi.bookservice.infrastructure.messaging;
 
 import org.springframework.stereotype.Component;
 
+import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.BookBorrowRejectedEvent;
 import mentoring.acomi.bookservice.domain.events.BookBorrowedEvent;
 import mentoring.acomi.bookservice.domain.events.BookCopiesAddedEvent;
@@ -144,7 +145,7 @@ public class BookIntegrationEventMapper {
 	}
 
 	private <T> IntegrationEventEnvelope<T> envelope(BookEvent e, IntegrationEventTypes type, int version, T payload) {
-		return new IntegrationEventEnvelope<>(e.eventId(), type, PRODUCER, e.aggregateId(), e.occurredAt(), version, payload);
+		return new IntegrationEventEnvelope<>(e.eventId(), type, PRODUCER, e.aggregateId(), AggregateType.BOOK.name(), e.eventVersion(), e.occurredAt(), version, payload);
 	}
 
 }

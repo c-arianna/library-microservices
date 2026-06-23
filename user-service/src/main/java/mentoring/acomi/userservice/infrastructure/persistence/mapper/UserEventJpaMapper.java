@@ -62,7 +62,7 @@ public class UserEventJpaMapper implements EventMapper<UserEvent, UserEventEntit
 	}
 
 	public UserEventEntity toEntity(UserEvent event) {
-		return new UserEventEntity(event.aggregateId(), event.type().name(), event.eventId(), event.eventVersion(),	toJsonNode(event.payload()), event.occurredAt());
+		return new UserEventEntity(event.aggregateId(), event.aggregateType(), event.type().name(), event.eventId(), event.eventVersion(),	null, toJsonNode(event.payload()), event.occurredAt());
 
 	}
 

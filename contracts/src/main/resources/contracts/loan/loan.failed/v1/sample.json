@@ -3,6 +3,8 @@
   "eventType": "LOAN_FAILED",
   "producer": "loan-service",
   "aggregateId": "70a865d6-2766-4dac-b38a-ef5f8b8291b2",
+  "aggregateType": "LOAN",
+  "eventVersion": 0,
   "occurredAt": "2026-06-10T10:30:00Z",
   "schemaVersion": 1,
 
