@@ -23,5 +23,7 @@ public interface BaseEventJpaRepository<ENTITY extends BaseEventEntity> extends 
 	boolean existsByEventIdAndAggregateTypeAndProcessedTrue(String eventId, String aggregateType);
 
 	void markProcessed(String eventId, String aggregateType);
+
+	List<ENTITY> findAllOrderByAggregateAndVersion();
 	
 }

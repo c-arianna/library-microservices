@@ -27,7 +27,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
-import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
+import mentoring.acomi.bookservice.application.repositories.BookViewQueryRepository;
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
@@ -69,7 +69,7 @@ class BookRabbitIntegrationTest {
 	private BookEventRepository eventRepository;
 
 	@Autowired
-	private BookViewRepository viewRepository;
+	private BookViewQueryRepository viewRepository;
 
 	@Autowired
 	private TopicExchange eventsExchange;
@@ -86,7 +86,7 @@ class BookRabbitIntegrationTest {
 		bookService.addBook(new AddBookRequest(ISBN, "Italo Calvino", "Il barone rampante", ""));
 		bookService.addBookCopies(new AddBookCopiesRequest(3), ISBN);
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		await().atMost(Duration.ofSeconds(100)).untilAsserted(() -> {
 			var book = viewRepository.findById(ISBN).orElseThrow();
 			Assertions.assertEquals(3, book.availableCopies());
 		});

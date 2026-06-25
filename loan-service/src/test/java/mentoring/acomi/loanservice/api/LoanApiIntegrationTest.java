@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -194,7 +195,7 @@ public class LoanApiIntegrationTest {
 
 		String loanId = response.getBody().loanId();
 		
-		loanViewRepository.insertRequest(new LoanView(loanId, "9788804336327", userId, LocalDate.now(), null, LoanStatus.PENDING));
+		loanViewRepository.insertRequest(new LoanView(loanId, "9788804336327", userId, LocalDate.now(), null, LoanStatus.PENDING), Instant.now());
 		
 		return loanId;
 
@@ -233,7 +234,7 @@ public class LoanApiIntegrationTest {
 	}
 
 	private void createUser(String userId) {
-		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), UserStatus.ACTIVE));
+		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), UserStatus.ACTIVE), Instant.now());
 	}
 	
 	private void generateToken(String role, String userId) {

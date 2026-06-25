@@ -1,5 +1,7 @@
 package mentoring.acomi.bookservice.infrastructure.persistence.repositories;
 
+import java.time.Instant;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,19 +19,19 @@ public interface BookViewJpaRepository
 	@Query("""
 				UPDATE BookViewEntity b
 				SET b.totalCopies = b.totalCopies + :quantity,
-				    b.updatedAt = CURRENT_TIMESTAMP
+				    b.updatedAt = :updatedAt
 				WHERE b.isbn = :isbn
 			""")
-	void updateCopies(@Param("isbn") String isbn, @Param("quantity") int quantity);
+	void updateCopies(@Param("isbn") String isbn, @Param("quantity") int quantity, @Param("updatedAt") Instant updatedAt);
 	
 	@Modifying
 	@Query("""
 				UPDATE BookViewEntity b
 				SET b.reservedCopies = b.reservedCopies + 1,
-				    b.updatedAt = CURRENT_TIMESTAMP
+				    b.updatedAt = :updatedAt
 				WHERE b.isbn = :isbn
 			""")
-	void reserve(@Param("isbn") String isbn);
+	void reserve(@Param("isbn") String isbn, @Param("updatedAt") Instant updatedAt);
 
 	@Modifying
 	@Query("""
@@ -42,27 +44,27 @@ public interface BookViewJpaRepository
 					        	THEN b.reservedCopies - 1 
 					        	ELSE b.reservedCopies 
 					     	END,
-			     	b.updatedAt = CURRENT_TIMESTAMP
+			     	b.updatedAt = :updatedAt
 			 		WHERE b.isbn = :isbn
 			""")
-	void borrow(@Param("isbn")String isbn);
+	void borrow(@Param("isbn")String isbn, @Param("updatedAt") Instant updatedAt);
 
 	@Modifying
 	@Query("""
 			    UPDATE BookViewEntity b
 			 	SET b.reservedCopies = b.reservedCopies - 1,
-			 	    b.updatedAt = CURRENT_TIMESTAMP
+			 	    b.updatedAt = :updatedAt
 			 	    WHERE b.isbn = :isbn AND b.reservedCopies > 0
 			""")
-	void release(@Param("isbn")String isbn);
+	void release(@Param("isbn")String isbn, @Param("updatedAt") Instant updatedAt);
 
 	@Modifying
 	@Query("""
 			    UPDATE BookViewEntity b
                 SET b.borrowedCopies = b.borrowedCopies - 1,
-			     	b.updatedAt = CURRENT_TIMESTAMP
+			     	b.updatedAt = :updatedAt
 			 		WHERE b.isbn = :isbn AND b.borrowedCopies > 0
 			""")
-	void returnBorrowed(@Param("isbn")String isbn);
+	void returnBorrowed(@Param("isbn")String isbn, @Param("updatedAt") Instant updatedAt);
 	
 }

@@ -48,5 +48,12 @@ public interface LoanEventJpaRepository extends BaseEventJpaRepository<LoanEvent
 		""")
 	Optional<LoanEventEntity> findNextEventToProcess(@Param("aggregateId") String aggregateId,  @Param("aggregateType") String aggregateType, 
 			@Param("eventVersion") int eventVersion);
+	
+	@Query("""
+		    SELECT e
+		    FROM LoanEventEntity e
+		    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
+		""")
+     List<LoanEventEntity> findAllOrderByAggregateAndVersion();
 
 }

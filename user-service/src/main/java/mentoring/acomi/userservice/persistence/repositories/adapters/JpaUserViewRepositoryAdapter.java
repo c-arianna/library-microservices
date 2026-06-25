@@ -1,18 +1,22 @@
 package mentoring.acomi.userservice.persistence.repositories.adapters;
 
+import java.time.Instant;
 import java.util.Optional;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 import mentoring.acomi.userservice.infrastructure.persistence.mapper.UserViewJpaMapper;
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserViewJpaRepository;
 
+@Primary
 @Repository
-public class JpaUserViewRepositoryAdapter implements UserViewRepository {
+public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserViewQueryRepository {
 
 	private final UserViewJpaRepository repository;
 	private final UserViewJpaMapper mapper;
@@ -23,8 +27,9 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository {
 	}
 
 	@Override
-	public void add(UserView user) {
+	public void add(UserView user, Instant createdAt) {
 		UserViewEntity entity = mapper.toEntity(user);
+		entity.markCreated(createdAt);
 		repository.save(entity);
 	}
 
@@ -41,8 +46,8 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository {
 	}
 
 	@Override
-	public void updateStatus(String id, UserStatus status) {
-		repository.updateStatus(id, status);
+	public void updateStatus(String id, UserStatus status, Instant updatedAt) {
+		repository.updateStatus(id, status, updatedAt);
 	}
 
 }

@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -232,7 +233,8 @@ class UserApiIntegrationTest {
 
 		UserResponse user = response.getBody();
 		
-		userViewRepository.add(new UserView(user.userId(), user.email(), "Arianna",  "Comi", user.userIdentityProviderId(), UserStatus.ACTIVE, user.role()));
+		userViewRepository.add(new UserView(user.userId(), user.email(), "Arianna",  "Comi", user.userIdentityProviderId(), UserStatus.ACTIVE, user.role()),
+				Instant.now());
 		
 		return user;
 	}
@@ -247,7 +249,7 @@ class UserApiIntegrationTest {
 	
 	private void createUser(String userId, UserRole role) {
 		String identityProvider = UUID.randomUUID().toString();
-		userViewRepository.add(new UserView(userId, String.format(USER_EMAIL, userId), "Test", "Test", identityProvider, UserStatus.ACTIVE, role));
+		userViewRepository.add(new UserView(userId, String.format(USER_EMAIL, userId), "Test", "Test", identityProvider, UserStatus.ACTIVE, role), Instant.now());
 	}
 
 }

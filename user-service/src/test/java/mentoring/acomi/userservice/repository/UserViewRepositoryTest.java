@@ -1,5 +1,6 @@
 package mentoring.acomi.userservice.repository;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.config.SecurityTestConfig;
@@ -25,8 +27,11 @@ import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserV
 public class UserViewRepositoryTest {
 
 	@Autowired
-	private UserViewRepository repository;
+	private UserViewQueryRepository queryRepository;
 
+	@Autowired
+	private UserViewRepository repository;
+	
 	@Autowired
 	private UserViewJpaRepository jpaRepository;
 
@@ -37,14 +42,14 @@ public class UserViewRepositoryTest {
 	void shouldSaveUserView() {
 
 		String userId = UUID.randomUUID().toString();
-		Optional<UserView> userView = repository.findById(userId);
+		Optional<UserView> userView = queryRepository.findById(userId);
 		Assertions.assertTrue(userView.isEmpty());
 
 		String identityId = UUID.randomUUID().toString();
 		
 		UserView user = new UserView(userId, "test@gmail.com", "Arianna", "Comi", identityId, UserStatus.ACTIVE, UserRole.LIBRARIAN);
-		repository.add(user);
-		userView = repository.findById(userId);
+		repository.add(user, Instant.now());
+		userView = queryRepository.findById(userId);
 
 		Assertions.assertTrue(userView.isPresent());
 
@@ -68,7 +73,7 @@ public class UserViewRepositoryTest {
 
 		entityManager.clear();
 		
-		Optional<UserView> userViewFound = repository.findByEmail("test@gmail.com");
+		Optional<UserView> userViewFound = queryRepository.findByEmail("test@gmail.com");
 		
 		Assertions.assertTrue(userViewFound.isPresent());
 
@@ -77,6 +82,7 @@ public class UserViewRepositoryTest {
 	private void createUser(String userId, String email) {
 		String identityProviderId = UUID.randomUUID().toString();
 		UserViewEntity entity = new UserViewEntity(userId, email,"Arianna", "Comi", identityProviderId, UserStatus.ACTIVE, UserRole.READER);
+		entity.markCreated(Instant.now());
 		jpaRepository.saveAndFlush(entity);
 	}
 	

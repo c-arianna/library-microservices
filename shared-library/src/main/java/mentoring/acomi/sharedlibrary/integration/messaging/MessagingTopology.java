@@ -9,5 +9,8 @@ public final class MessagingTopology {
 	public static final String BOOK_QUEUE = "book-service.queue";
 	public static final String LOAN_QUEUE = "loan-service.queue";
 	public static final String USER_QUEUE = "user-service.queue";
+	public static final String REPLAY_BOOK_QUEUE = "replay.book.queue";
+	public static final String REPLAY_LOAN_QUEUE = "replay.loan.queue";
+	public static final String REPLAY_USER_QUEUE = "replay.user.queue";
 
 }

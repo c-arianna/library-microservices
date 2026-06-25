@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
+import mentoring.acomi.bookservice.application.repositories.BookViewQueryRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
@@ -23,6 +25,9 @@ public class BookViewRepositoryTest {
 
 	@Autowired
 	private BookViewRepository repository;
+	
+	@Autowired
+	private BookViewQueryRepository queryRepository;
 
 	@Autowired
 	private BookViewJpaRepository jpaRepository;
@@ -43,13 +48,13 @@ public class BookViewRepositoryTest {
 	@Test
 	void shouldSaveBookView() {
 
-		Optional<BookView> bookView = repository.findById(BOOK_ISBN);
+		Optional<BookView> bookView = queryRepository.findById(BOOK_ISBN);
 		Assertions.assertTrue(bookView.isEmpty());
 
 		BookView book = new BookView(BOOK_ISBN, BOOK_AUTHOR, BOOK_TITLE, BOOK_DESCRIPTION, BOOK_TOTAL_COPIES,
 				BOOK_AVAILABLE_COPIES, BOOK_BORROWED_COPIES, BOOK_RESERVED_COPIES);
-		repository.addBook(book);
-		bookView = repository.findById(BOOK_ISBN);
+		repository.addBook(book, Instant.now());
+		bookView = queryRepository.findById(BOOK_ISBN);
 
 		Assertions.assertTrue(bookView.isPresent());
 
@@ -70,11 +75,11 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 0, 0);
 
-		repository.reserve(BOOK_ISBN);
+		repository.reserve(BOOK_ISBN, Instant.now());
 
 		entityManager.clear();
 		
-		BookView found = repository.findById(BOOK_ISBN).orElseThrow();
+		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
 		Assertions.assertEquals(1, found.reservedCopies());
 		Assertions.assertEquals(4, found.availableCopies());
 
@@ -85,11 +90,11 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 0, 1);
 
-		repository.borrow(BOOK_ISBN);
+		repository.borrow(BOOK_ISBN, Instant.now());
 
 		entityManager.clear();
 		
-		BookView found = repository.findById(BOOK_ISBN).orElseThrow();
+		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
 		Assertions.assertEquals(1, found.borrowedCopies());
 		Assertions.assertEquals(0, found.reservedCopies());
 		Assertions.assertEquals(4, found.availableCopies());
@@ -101,11 +106,11 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 0, 1);
 
-		repository.release(BOOK_ISBN);
+		repository.release(BOOK_ISBN, Instant.now());
 
 		entityManager.clear();
 		
-		BookView found = repository.findById(BOOK_ISBN).orElseThrow();
+		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
 		Assertions.assertEquals(0, found.reservedCopies());
 		Assertions.assertEquals(5, found.availableCopies());
 
@@ -116,11 +121,11 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 1, 1);
 
-		repository.returnBorrowed(BOOK_ISBN);
+		repository.returnBorrowed(BOOK_ISBN, Instant.now());
 
 		entityManager.clear();
 		
-		BookView found = repository.findById(BOOK_ISBN).orElseThrow();
+		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
 		Assertions.assertEquals(0, found.borrowedCopies());
 		Assertions.assertEquals(4, found.availableCopies());
 
@@ -131,11 +136,11 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 1, 1);
 
-		repository.updateCopies(BOOK_ISBN, QUANTITY);
+		repository.updateCopies(BOOK_ISBN, QUANTITY, Instant.now());
 
 		entityManager.clear();
 		
-		BookView found = repository.findById(BOOK_ISBN).orElseThrow();
+		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
 		Assertions.assertEquals(8, found.totalCopies());
 		Assertions.assertEquals(6, found.availableCopies());
 
@@ -146,11 +151,11 @@ public class BookViewRepositoryTest {
 
 		insertBookWithCopies(BOOK_ISBN, 5, 1, 1);
 
-		repository.updateCopies(BOOK_ISBN, -QUANTITY);
+		repository.updateCopies(BOOK_ISBN, -QUANTITY, Instant.now());
 
 		entityManager.clear();
 		
-		BookView found = repository.findById(BOOK_ISBN).orElseThrow();
+		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
 		Assertions.assertEquals(2, found.totalCopies());
 		Assertions.assertEquals(0, found.availableCopies());
 
@@ -159,6 +164,7 @@ public class BookViewRepositoryTest {
 	private void insertBookWithCopies(String isbn, int totalCopies, int borrowedCopies, int reservedCopied) {
 		BookViewEntity entity = new BookViewEntity(isbn, BOOK_AUTHOR, BOOK_TITLE, BOOK_DESCRIPTION, totalCopies,
 				borrowedCopies, reservedCopied);
+		entity.markCreated(Instant.now());
 		jpaRepository.saveAndFlush(entity);
 	}
 

@@ -1,5 +1,6 @@
 package mentoring.acomi.userservice.infrastructure.persistence.repositories;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,6 @@ import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEnt
 public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, String>{
 	public Optional<UserViewEntity> findByEmail(String email);
 	@Modifying
-	@Query("UPDATE UserViewEntity u SET u.status = :status, u.updatedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
-	int updateStatus(@Param("id") String id, @Param("status") UserStatus status);
+	@Query("UPDATE UserViewEntity u SET u.status = :status, u.updatedAt = :updatedAt WHERE u.id = :id")
+	int updateStatus(@Param("id") String id, @Param("status") UserStatus status, @Param("updatedAt") Instant updatedAt);
 }

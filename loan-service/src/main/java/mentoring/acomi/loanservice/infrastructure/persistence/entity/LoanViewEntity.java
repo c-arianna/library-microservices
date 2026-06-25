@@ -1,15 +1,13 @@
 package mentoring.acomi.loanservice.infrastructure.persistence.entity;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,22 +32,10 @@ public class LoanViewEntity {
 	private LoanStatus status;
 	
 	@Column(nullable = false, updatable = false)
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 	
-	private LocalDateTime updatedAt;
-	
-	@PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-    
+	private Instant updatedAt;
+	    
     public LoanViewEntity(String id, String isbn, String userId, LocalDate startDate, LocalDate endDate) {
     	this.id = id;
     	this.isbn = isbn;
@@ -58,5 +44,13 @@ public class LoanViewEntity {
     	this.endDate = endDate;
     	this.status = LoanStatus.PENDING;
     }
+    
+    public void markCreated(Instant ts) {
+		if (this.createdAt != null) {
+			throw new IllegalStateException("createdAt already set");
+		}
+		this.createdAt = ts;
+		this.updatedAt = ts;
+	}
 
 }

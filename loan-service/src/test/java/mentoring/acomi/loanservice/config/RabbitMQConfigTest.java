@@ -22,21 +22,26 @@ public class RabbitMQConfigTest {
 	Queue loanQueue() {
 		return new Queue(MessagingTopology.LOAN_QUEUE, true);
 	}
+	
+	@Bean
+	Queue replayQueue() {
+		return new Queue(MessagingTopology.REPLAY_LOAN_QUEUE, true);
+	}
 
 	@Bean
-	Declarables loanBindings(Queue queue, TopicExchange exchange) {
-		return new Declarables(BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.BOOK_RESERVED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.BOOK_RESERVATION_REJECTED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.BOOK_BORROWED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.BOOK_BORROW_REJECTED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_FAILED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_RESERVED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.LOAN_CONFIRMED.getRoutingKey()));
+	Declarables loanBindings(Queue loanQueue, TopicExchange exchange) {
+		return new Declarables(BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.BOOK_RESERVED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.BOOK_RESERVATION_REJECTED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.BOOK_BORROWED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.BOOK_BORROW_REJECTED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.LOAN_FAILED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.LOAN_RESERVED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(exchange).with(IntegrationEventTypes.LOAN_CONFIRMED.getRoutingKey()));
 	}
 
 }

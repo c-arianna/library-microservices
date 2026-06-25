@@ -22,6 +22,11 @@ public class RabbitMQConfigTest {
 	Queue bookQueue() {
 		return new Queue(MessagingTopology.BOOK_QUEUE, true);
 	}
+	
+	@Bean
+	Queue replayQueue() {
+		return new Queue(MessagingTopology.REPLAY_BOOK_QUEUE, true);
+	}
 
 	@Bean
     Declarables bookBindings(Queue bookQueue, TopicExchange exchange) {

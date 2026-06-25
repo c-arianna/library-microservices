@@ -38,7 +38,7 @@ import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.Boo
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
-import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
+import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.application.view.UserView;
@@ -84,7 +84,7 @@ class LoanRabbitIntegrationTest {
 	private LoanEventRepository loanEventRepository;
 
 	@Autowired
-	private LoanViewRepository loanViewRepository;
+	private LoanViewQueryRepository loanViewRepository;
 
 	@Autowired
 	private TopicExchange eventsExchange;
@@ -99,7 +99,7 @@ class LoanRabbitIntegrationTest {
 
 	@BeforeEach
 	public void setupUser() {
-		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UserStatus.ACTIVE));
+		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UserStatus.ACTIVE), Instant.now());
 		setAuthenticatedUser(USER_ID, "READER");
 	}
 

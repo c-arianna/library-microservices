@@ -14,7 +14,7 @@ import mentoring.acomi.bookservice.application.aggregates.BookAggregate;
 import mentoring.acomi.bookservice.application.errors.BookNotFound;
 import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
-import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
+import mentoring.acomi.bookservice.application.repositories.BookViewQueryRepository;
 import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
@@ -33,11 +33,11 @@ public class BookService {
 
 	private final BookEventRepository bookEventRepository;
 	private final EventDispatcher eventDispatcher;
-	private final BookViewRepository bookViewRepository;
+	private final BookViewQueryRepository bookViewRepository;
 	private final Logger logger = LogManager.getLogger(BookService.class);
 	
 	public BookService(BookEventRepository eventRepository, EventDispatcher eventDispatcher,
-			BookViewRepository bookViewRepository) {
+			BookViewQueryRepository bookViewRepository) {
 		this.bookEventRepository = eventRepository;
 		this.eventDispatcher = eventDispatcher;
 		this.bookViewRepository = bookViewRepository;

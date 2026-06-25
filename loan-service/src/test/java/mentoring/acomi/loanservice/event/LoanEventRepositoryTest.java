@@ -1,6 +1,8 @@
 package mentoring.acomi.loanservice.event;
 
 import org.junit.jupiter.api.Assertions;
+
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -136,7 +138,7 @@ public class LoanEventRepositoryTest {
 	private LoanRequestedEvent createLoanRequestedEvent(String loanId, String isbn) {
 		String eventId = UUID.randomUUID().toString();
 
-		LoanRequestPayload payload = new LoanRequestPayload(loanId, isbn, "user01", new DateRange(LocalDate.now(), null), LoanStatus.PENDING);
+		LoanRequestPayload payload = new LoanRequestPayload(loanId, isbn, "user01", new DateRange(LocalDate.now(), null, Clock.systemUTC()), LoanStatus.PENDING);
 		return new LoanRequestedEvent(loanId, eventId, 0, payload, Instant.now());
 
 	}

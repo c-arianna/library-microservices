@@ -18,8 +18,8 @@ import mentoring.acomi.loanservice.application.errors.InvalidUser;
 import mentoring.acomi.loanservice.application.errors.UserNotFound;
 import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
-import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
-import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
+import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
+import mentoring.acomi.loanservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
@@ -37,14 +37,14 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 public class LoanService {
 
 	private final LoanEventRepository loanEventRepository;
-	private final LoanViewRepository loanViewRepository;
-	private final UserViewRepository userViewRepository;
+	private final LoanViewQueryRepository loanViewRepository;
+	private final UserViewQueryRepository userViewRepository;
 	private final EventDispatcher eventDispatcher;
 
 	private final Logger logger = LogManager.getLogger(LoanService.class);
 
-	public LoanService(LoanEventRepository eventRepository, LoanViewRepository loanViewRepository,
-			UserViewRepository userViewRepository, EventDispatcher eventDispatcher) {
+	public LoanService(LoanEventRepository eventRepository, LoanViewQueryRepository loanViewRepository,
+			UserViewQueryRepository userViewRepository, EventDispatcher eventDispatcher) {
 		this.loanEventRepository = eventRepository;
 		this.loanViewRepository = loanViewRepository;
 		this.userViewRepository = userViewRepository;

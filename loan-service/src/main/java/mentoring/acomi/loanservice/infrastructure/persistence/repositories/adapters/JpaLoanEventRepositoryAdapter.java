@@ -1,5 +1,7 @@
 package mentoring.acomi.loanservice.infrastructure.persistence.repositories.adapters;
 
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,11 @@ public class JpaLoanEventRepositoryAdapter extends AbstractJpaEventRepositoryAda
 
 	public JpaLoanEventRepositoryAdapter(LoanEventJpaRepository repository, LoanEventJpaMapper mapper) {
 		super(repository, mapper);
+	}
+
+	@Override
+	public List<LoanEventEntity> findAllEvents() {
+		return repository.findAllOrderByAggregateAndVersion();
 	}
 
 }

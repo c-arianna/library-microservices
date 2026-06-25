@@ -23,7 +23,7 @@ import mentoring.acomi.userservice.application.errors.UserCreationError;
 import mentoring.acomi.userservice.application.errors.UserNotFound;
 import mentoring.acomi.userservice.application.messaging.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
-import mentoring.acomi.userservice.application.repositories.UserViewRepository;
+import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.sso.IdentityProviderService;
 import mentoring.acomi.userservice.application.sso.ProviderUserCreated;
 import mentoring.acomi.userservice.application.view.UserView;
@@ -39,14 +39,14 @@ import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakEx
 @Service
 public class UserService {
 
-	private final UserViewRepository userViewRepository;
+	private final UserViewQueryRepository userViewRepository;
 	private final UserEventRepository userEventRepository;
 	private final EventDispatcher eventDispatcher;
 	private final IdentityProviderService identityProviderService;
 	
 	private final Logger logger = LogManager.getLogger(UserService.class);
 
-	public UserService(UserViewRepository userViewRepository, UserEventRepository userEventRepository,
+	public UserService(UserViewQueryRepository userViewRepository, UserEventRepository userEventRepository,
 			EventDispatcher eventDispatcher, IdentityProviderService identityProviderService) {
 		this.userViewRepository = userViewRepository;
 		this.userEventRepository = userEventRepository;

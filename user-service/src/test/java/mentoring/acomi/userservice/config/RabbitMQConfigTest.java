@@ -19,16 +19,21 @@ public class RabbitMQConfigTest {
 	}
 	
 	@Bean
-	Queue bookQueue() {
+	Queue userQueue() {
 		return new Queue(MessagingTopology.USER_QUEUE, true);
 	}
 	
 	@Bean
-	Declarables loanBindings(Queue queue, TopicExchange exchange) {
-		return new Declarables(BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey()),
-				BindingBuilder.bind(queue).to(exchange).with(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey()));
+	Queue replayQueue() {
+		return new Queue(MessagingTopology.REPLAY_USER_QUEUE, true);
+	}
+	
+	@Bean
+	Declarables loanBindings(Queue userQueue, TopicExchange exchange) {
+		return new Declarables(BindingBuilder.bind(userQueue).to(exchange).with(IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey()),
+				BindingBuilder.bind(userQueue).to(exchange).with(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey()),
+				BindingBuilder.bind(userQueue).to(exchange).with(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey()),
+				BindingBuilder.bind(userQueue).to(exchange).with(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey()));
 	}
 
 

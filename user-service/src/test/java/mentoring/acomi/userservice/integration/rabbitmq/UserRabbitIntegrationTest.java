@@ -37,7 +37,7 @@ import dasniko.testcontainers.keycloak.KeycloakContainer;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
-import mentoring.acomi.userservice.application.repositories.UserViewRepository;
+import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.services.UserService;
 import mentoring.acomi.userservice.config.RabbitMQConfigTest;
 import mentoring.acomi.userservice.config.SecurityTestConfig;
@@ -101,7 +101,7 @@ class UserRabbitIntegrationTest {
 	private UserEventRepository userEventRepository;
 
 	@Autowired
-	private UserViewRepository userViewRepository;
+	private UserViewQueryRepository userViewRepository;
 
 	@Autowired
 	private ObjectMapper objectMapper;

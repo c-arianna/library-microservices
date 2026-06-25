@@ -1,5 +1,6 @@
 package mentoring.acomi.loanservice.domain.model;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 import lombok.Builder;
@@ -26,7 +27,7 @@ public class Loan {
     }
 	
 	public static Loan create(String id, String isbn, String userId, LocalDate start, LocalDate end) {
-		DateRange period = new DateRange(start, end);
+		DateRange period = new DateRange(start, end, Clock.systemUTC());
         return new Loan(id, ISBN.of(isbn), userId, LoanStatus.PENDING, period);
     }
 	

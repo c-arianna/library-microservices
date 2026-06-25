@@ -1,5 +1,7 @@
 package mentoring.acomi.bookservice.infrastructure.persistence.repositories.adapters;
 
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,11 @@ public class JpaBookEventRepositoryAdapter extends AbstractJpaEventRepositoryAda
 
 	public JpaBookEventRepositoryAdapter(BookEventJpaRepository repository, BookEventJpaMapper mapper) {
 		 super(repository, mapper);
+	}
+	
+	@Override
+	public List<BookEventEntity> findAllEvents(){
+		return repository.findAllOrderByAggregateAndVersion();
 	}
 
 }

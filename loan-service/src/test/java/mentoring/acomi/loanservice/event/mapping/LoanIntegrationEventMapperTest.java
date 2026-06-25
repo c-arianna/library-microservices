@@ -1,5 +1,6 @@
 package mentoring.acomi.loanservice.event.mapping;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -127,7 +128,7 @@ public class LoanIntegrationEventMapperTest {
 
 	private static LoanRequestedEvent getLoanRequestedEvent() {
 		LoanRequestPayload payload = new LoanRequestPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b", 
-				new DateRange(LocalDate.now(), null), LoanStatus.PENDING);
+				new DateRange(LocalDate.now(), null, Clock.systemUTC()), LoanStatus.PENDING);
 		return new LoanRequestedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "3d209d01-4b1d-4d64-991f-d0a63a7ddecd", 0, payload, Instant.now());
 	}
 }

@@ -1,5 +1,6 @@
 package mentoring.acomi.loanservice.domain.model;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 import lombok.Getter;
@@ -11,10 +12,10 @@ public final class DateRange {
 	private final LocalDate start;
 	private final LocalDate end;
 
-	public DateRange(LocalDate start, LocalDate end) {
+	public DateRange(LocalDate start, LocalDate end, Clock clock) {
 
 		if (start == null) {
-			start = LocalDate.now();
+			start = LocalDate.now(clock);
 		}
 
 		if (end == null) {

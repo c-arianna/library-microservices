@@ -90,22 +90,22 @@ public class UserEventProcessor {
 			
 			case USER_SUBSCRIBED -> {
 				UserSubscribedIntegrationPayload payload =  mapper.convertValue(eventEnvelope.payload(), UserSubscribedIntegrationPayload.class);
-				projection.subscribeUser(payload);
+				projection.subscribeUser(payload, eventEnvelope.occurredAt());
 			}
 			
 			case USER_UNSUBSCRIBED -> {
 				UserIntegrationPayload payload =  mapper.convertValue(eventEnvelope.payload(), UserIntegrationPayload.class);
-				projection.unsubscribeUser(payload);
+				projection.unsubscribeUser(payload, eventEnvelope.occurredAt());
 			}
 			
 			case USER_SUSPENDED -> {
 				UserIntegrationPayload payload =  mapper.convertValue(eventEnvelope.payload(), UserIntegrationPayload.class);
-				projection.suspendUser(payload);
+				projection.suspendUser(payload, eventEnvelope.occurredAt());
 			}
 			
 			case USER_UNSUSPENDED -> {
 				UserIntegrationPayload payload =  mapper.convertValue(eventEnvelope.payload(), UserIntegrationPayload.class);
-				projection.unsuspendUser(payload);
+				projection.unsuspendUser(payload, eventEnvelope.occurredAt());
 			}
 			
 			default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));

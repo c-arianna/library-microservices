@@ -1,13 +1,11 @@
 package mentoring.acomi.userservice.application.repositories;
 
-import java.util.Optional;
+import java.time.Instant;
 
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.view.UserView;
 
 public interface UserViewRepository {
-	public void add(UserView user);
-	public Optional<UserView> findById(String id);
-	public Optional<UserView> findByEmail(String email);
-	public void updateStatus(String id, UserStatus status);
+	public void add(UserView user, Instant createdAt);
+	public void updateStatus(String id, UserStatus status, Instant updatedAt);
 }

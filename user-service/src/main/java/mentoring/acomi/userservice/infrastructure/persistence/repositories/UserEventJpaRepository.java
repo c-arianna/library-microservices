@@ -31,8 +31,9 @@ public interface UserEventJpaRepository extends BaseEventJpaRepository<UserEvent
 			    FROM UserEventEntity e
 			    WHERE e.aggregateId = :aggregateId AND e.aggregateType = :aggregateType AND e.processed = true
 			""")
-	Optional<Integer> findMaxProcessedVersion(@Param("aggregateId") String aggregateId, @Param("aggregateType") String aggregateType);
-	
+	Optional<Integer> findMaxProcessedVersion(@Param("aggregateId") String aggregateId,
+			@Param("aggregateType") String aggregateType);
+
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("""
 			    UPDATE UserEventEntity e
@@ -40,12 +41,19 @@ public interface UserEventJpaRepository extends BaseEventJpaRepository<UserEvent
 			    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
 			""")
 	void markProcessed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
-	
+
 	@Query("""
-		    select e
-			    from UserEventEntity e
-			    where e.aggregateId = :aggregateId and e.aggregateType = :aggregateType and e.eventVersion = :eventVersion and e.processed = false
-		""")
-	Optional<UserEventEntity> findNextEventToProcess(@Param("aggregateId") String aggregateId,  @Param("aggregateType") String aggregateType, 
-			 @Param("eventVersion") int eventVersion);
+			    select e
+				    from UserEventEntity e
+				    where e.aggregateId = :aggregateId and e.aggregateType = :aggregateType and e.eventVersion = :eventVersion and e.processed = false
+			""")
+	Optional<UserEventEntity> findNextEventToProcess(@Param("aggregateId") String aggregateId,
+			@Param("aggregateType") String aggregateType, @Param("eventVersion") int eventVersion);
+
+	@Query("""
+			    SELECT e
+			    FROM UserEventEntity e
+			    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
+			""")
+	List<UserEventEntity> findAllOrderByAggregateAndVersion();
 }

@@ -1,5 +1,6 @@
 package mentoring.acomi.loanservice.infrastructure.messaging;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
@@ -100,7 +101,7 @@ public class LoanEventProcessor {
 
 		if (eventVersion == lastEventVersionProcessed + 1) {
 
-			handleConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event.payload()));
+			handleConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event.payload()), event.occurredAt());
 
 			loanEventRepository.markProcessed(event.eventId(), aggregateType);
 
@@ -115,7 +116,8 @@ public class LoanEventProcessor {
 				}
 
 				LoanEventEntity eventToProcess = nextEventToProcess.get();
-				handleConsumerEvent(eventToProcess.getEventId(), IntegrationEventTypes.valueOf(eventToProcess.getEventType()), getEventPayload(eventToProcess));
+				handleConsumerEvent(eventToProcess.getEventId(), IntegrationEventTypes.valueOf(eventToProcess.getEventType()), getEventPayload(eventToProcess),
+						eventToProcess.getOccurredAt());
 				loanEventRepository.markProcessed(eventToProcess.getEventId(), eventToProcess.getAggregateType());
 
 				nextEventVersionToProcess++;
@@ -172,32 +174,32 @@ public class LoanEventProcessor {
 
 				case LOAN_REQUESTED -> {
 					LoanRequestedIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanRequestedIntegrationPayload.class);
-					projection.loanInsert(payload);
+					projection.loanInsert(payload, eventEnvelope.occurredAt());
 				}
 	
 				case LOAN_CONFIRMED -> {
 					LoanIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class);
-					projection.confirmLoan(payload);
+					projection.confirmLoan(payload, eventEnvelope.occurredAt());
 				}
 	
 				case LOAN_CANCELED -> {
 					LoanIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class);
-					projection.cancelLoan(payload);
+					projection.cancelLoan(payload, eventEnvelope.occurredAt());
 				}
 	
 				case LOAN_RETURNED -> {
 					LoanIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class);
-					projection.returnLoan(payload);
+					projection.returnLoan(payload, eventEnvelope.occurredAt());
 				}
 	
 				case LOAN_RESERVED -> {
 					LoanIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class);
-					projection.reserveLoan(payload);
+					projection.reserveLoan(payload, eventEnvelope.occurredAt());
 				}
 	
 				case LOAN_FAILED -> {
 					LoanIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class);
-					projection.failLoan(payload);
+					projection.failLoan(payload, eventEnvelope.occurredAt());
 				}
 				
 				default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));
@@ -211,7 +213,7 @@ public class LoanEventProcessor {
 
 	}
 
-	private void handleConsumerEvent(String eventId, IntegrationEventTypes eventType, Object payload) {
+	private void handleConsumerEvent(String eventId, IntegrationEventTypes eventType, Object payload, Instant occurredAt) {
 
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
 
@@ -239,12 +241,12 @@ public class LoanEventProcessor {
 
 		case USER_SUBSCRIBED -> {
 			UserSubscribedIntegrationPayload eventPayload = (UserSubscribedIntegrationPayload) payload;
-			userProjection.handleSubscribeUser(eventPayload);
+			userProjection.handleSubscribeUser(eventPayload, occurredAt);
 		}
 
 		case USER_UNSUBSCRIBED, USER_SUSPENDED, USER_UNSUSPENDED -> {
 			UserIntegrationPayload eventPayload = (UserIntegrationPayload) payload;
-			userProjection.handleUpdateUserStatus(eventPayload);
+			userProjection.handleUpdateUserStatus(eventPayload, occurredAt);
 		}
 
 		default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventType));
@@ -363,25 +365,25 @@ public class LoanEventProcessor {
 		String status = jsonPayload.get("status").asString();
 
 		if (status == null) {
-			throw new NonRetryableEventException(String.format("Missing payload field reason for event %s", eventToProcess.getEventType()));
+			throw new NonRetryableEventException("Missing payload field status for event %s".formatted(eventToProcess.getEventType()));
 		}
 
 		try {
 			UserStatus.valueOf(status);
 		} catch (Exception e) {
-			throw new NonRetryableEventException(String.format("Invalid payload field status %s for event %s", status, eventToProcess.getEventType()));
+			throw new NonRetryableEventException("Invalid payload field status %s for event %s".formatted(eventToProcess.getEventType()));
 		}
 
 		String role = jsonPayload.get("role").asString();
 
 		if (role == null) {
-			throw new NonRetryableEventException(String.format("Missing payload field role for event %s", eventToProcess.getEventType()));
+			throw new NonRetryableEventException("Missing payload field role for event %s".formatted(eventToProcess.getEventType()));
 		}
 
 		try {
 			UserRole.valueOf(role);
 		} catch (Exception e) {
-			throw new NonRetryableEventException(String.format("Invalid payload field role %s for event %s", role, eventToProcess.getEventType()));
+			throw new NonRetryableEventException("Invalid payload field role %s for event %s".formatted(role, eventToProcess.getEventType()));
 		}
 
 		return new UserSubscribedIntegrationPayload(userId, email, name, lastname, userIdentityProviderId, UserStatus.valueOf(status), UserRole.valueOf(role));

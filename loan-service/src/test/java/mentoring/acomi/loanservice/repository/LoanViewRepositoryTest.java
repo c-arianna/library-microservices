@@ -1,5 +1,6 @@
 package mentoring.acomi.loanservice.repository;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
+import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
@@ -25,6 +27,9 @@ import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanV
 public class LoanViewRepositoryTest {
 
 	@Autowired
+	private LoanViewQueryRepository queryRepository;
+	
+	@Autowired
 	private LoanViewRepository repository;
 
 	@Autowired
@@ -37,12 +42,12 @@ public class LoanViewRepositoryTest {
 	public void shouldSaveLoanView() {
 
 		String loanId = UUID.randomUUID().toString();
-		Optional<LoanView> loanView = repository.findById(loanId);
+		Optional<LoanView> loanView = queryRepository.findById(loanId);
 		Assertions.assertTrue(loanView.isEmpty());
 
 		LoanView loan = new LoanView(loanId, "9788804336327", "user01", LocalDate.now(), null, LoanStatus.PENDING);
-		repository.insertRequest(loan);
-		loanView = repository.findById(loanId);
+		repository.insertRequest(loan, Instant.now());
+		loanView = queryRepository.findById(loanId);
 		
 		Assertions.assertTrue(loanView.isPresent());
 
@@ -60,11 +65,11 @@ public class LoanViewRepositoryTest {
 		String loanId = UUID.randomUUID().toString();
 		insertLoan(loanId);
 			
-		repository.updateStatus(loanId, LoanStatus.CONFIRMED);
+		repository.updateStatus(loanId, LoanStatus.CONFIRMED, Instant.now());
 		
 		entityManager.clear();
 		
-		LoanView loanView = repository.findById(loanId).orElseThrow();;
+		LoanView loanView = queryRepository.findById(loanId).orElseThrow();;
 		
 		Assertions.assertEquals(LoanStatus.CONFIRMED, loanView.status());
 		
@@ -72,6 +77,7 @@ public class LoanViewRepositoryTest {
 
 	private void insertLoan(String loanId) {
 		LoanViewEntity entity = new LoanViewEntity(loanId, "9788804336327", "user01", LocalDate.now(), null);
+		entity.markCreated(Instant.now());
 		jpaRepository.saveAndFlush(entity);
 	}
 

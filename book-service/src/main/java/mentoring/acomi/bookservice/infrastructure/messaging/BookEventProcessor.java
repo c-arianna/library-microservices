@@ -169,27 +169,27 @@ public class BookEventProcessor {
 			switch (eventEnvelope.eventType()) {
 			
 				case BOOK_REGISTERED -> {
-					projection.addBook(mapper.convertValue(eventEnvelope.payload(), BookRegisteredIntegrationPayload.class));
+					projection.addBook(mapper.convertValue(eventEnvelope.payload(), BookRegisteredIntegrationPayload.class), eventEnvelope.occurredAt());
 				}
 		
 				case BOOK_COPIES_UPDATED -> {
-					projection.updateCopies(mapper.convertValue(eventEnvelope.payload(), BookCopiesUpdatedIntegrationPayload.class));
+					projection.updateCopies(mapper.convertValue(eventEnvelope.payload(), BookCopiesUpdatedIntegrationPayload.class), eventEnvelope.occurredAt());
 				}
 		
 				case BOOK_RESERVED -> {
-					projection.reserve(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
+					projection.reserve(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
 				}
 		
 				case BOOK_BORROWED -> {
-					projection.borrow(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
+					projection.borrow(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
 				}
 		
 				case BOOK_RELEASED -> {
-					projection.release(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
+					projection.release(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
 				}
 		
 				case BOOK_RETURNED -> {
-					projection.returnBorrowed(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class));
+					projection.returnBorrowed(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
 				}
 		
 				default ->
@@ -238,6 +238,5 @@ public class BookEventProcessor {
 		
 		return fieldValue;
 	}
-
 
 }
