@@ -11,6 +11,7 @@ import mentoring.acomi.bookservice.domain.errors.BookNotRegistered;
 import mentoring.acomi.bookservice.domain.errors.CannotRemoveBookCopies;
 import mentoring.acomi.bookservice.domain.errors.InvalidIsbn;
 import mentoring.acomi.bookservice.domain.errors.InvalidQuantity;
+import mentoring.acomi.bookservice.domain.errors.ReservationMissing;
 import mentoring.acomi.bookservice.domain.events.BookBorrowRejectReason;
 import mentoring.acomi.bookservice.domain.events.BookBorrowRejectedEvent;
 import mentoring.acomi.bookservice.domain.events.BookBorrowedEvent;
@@ -220,12 +221,7 @@ public class BookAggregate {
 		if (!borrowedLoans.contains(loanId)) {
 
 			if (!reservedLoans.contains(loanId)) {
-				BookBorrowRejectedEvent event = new BookBorrowRejectedEvent(id.getValue(), getEventId(), nextVersion(),
-						new BookBorrowRejectedPayload(id.getValue(), loanId, userId,
-								BookBorrowRejectReason.RESERVATION_MISSING),
-						Instant.now());
-				manageEvent(event);
-				return;
+				throw new ReservationMissing("Reservation not found for loan %s".formatted(loanId));
 			}
 
 			BookBorrowedEvent event = new BookBorrowedEvent(id.getValue(), getEventId(), nextVersion(),

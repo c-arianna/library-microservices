@@ -26,4 +26,10 @@ public interface BaseEventJpaRepository<ENTITY extends BaseEventEntity> extends 
 
 	List<ENTITY> findAllOrderByAggregateAndVersion();
 	
+	List<ENTITY> findByAggregateIdAndProcessedFalseAndFailedFalseAndEventTypeIn(String aggregateId, List<String> eventTypes);
+	
+	void markFailed(String eventId, String aggregateType);
+	
+	void incrementRetry(String eventId, String aggregateType);
+	
 }

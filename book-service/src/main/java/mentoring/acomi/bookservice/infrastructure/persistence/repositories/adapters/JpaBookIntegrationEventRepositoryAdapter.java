@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.persistence.repositories.adapters;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -23,5 +24,20 @@ public class JpaBookIntegrationEventRepositoryAdapter extends AbstractJpaIntegra
 	@Override
 	public Optional<BookEventEntity> findNextEventToProcess(String aggregateId, String aggregateType, int eventVersion){
 		return repository.findNextEventToProcess(aggregateId, aggregateType, eventVersion);
+	}
+	
+	@Override
+	public List<BookEventEntity> findEventsToProcess(String aggregateId, List<String> eventTypes) {
+		return repository.findByAggregateIdAndProcessedFalseAndFailedFalseAndEventTypeIn(aggregateId, eventTypes);
+	}
+
+	@Override
+	public void markFailed(String eventId, String aggregateType) {
+		repository.markFailed(eventId, aggregateType);
+	}
+
+	@Override
+	public void incrementRetry(String eventId, String aggregateType) {
+		repository.incrementRetry(eventId, aggregateType);		
 	}
 }

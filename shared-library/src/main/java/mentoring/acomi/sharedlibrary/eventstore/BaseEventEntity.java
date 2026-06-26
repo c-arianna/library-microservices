@@ -32,6 +32,10 @@ public abstract class BaseEventEntity {
     
     protected boolean processed = false;
     
+    protected boolean failed = false;
+    
+	protected int retryCount = 0;
+    
     protected Integer schemaVersion;
         
 	protected Instant  occurredAt;

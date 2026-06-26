@@ -56,5 +56,19 @@ public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEvent
 			    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
 			""")
 	List<BookEventEntity> findAllOrderByAggregateAndVersion();
+	
+	@Query("""
+		    UPDATE BookEventEntity e
+		    SET e.failed = true
+		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
+		""")
+    void markFailed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
+	
+	@Query("""
+		    UPDATE BookEventEntity e
+		    SET e.retryCount = e.retryCount +1
+		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
+		""")
+	void incrementRetry(String eventId, String aggregateType);
 
 }

@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS book_events (
 	event_category ENUM('PRODUCER', 'CONSUMER') not null default 'PRODUCER',
     payload json not null,
 	processed boolean not null default false,
+	failed boolean not null default false,
+    retry_count int not null default 0,
     occurred_at timestamp not null,
     primary key (id),
     unique key uq_aggregate_version (aggregate_id, event_version),

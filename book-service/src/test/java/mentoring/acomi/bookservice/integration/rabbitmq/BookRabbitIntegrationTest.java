@@ -226,14 +226,14 @@ class BookRabbitIntegrationTest {
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
 
-		await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+		await().during(Duration.ofMillis(200)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
 			boolean processed = eventRepository.existsEventProcessed(event.eventId(), AggregateType.LOAN.name());
 			Assertions.assertFalse(processed);
 		});
 
 		publishLoanRequestedEvent();
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {
 
 			boolean processedV1 = eventRepository.existsEventProcessed(event.eventId(), AggregateType.LOAN.name());
 

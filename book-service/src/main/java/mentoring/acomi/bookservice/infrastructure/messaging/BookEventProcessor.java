@@ -1,5 +1,7 @@
 package mentoring.acomi.bookservice.infrastructure.messaging;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,6 +17,7 @@ import mentoring.acomi.bookservice.application.projection.BookProjection;
 import mentoring.acomi.bookservice.application.reactor.BookEventReactor;
 import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
+import mentoring.acomi.bookservice.domain.errors.ReservationMissing;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
@@ -43,21 +46,20 @@ public class BookEventProcessor {
 	
 	public static final Map<IntegrationEventTypes, Integer> consumerSupportedVersion = Map.ofEntries(
 			Map.entry(IntegrationEventTypes.LOAN_REQUESTED, BookIntegrationConsumerEventVersions.LOAN_REQUESTED),
-			Map.entry(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED,
-					BookIntegrationConsumerEventVersions.LOAN_CONFIRM_REQUESTED),
+			Map.entry(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, BookIntegrationConsumerEventVersions.LOAN_CONFIRM_REQUESTED),
 			Map.entry(IntegrationEventTypes.LOAN_CANCELED, BookIntegrationConsumerEventVersions.LOAN_CANCELED),
 			Map.entry(IntegrationEventTypes.LOAN_RETURNED, BookIntegrationConsumerEventVersions.LOAN_RETURNED),
 			Map.entry(IntegrationEventTypes.BOOK_REGISTERED, BookIntegrationConsumerEventVersions.BOOK_REGISTERED),
-			Map.entry(IntegrationEventTypes.BOOK_COPIES_UPDATED,
-					BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED),
+			Map.entry(IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED),
 			Map.entry(IntegrationEventTypes.BOOK_RESERVED, BookIntegrationConsumerEventVersions.BOOK_RESERVED),
 			Map.entry(IntegrationEventTypes.BOOK_BORROWED, BookIntegrationConsumerEventVersions.BOOK_BORROWED),
 			Map.entry(IntegrationEventTypes.BOOK_RELEASED, BookIntegrationConsumerEventVersions.BOOK_RELEASED),
 			Map.entry(IntegrationEventTypes.BOOK_RETURNED, BookIntegrationConsumerEventVersions.BOOK_RETURNED),
-			Map.entry(IntegrationEventTypes.BOOK_RESERVATION_REJECTED,
-					BookIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED),
-			Map.entry(IntegrationEventTypes.BOOK_BORROW_REJECTED,
-					BookIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED));
+			Map.entry(IntegrationEventTypes.BOOK_RESERVATION_REJECTED, BookIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED),
+			Map.entry(IntegrationEventTypes.BOOK_BORROW_REJECTED, BookIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED));
+	
+	private static final int MAX_ITERATIONS = 10;
+	private static final int MAX_RETRY_PER_EVENT = 5;
 	
 	public BookEventProcessor(BookEventReactor reactor, BookProjection projection, BookIntegrationRepository bookIntegrationRepository, 
 			BookEventRepository bookEventRepository, BookIntegrationEventMapper eventMapper, ObjectMapper mapper) {
@@ -83,36 +85,16 @@ public class BookEventProcessor {
 		} catch (DataIntegrityViolationException e) {
 			return;
 		}
-				
-		String aggregateId = event.aggregateId();
-		String aggregateType = event.aggregateType();
 		
-		int lastEventVersionProcessed = bookEventRepository.findMaxProcessedVersion(aggregateId, aggregateType).orElse(-1);
-		int eventVersion = event.eventVersion();
-		
-		if(eventVersion == lastEventVersionProcessed + 1) {
+		try {
 			handleConsumerEvent(event.eventId(), event.eventType(), new CommandLoanEvent(payload.loanId(), payload.isbn(), payload.userId()));
-			bookEventRepository.markProcessed(event.eventId(), aggregateType);
-						
-			int nextEventVersionToProcess = eventVersion + 1;
-			
-			while(true) {
-				
-				Optional<BookEventEntity> nextEventToProcess = bookIntegrationRepository.findNextEventToProcess(aggregateId, aggregateType, nextEventVersionToProcess);
-				
-				if(nextEventToProcess.isEmpty()) {
-					break;
-				}
-				
-				BookEventEntity eventToProcess = nextEventToProcess.get();				
-				LoanIntegrationPayload eventPayload = getLoanEventPayload(eventToProcess);
-				
-				CommandLoanEvent command = new CommandLoanEvent(eventPayload.loanId(), eventPayload.isbn(), eventPayload.userId());
-				handleConsumerEvent(eventToProcess.getEventId(), IntegrationEventTypes.valueOf(eventToProcess.getEventType()), command);
-				bookEventRepository.markProcessed(eventToProcess.getEventId(), eventToProcess.getAggregateType());
-												
-				nextEventVersionToProcess++;
-			}
+			bookEventRepository.markProcessed(event.eventId(), event.aggregateType());
+			retryPendingLoanEvents(event.aggregateId(), payload.isbn());			
+		}catch (ReservationMissing e) {
+			 logger.warn("Event too early or invalid state, will retry later. Event: {}", event.eventType());
+		}
+		catch (Exception e) {
+			 logger.warn("Event not fully applied, will retry later {}", event.eventType());
 		}
 		
 	}
@@ -202,25 +184,6 @@ public class BookEventProcessor {
 		}
 	}
 	
-    private LoanIntegrationPayload getLoanEventPayload(BookEventEntity eventToProcess) {
-		
-		int supportedVersion = consumerSupportedVersion.getOrDefault(IntegrationEventTypes.valueOf(eventToProcess.getEventType()), -1);
-		
-        if(eventToProcess.getSchemaVersion() == supportedVersion) {
-        	return mapper.convertValue(eventToProcess.getPayload(), LoanIntegrationPayload.class);
-        }
-        
-        JsonNode jsonPayload = mapper.valueToTree(eventToProcess.getPayload());
-        
-        String loanId = getPayloadField(eventToProcess.getEventType(), jsonPayload, "loanId");
-        
-        String isbn = getPayloadField(eventToProcess.getEventType(), jsonPayload, "isbn");
-             
-        String userId = getPayloadField(eventToProcess.getEventType(), jsonPayload, "userId");
-                
-		return new LoanIntegrationPayload(loanId, isbn, userId);
-	}
-
 	private void validatePayload(IntegrationEventTypes eventType, LoanIntegrationPayload payload) {
 
 		if (payload == null || payload.loanId() == null || payload.userId() == null || payload.isbn() == null) {
@@ -238,5 +201,64 @@ public class BookEventProcessor {
 		
 		return fieldValue;
 	}
+    
+    private void retryPendingLoanEvents(String aggregateId, String isbn) {
 
+        int iteration = 0;
+
+        while (iteration++ < MAX_ITERATIONS) {
+
+            List<BookEventEntity> pendingEvents = findUnprocessedLoanEvents(aggregateId, isbn);
+
+            boolean progressed = false;
+
+            for (BookEventEntity event : pendingEvents) {
+
+                if (event.isProcessed() || event.isFailed()) {
+                	continue;
+                }
+
+                if (event.getRetryCount() >= MAX_RETRY_PER_EVENT) {
+                    bookIntegrationRepository.markFailed(event.getEventId(), event.getAggregateType());
+                    logger.error("Event permanently failed {}", event.getEventId());
+                    continue;
+                }
+
+                try {
+                   
+                    String loanId = getPayloadField(event.getEventType(), event.getPayload(), "loanId");
+                    String isbnPayload = getPayloadField(event.getEventType(), event.getPayload(), "isbn");
+                    String userId = getPayloadField(event.getEventType(), event.getPayload(), "userId");
+                    
+                    CommandLoanEvent command = new CommandLoanEvent(loanId, isbnPayload, userId);
+
+                    handleConsumerEvent(event.getEventId(), IntegrationEventTypes.valueOf(event.getEventType()), command);
+
+                    bookEventRepository.markProcessed(event.getEventId(), event.getAggregateType());
+
+                    progressed = true;
+
+                }catch (ReservationMissing e) {
+               	    bookIntegrationRepository.incrementRetry(event.getEventId(), event.getAggregateType());
+               	    int retry = event.getRetryCount() + 1;
+                    logger.debug("Event {} still not applicable (retry={})", event.getEventId(), retry);
+
+                }  
+                catch (Exception e) {
+                    bookIntegrationRepository.incrementRetry(event.getEventId(), event.getAggregateType());
+                }
+            }
+
+            if (!progressed) break;
+        }
+    }
+
+    private List<BookEventEntity> findUnprocessedLoanEvents(String aggregateId, String isbn) {
+
+        List<BookEventEntity> events = bookIntegrationRepository.findEventsToProcess(aggregateId, List.of(IntegrationEventTypes.LOAN_REQUESTED.name(), 
+            		IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.name(), IntegrationEventTypes.LOAN_CANCELED.name(), IntegrationEventTypes.LOAN_RETURNED.name()));
+
+        return events.stream().filter(e -> getPayloadField(e.getEventType(), e.getPayload(), "isbn").equals(isbn))
+        		.sorted(Comparator.comparing(BookEventEntity::getOccurredAt)).toList();
+    }
 }

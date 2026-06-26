@@ -1,6 +1,8 @@
 package mentoring.acomi.loanservice.infrastructure.messaging;
 
 import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +19,7 @@ import mentoring.acomi.loanservice.application.reactor.LoanEventReactor;
 import mentoring.acomi.loanservice.application.reactor.command.CommandBookEvent;
 import mentoring.acomi.loanservice.application.reactor.command.CommandBookRejectedEvent;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
+import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
@@ -47,13 +50,15 @@ public class LoanEventProcessor {
 
 	private final LoanIntegrationEventMapper eventMapper;
 
+	private List<IntegrationEventTypes> reactorConsumerEvents = List.of(IntegrationEventTypes.BOOK_RESERVED, IntegrationEventTypes.BOOK_RESERVATION_REJECTED,
+			IntegrationEventTypes.BOOK_BORROWED, IntegrationEventTypes.BOOK_BORROW_REJECTED);
+	
+	
 	public static final Map<IntegrationEventTypes, Integer> consumerSupportedVersion = Map.ofEntries(
 			Map.entry(IntegrationEventTypes.BOOK_RESERVED, LoanIntegrationConsumerEventVersions.BOOK_RESERVED),
-			Map.entry(IntegrationEventTypes.BOOK_RESERVATION_REJECTED,
-					LoanIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED),
+			Map.entry(IntegrationEventTypes.BOOK_RESERVATION_REJECTED, LoanIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED),
 			Map.entry(IntegrationEventTypes.BOOK_BORROWED, LoanIntegrationConsumerEventVersions.BOOK_BORROWED),
-			Map.entry(IntegrationEventTypes.BOOK_BORROW_REJECTED,
-					LoanIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED),
+			Map.entry(IntegrationEventTypes.BOOK_BORROW_REJECTED, LoanIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED),
 			Map.entry(IntegrationEventTypes.USER_SUBSCRIBED, LoanIntegrationConsumerEventVersions.USER_SUBSCRIBED),
 			Map.entry(IntegrationEventTypes.USER_UNSUBSCRIBED, LoanIntegrationConsumerEventVersions.USER_UNSUBSCRIBED),
 			Map.entry(IntegrationEventTypes.USER_SUSPENDED, LoanIntegrationConsumerEventVersions.USER_SUSPENDED),
@@ -64,7 +69,10 @@ public class LoanEventProcessor {
 			Map.entry(IntegrationEventTypes.LOAN_RETURNED, LoanIntegrationConsumerEventVersions.LOAN_RETURNED),
 			Map.entry(IntegrationEventTypes.LOAN_RESERVED, LoanIntegrationConsumerEventVersions.LOAN_RESERVED),
 			Map.entry(IntegrationEventTypes.LOAN_FAILED, LoanIntegrationConsumerEventVersions.LOAN_FAILED));
-
+	
+	private static final int MAX_ITERATIONS = 10;
+	private static final int MAX_RETRY_PER_EVENT = 5;
+	
 	private final Logger logger = LogManager.getLogger(LoanEventProcessor.class);
 
 	public LoanEventProcessor(LoanEventReactor reactor, LoanProjection projection,
@@ -92,16 +100,26 @@ public class LoanEventProcessor {
 			return;
 		}
 
+		if(isReactorConsumerEvent(event.eventType())) {
+			handleReactorConsumerEvent(event);
+		}
+		else {
+			handleProjectionConsumerEvent(event);
+		}
+
+	}
+
+	private void handleProjectionConsumerEvent(IntegrationEventEnvelope<?> event) {
+		
 		String aggregateId = event.aggregateId();
 		String aggregateType = event.aggregateType();
 
-		int lastEventVersionProcessed = loanEventRepository.findMaxProcessedVersion(aggregateId, aggregateType)
-				.orElse(-1);
+		int lastEventVersionProcessed = loanEventRepository.findMaxProcessedVersion(aggregateId, aggregateType).orElse(-1);
 		int eventVersion = event.eventVersion();
 
 		if (eventVersion == lastEventVersionProcessed + 1) {
 
-			handleConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event.payload()), event.occurredAt());
+			handleProjectionConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event), event.occurredAt());
 
 			loanEventRepository.markProcessed(event.eventId(), aggregateType);
 
@@ -116,14 +134,13 @@ public class LoanEventProcessor {
 				}
 
 				LoanEventEntity eventToProcess = nextEventToProcess.get();
-				handleConsumerEvent(eventToProcess.getEventId(), IntegrationEventTypes.valueOf(eventToProcess.getEventType()), getEventPayload(eventToProcess),
+				handleProjectionConsumerEvent(eventToProcess.getEventId(), IntegrationEventTypes.valueOf(eventToProcess.getEventType()), getEventPayload(eventToProcess),
 						eventToProcess.getOccurredAt());
 				loanEventRepository.markProcessed(eventToProcess.getEventId(), eventToProcess.getAggregateType());
 
 				nextEventVersionToProcess++;
 			}
 		}
-
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -213,48 +230,74 @@ public class LoanEventProcessor {
 
 	}
 
-	private void handleConsumerEvent(String eventId, IntegrationEventTypes eventType, Object payload, Instant occurredAt) {
+	private void handleProjectionConsumerEvent(String eventId, IntegrationEventTypes eventType, Object payload, Instant occurredAt) {
 
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
 
 		switch (eventType) {
 
-		case BOOK_RESERVED -> {
-			BookLoanIntegrationPayload eventPayload = (BookLoanIntegrationPayload) payload;
-			reactor.handleBookReserved(new CommandBookEvent(eventPayload.loanId()));
-		}
-
-		case BOOK_RESERVATION_REJECTED -> {
-			BookReservationRejectedIntegrationPayload eventPayload = (BookReservationRejectedIntegrationPayload) payload;
-			reactor.handleBookReservationRejected(new CommandBookRejectedEvent(eventPayload.loanId(), eventPayload.reason()));
-		}
-
-		case BOOK_BORROWED -> {
-			BookLoanIntegrationPayload eventPayload = (BookLoanIntegrationPayload) payload;
-			reactor.handleBookBorrowed(new CommandBookEvent(eventPayload.loanId()));
-		}
-
-		case BOOK_BORROW_REJECTED -> {
-			BookBorrowRejectedIntegrationPayload eventPayload = (BookBorrowRejectedIntegrationPayload) payload;
-			reactor.handleBookBorrowRejected(new CommandBookRejectedEvent(eventPayload.loanId(), eventPayload.reason()));
-		}
-
-		case USER_SUBSCRIBED -> {
-			UserSubscribedIntegrationPayload eventPayload = (UserSubscribedIntegrationPayload) payload;
-			userProjection.handleSubscribeUser(eventPayload, occurredAt);
-		}
-
-		case USER_UNSUBSCRIBED, USER_SUSPENDED, USER_UNSUSPENDED -> {
-			UserIntegrationPayload eventPayload = (UserIntegrationPayload) payload;
-			userProjection.handleUpdateUserStatus(eventPayload, occurredAt);
-		}
-
-		default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventType));
-		}
+			case USER_SUBSCRIBED -> {
+				UserSubscribedIntegrationPayload eventPayload = (UserSubscribedIntegrationPayload) payload;
+				userProjection.handleSubscribeUser(eventPayload, occurredAt);
+			}
+	
+			case USER_UNSUBSCRIBED, USER_SUSPENDED, USER_UNSUSPENDED -> {
+				UserIntegrationPayload eventPayload = (UserIntegrationPayload) payload;
+				userProjection.handleUpdateUserStatus(eventPayload, occurredAt);
+			}
+	
+			default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventType));
+			}
 
 		logger.info("Event processed successfully");
 	}
 
+	private void handleReactorConsumerEvent(IntegrationEventEnvelope<?> event) {
+		
+		try {
+			handleReactorConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event.payload()), event.occurredAt());
+			loanEventRepository.markProcessed(event.eventId(), event.aggregateType());
+			retryPendingReactorEvents(event.aggregateId(), extractLoanId(getEventPayload(event.eventType(), event.payload())));
+		} catch (InvalidLoanStateTransition e) {
+			 logger.warn("Event too early or invalid state, will retry later. Event: {}", event.eventType());
+		}catch (Exception e) {
+			 logger.error("Unexpected error", e);
+			 throw e;
+		}
+		
+	}
+	private void handleReactorConsumerEvent(String eventId, IntegrationEventTypes eventType, Object payload, Instant occurredAt) {
+
+		logger.info("Processing event {}, ID: {}", eventType, eventId);
+
+		switch (eventType) {
+
+			case BOOK_RESERVED -> {
+				BookLoanIntegrationPayload eventPayload = (BookLoanIntegrationPayload) payload;
+				reactor.handleBookReserved(new CommandBookEvent(eventPayload.loanId()));
+			}
+	
+			case BOOK_RESERVATION_REJECTED -> {
+				BookReservationRejectedIntegrationPayload eventPayload = (BookReservationRejectedIntegrationPayload) payload;
+				reactor.handleBookReservationRejected(new CommandBookRejectedEvent(eventPayload.loanId(), eventPayload.reason()));
+			}
+	
+			case BOOK_BORROWED -> {
+				BookLoanIntegrationPayload eventPayload = (BookLoanIntegrationPayload) payload;
+				reactor.handleBookBorrowed(new CommandBookEvent(eventPayload.loanId()));
+			}
+	
+			case BOOK_BORROW_REJECTED -> {
+				BookBorrowRejectedIntegrationPayload eventPayload = (BookBorrowRejectedIntegrationPayload) payload;
+				reactor.handleBookBorrowRejected(new CommandBookRejectedEvent(eventPayload.loanId(), eventPayload.reason()));
+			}
+	
+			default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventType));
+			}
+
+		logger.info("Event processed successfully");
+	}
+	
 	private BookLoanIntegrationPayload getBookLoanIntegrationPayload(LoanEventEntity eventToProcess) {
 
 		int supportedVersion = consumerSupportedVersion.getOrDefault(IntegrationEventTypes.valueOf(eventToProcess.getEventType()), -1);
@@ -464,4 +507,82 @@ public class LoanEventProcessor {
 		
 		return fieldValue;
 	}
+    
+    private boolean isReactorConsumerEvent(IntegrationEventTypes eventType) {
+		return reactorConsumerEvents.contains(eventType);
+	}
+    
+    private void retryPendingReactorEvents(String aggregateId, String loanId) {
+  
+        int iteration = 0;
+        
+        while (iteration++ < MAX_ITERATIONS) {
+        	
+        	 boolean progressed = false;
+  
+        	 List<LoanEventEntity> pendingEvents = findUnprocessedByLoanIdAndTypes(aggregateId, loanId);
+        	 
+        	 for (LoanEventEntity event : pendingEvents) {
+
+                 if (event.isProcessed() || event.isFailed()) {
+                     continue;
+                 }
+                 
+                 if (event.getRetryCount() >= MAX_RETRY_PER_EVENT) {
+                     logger.error("Event {} exceeded max retry → mark FAILED", event.getEventId());
+                     loanIntegrationRepository.markFailed(event.getEventId(), event.getAggregateType());
+                     continue;
+                 }
+
+                 try {
+                     handleReactorConsumerEvent(event.getEventId(), IntegrationEventTypes.valueOf(event.getEventType()), getEventPayload(event), 
+                    		 event.getOccurredAt());
+
+                     loanEventRepository.markProcessed(event.getEventId(), event.getAggregateType());
+
+                     progressed = true;
+
+                 } catch (InvalidLoanStateTransition e) {
+                	 loanIntegrationRepository.incrementRetry(event.getEventId(), event.getAggregateType());
+                	 int retry = event.getRetryCount() + 1;
+                     logger.debug("Event {} still not applicable (retry={})", event.getEventId(), retry);
+
+                 } catch (Exception e) {
+                     logger.error("Unexpected error on retry", e);
+                     throw e;
+                 }
+             }
+
+             if (!progressed) {
+                 break;
+             }
+         }
+
+         if (iteration == MAX_ITERATIONS) {
+             logger.warn("Reached max iteration loop for loanId={}", loanId);
+         }
+    }
+    
+    private String extractLoanId(Object payload) {
+        
+        if (payload instanceof BookLoanIntegrationPayload p) {
+            return p.loanId();
+        }
+
+        if (payload instanceof BookReservationRejectedIntegrationPayload p) {
+            return p.loanId();
+        }
+
+        if (payload instanceof BookBorrowRejectedIntegrationPayload p) {
+            return p.loanId();
+        }
+
+        throw new IllegalArgumentException("LoanId not found");
+    }
+  
+    private List<LoanEventEntity> findUnprocessedByLoanIdAndTypes(String aggregateId, String loanId) {
+        List<LoanEventEntity> events = loanIntegrationRepository.findEventsToProcess(aggregateId, reactorConsumerEvents.stream().map(Enum::name).toList());
+        return events.stream().filter(e -> getPayloadField(e.getEventType(), e.getPayload(), "loanId").equals(loanId)).sorted(Comparator.comparing(LoanEventEntity::getOccurredAt)).toList();
+    }
+    
 }

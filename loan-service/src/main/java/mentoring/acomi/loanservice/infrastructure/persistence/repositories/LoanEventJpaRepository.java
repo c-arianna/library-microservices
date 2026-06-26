@@ -55,5 +55,19 @@ public interface LoanEventJpaRepository extends BaseEventJpaRepository<LoanEvent
 		    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
 		""")
      List<LoanEventEntity> findAllOrderByAggregateAndVersion();
+	
+	@Query("""
+		    UPDATE LoanEventEntity e
+		    SET e.failed = true
+		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
+		""")
+    void markFailed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
+	
+	@Query("""
+		    UPDATE LoanEventEntity e
+		    SET e.retryCount = e.retryCount +1
+		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
+		""")
+	void incrementRetry(String eventId, String aggregateType);
 
 }
