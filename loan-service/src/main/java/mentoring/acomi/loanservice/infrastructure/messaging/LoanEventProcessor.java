@@ -119,7 +119,7 @@ public class LoanEventProcessor {
 
 		if (eventVersion == lastEventVersionProcessed + 1) {
 
-			handleProjectionConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event), event.occurredAt());
+			handleProjectionConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event.payload()), event.occurredAt());
 
 			loanEventRepository.markProcessed(event.eventId(), aggregateType);
 

@@ -37,8 +37,10 @@ import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationConsu
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
+import mentoring.acomi.loanservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.application.view.UserView;
@@ -52,6 +54,7 @@ import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedlibrary.model.UserRole;
 import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @SpringBootTest
@@ -91,6 +94,9 @@ class LoanRabbitIntegrationTest {
 
 	@Autowired
 	private UserViewRepository userViewRepository;
+	
+	@Autowired
+	private UserViewQueryRepository userViewQueryRepository;
 
 	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
@@ -154,7 +160,7 @@ class LoanRabbitIntegrationTest {
 		var events = loanEventRepository.loadStream(loanId);
 		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == LoanEventType.LoanConfirmed));
 	}
-
+	
 	@Test
 	void shouldConsumeBookBorrowRejectedAndFailLoanWhenReservationMissing() {
 		String loanId = createLoan();
@@ -203,6 +209,20 @@ class LoanRabbitIntegrationTest {
 			Assertions.assertTrue(body.contains("\"producer\":\"loan-service\""));
 			Assertions.assertTrue(body.contains(String.format("\"loanId\":\"%s\"", loanId)));
 		});
+	}
+	
+	@Test
+	void shouldConsumeUserSubscribed() {
+		
+		String userId = UUID.randomUUID().toString();
+		
+		publishUserSubscribed(userId);
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			userViewQueryRepository.findById(userId).orElseThrow();
+		});
+		
+		
 	}
 
 	@Test
@@ -334,6 +354,19 @@ class LoanRabbitIntegrationTest {
 				IntegrationEventTypes.BOOK_BORROW_REJECTED.getRoutingKey(), event);
 	}
 
+	private void publishUserSubscribed(String userId) {
+		
+		var event = new IntegrationEventEnvelope<>(
+				String.format("evt-user-subscribed-%s", UUID.randomUUID().toString()),
+				IntegrationEventTypes.USER_SUBSCRIBED, "user-service", userId, AggregateType.USER.name(), 0,
+				Instant.now(), 1, new UserSubscribedIntegrationPayload(userId, "test.%s@test.com".formatted(userId), "", "", "", 
+						UserStatus.ACTIVE, UserRole.READER));
+		
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey(), event);
+		
+	}
+	
 	private String createTmpQueue(String routingKey) {
 
 		String queueName = String.join(".", "tmp", routingKey, UUID.randomUUID().toString());
