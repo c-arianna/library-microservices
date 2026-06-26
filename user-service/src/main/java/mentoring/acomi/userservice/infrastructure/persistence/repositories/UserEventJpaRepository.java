@@ -56,4 +56,18 @@ public interface UserEventJpaRepository extends BaseEventJpaRepository<UserEvent
 			    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
 			""")
 	List<UserEventEntity> findAllOrderByAggregateAndVersion();
+	
+	@Query("""
+		    UPDATE UserEventEntity e
+		    SET e.failed = true
+		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
+		""")
+    void markFailed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
+	
+	@Query("""
+		    UPDATE UserEventEntity e
+		    SET e.retryCount = e.retryCount +1
+		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
+		""")
+	void incrementRetry(String eventId, String aggregateType);
 }
