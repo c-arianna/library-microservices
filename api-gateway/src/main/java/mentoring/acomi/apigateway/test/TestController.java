@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/test")
-@Profile("test")
+@Profile("gherkin")
 public class TestController {
 
 	private final BookClient bookClient;
@@ -20,6 +20,6 @@ public class TestController {
 
 	@PostMapping("/reset")
 	public Mono<Void> resetAll() {
-		return Mono.when(bookClient.reset());
+		return bookClient.reset();
 	}
 }

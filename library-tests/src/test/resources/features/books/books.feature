@@ -79,7 +79,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       When l'utente visualizza il catalogo dei libri
       Then la risposta ha status code 200
       And la risposta contiene il campo "books"
-      And "books" è una lista vuota
+      And eventualmente "books" è una lista vuota
       
         
     Scenario: Consultazione del catalogo con libri presenti
@@ -96,13 +96,13 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       When l'utente visualizza il catalogo dei libri
       Then la risposta ha status code 200
       And la risposta contiene il campo "books"
-      And "books" contiene 2 elementi
-      And "books" ha un elemento con i campi:                                                         
+      And eventualmente "books" contiene 2 elementi
+      And eventualmente "books" ha un elemento con i campi:                                                         
         | isbn        | "9788804336327"                                                                 |
         | author      | "Italo Calvino"                                                                 |
         | title       | "Il barone rampante"                                                            |
         | description | "Il barone rampante (1957) è il secondo libro della trilogia I nostri antenati" |
-      And "books" ha un elemento con i campi:
+      And eventualmente "books" ha un elemento con i campi:
         | isbn        | "9788804776369"         |
         | author      | "Italo Calvino"         |
         | title       | "Il visconte dimezzato" |
@@ -119,7 +119,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         | author | "Shakespeare" |
       Then la risposta ha status code 200
       And la risposta contiene il campo "books"
-      And "books" è una lista vuota
+      And eventualmente "books" è una lista vuota
       
     Scenario: Consultazione del catalogo filtrata per autore presente
       Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
@@ -132,8 +132,8 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         | author | Italo Calvino |
       Then la risposta ha status code 200
       And la risposta contiene il campo "books"
-      And "books" contiene 1 elementi
-      And "books" ha un elemento con i campi:
+      And eventualmente "books" contiene 1 elementi
+      And eventualmente "books" ha un elemento con i campi:
         | isbn        | "9788804336327"                                                                 |
         | author      | "Italo Calvino"                                                                 |
         | title       | "Il barone rampante"                                                            |
@@ -158,8 +158,8 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         | onlyAvailable | true          |
       Then la risposta ha status code 200
       And la risposta contiene il campo "books"
-      And "books" contiene 1 elementi
-      And "books" ha un elemento con i campi:
+      And eventualmente "books" contiene 1 elementi
+      And eventualmente "books" ha un elemento con i campi:
         | isbn        | "9788804336327"         |
         | author      | "Italo Calvino"         |
         | title       | "Il barone rampante"    |
@@ -296,7 +296,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il dettaglio del libro isbn "9788804336327"
       Then la risposta ha status code 200
-      And la risposta contiene i seguenti campi:
+      And eventualmente la risposta contiene i seguenti campi:
       | isbn           | "9788804336327"         |
       | author         | "Italo Calvino"         |
       | title          | "Il barone rampante"    |

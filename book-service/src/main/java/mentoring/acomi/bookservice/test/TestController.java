@@ -10,7 +10,7 @@ import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 
 @RestController
 @RequestMapping("/test")
-@Profile("test")
+@Profile("gherkin")
 public class TestController {
 
     private final BookViewRepository bookRepository;

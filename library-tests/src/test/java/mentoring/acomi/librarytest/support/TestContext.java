@@ -19,5 +19,16 @@ public class TestContext {
 	public Set<String> keys() {
 		return context.keySet();
 	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> T getTyped(String key) {
+	    Object value = context.get(key);
+
+	    if (value == null) {
+	        throw new IllegalStateException("Missing key in context: ".formatted(key));
+	    }
+
+	    return (T) value;
+	}
 
 }
