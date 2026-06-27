@@ -1,5 +1,3 @@
-use user_db;
-
 CREATE TABLE IF NOT EXISTS user_events (
     id bigint not null auto_increment,
     aggregate_id varchar(100) not null,

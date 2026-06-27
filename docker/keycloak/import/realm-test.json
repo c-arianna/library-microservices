@@ -1,0 +1,113 @@
+{
+    "realm": "library-microservices-test",
+    "enabled": true,
+    "roles": {
+        "realm": [
+            {
+                "name": "ROLE_ADMIN"
+            },
+            {
+                "name": "ROLE_LIBRARIAN"
+            },
+            {
+                "name": "ROLE_READER"
+            }
+        ]
+    },
+    "users": [
+        {
+            "username": "admin@gmail.com",
+            "firstName": "admin",
+            "lastName": "admin",
+            "email": "admin@gmail.com",
+            "emailVerified": true,
+            "enabled": true,
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "admin12345678",
+                    "temporary": false
+                }
+            ],
+            "disableableCredentialTypes": [
+            ],
+            "requiredActions": [
+            ],
+            "realmRoles": [
+                "ROLE_ADMIN"
+            ],
+            "notBefore": 0,
+            "groups": [
+            ]
+        },
+        {
+            "username": "librarian@gmail.com",
+			"firstName": "Librarian",
+            "lastName": "Librarian",
+            "email": "librarian@gmail.com",
+            "emailVerified": true,
+            "enabled": true,
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "librarian12345678",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "ROLE_LIBRARIAN"
+            ]
+        },
+        {
+            "username": "reader@gmail.com",
+			"firstName": "Reader",
+            "lastName": "Reader",
+            "email": "reader@gmail.com",
+            "emailVerified": true,
+            "enabled": true,
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "Test12345678",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "ROLE_READER"
+            ]
+        }
+    ],
+    "clients": [
+        {
+            "clientId": "user-service-admin",
+            "enabled": true,
+            "protocol": "openid-connect",
+            "publicClient": false,
+            "serviceAccountsEnabled": true,
+            "standardFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "secret": "CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm"
+        },
+        {
+            "clientId": "library-test-client",
+            "enabled": true,
+            "publicClient": true,
+            "directAccessGrantsEnabled": true
+        },
+        {
+            "clientId": "library-gateway",
+            "enabled": true,
+            "protocol": "openid-connect",
+            "publicClient": true,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": true,
+            "redirectUris": [
+                "*"
+            ],
+            "webOrigins": [
+                "*"
+            ]
+        }
+    ]
+}

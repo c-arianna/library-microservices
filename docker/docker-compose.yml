@@ -45,19 +45,20 @@ services:
       - "8084:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/import:/opt/keycloak/data/import
     depends_on:
       postgres-keycloak:
         condition: service_healthy
 
-
   rabbitmq:
+    profiles: ["dev"]
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json  
     healthcheck:
@@ -65,8 +66,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  
+  rabbitmq-gherkin:
+    profiles: ["gherkin"]
+    image: rabbitmq:3-management
+    container_name: rabbitmq-gherkin
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json  
+    tmpfs:    
+      - /var/lib/rabbitmq 
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   mysql-book:
+    profiles: ["dev"]
     image: mysql:8
     container_name: mysql-book
     environment:
@@ -77,6 +97,7 @@ services:
     ports:
       - "3307:3306"
     volumes:
+      - mysql_book_data:/var/lib/mysql
       - ./mysql-book:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
@@ -85,6 +106,7 @@ services:
       retries: 10
 
   mysql-loan:
+    profiles: ["dev"]
     image: mysql:8
     container_name: mysql-loan
     environment:
@@ -95,6 +117,7 @@ services:
     ports:
       - "3308:3306"
     volumes:
+      - mysql_loan_data:/var/lib/mysql
       - ./mysql-loan:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
@@ -103,6 +126,7 @@ services:
       retries: 10
 
   mysql-user:
+    profiles: ["dev"]
     image: mysql:8
     container_name: mysql-user
     environment:
@@ -113,6 +137,7 @@ services:
     ports:
       - "3309:3306"
     volumes:
+      - mysql_user_data:/var/lib/mysql
       - ./mysql-user:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
@@ -120,19 +145,82 @@ services:
       timeout: 5s
       retries: 10
 
+  mysql-book-gherkin:
+    profiles: ["gherkin"]
+    image: mysql:8
+    container_name: mysql-book-gherkin
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: book_test_db
+      MYSQL_USER: libraryApp
+      MYSQL_PASSWORD: libraryAppTest!
+    ports:
+      - "3317:3306"
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ./mysql-book:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mysql-loan-gherkin:
+    profiles: ["gherkin"]
+    image: mysql:8
+    container_name: mysql-loan-gherkin
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: loan_test_db
+      MYSQL_USER: libraryApp
+      MYSQL_PASSWORD: libraryAppTest!
+    ports:
+      - "3318:3306"
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ./mysql-loan:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mysql-user-gherkin:
+    profiles: ["gherkin"]
+    image: mysql:8
+    container_name: mysql-user-gherkin
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_test_db
+      MYSQL_USER: libraryApp
+      MYSQL_PASSWORD: libraryAppTest!
+    ports:
+      - "3319:3306"
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ./mysql-user:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      
   book-service:
+    profiles: ["dev"]
     image: book-service:dev
     container_name: book-service
     ports:
       - "8081:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-book:3306/book_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-book:3306/book_db?serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
-      SPRING_PROFILES_ACTIVE: test
-      APP_TEST_MODE: true
+      SPRING_PROFILES_ACTIVE: dev
     extra_hosts:
       - "auth.local:host-gateway"
     depends_on:
@@ -144,18 +232,18 @@ services:
         condition: service_started
       
   loan-service:
+    profiles: ["dev"]
     image: loan-service:dev
     container_name: loan-service
     ports:
       - "8082:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-loan:3306/loan_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-loan:3306/loan_db?serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
-      SPRING_PROFILES_ACTIVE: test
-      APP_TEST_MODE: true
+      SPRING_PROFILES_ACTIVE: dev
     extra_hosts:
       - "auth.local:host-gateway"
     depends_on:
@@ -167,19 +255,23 @@ services:
         condition: service_started
 
   user-service:
+    profiles: ["dev"]
     image: user-service:dev
     container_name: user-service
     ports:
       - "8083:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/user_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/user_db?serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN_REALM: library-microservices
+      KEYCLOAK_REALM: library-microservices
+      KEYCLOAK_ADMIN_CLIENT_ID: user-service-admin
+      KEYCLOAK_ADMIN_CLIENT_SECRET: CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
-      SPRING_PROFILES_ACTIVE: test
-      APP_TEST_MODE: true
+      SPRING_PROFILES_ACTIVE: dev
     extra_hosts:
       - "auth.local:host-gateway"
     depends_on:
@@ -190,19 +282,98 @@ services:
       keycloak:
         condition: service_started
 
+  book-service-gherkin:
+    profiles: ["gherkin"]
+    image: book-service:dev
+    container_name: book-service-gherkin
+    ports:
+      - "9081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-book-gherkin:3306/book_test_db?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: libraryApp
+      SPRING_DATASOURCE_PASSWORD: libraryAppTest!
+      SPRING_RABBITMQ_HOST: rabbitmq-gherkin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_PROFILES_ACTIVE: gherkin
+      APP_TEST_MODE: true
+    extra_hosts:
+      - "auth.local:host-gateway"
+    depends_on:
+      mysql-book-gherkin:
+        condition: service_healthy
+      rabbitmq-gherkin:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      
+  loan-service-gherkin:
+    profiles: ["gherkin"]
+    image: loan-service:dev
+    container_name: loan-service-gherkin
+    ports:
+      - "9082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-loan-gherkin:3306/loan_test_db?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: libraryApp
+      SPRING_DATASOURCE_PASSWORD: libraryAppTest!
+      SPRING_RABBITMQ_HOST: rabbitmq-gherkin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_PROFILES_ACTIVE: gherkin
+      APP_TEST_MODE: true
+    extra_hosts:
+      - "auth.local:host-gateway"
+    depends_on:
+      mysql-loan-gherkin:
+        condition: service_healthy
+      rabbitmq-gherkin:
+        condition: service_started
+      keycloak:
+        condition: service_started
+
+  user-service-gherkin:
+    profiles: ["gherkin"]
+    image: user-service:dev
+    container_name: user-service-gherkin
+    ports:
+      - "9083:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user-gherkin:3306/user_test_db?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: libraryApp
+      SPRING_DATASOURCE_PASSWORD: libraryAppTest!
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN_REALM: library-microservices-test
+      KEYCLOAK_REALM: library-microservices-test
+      KEYCLOAK_ADMIN_CLIENT_ID: user-service-admin
+      KEYCLOAK_ADMIN_CLIENT_SECRET: CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm
+      SPRING_RABBITMQ_HOST: rabbitmq-gherkin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_PROFILES_ACTIVE: gherkin
+      APP_TEST_MODE: true
+    extra_hosts:
+      - "auth.local:host-gateway"
+    depends_on:
+      mysql-user-gherkin:
+        condition: service_healthy
+      rabbitmq-gherkin:
+        condition: service_started
+      keycloak:
+        condition: service_started
+        
   api-gateway:
+    profiles: ["dev"]
     image: api-gateway:dev
     container_name: api-gateway
     ports:
       - "8080:8080"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
+      BOOK_SERVICE_URL: http://book-service:8080
+      LOAN_SERVICE_URL: http://loan-service:8080
+      USER_SERVICE_URL: http://user-service:8080
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
-      SPRING_PROFILES_ACTIVE: test
-      APP_TEST_MODE: true
+      SPRING_PROFILES_ACTIVE: dev
     extra_hosts:
       - "auth.local:host-gateway"
-
     depends_on:
       book-service:
         condition: service_started
@@ -213,6 +384,36 @@ services:
       keycloak:
         condition: service_started
 
+  api-gateway-gherkin:
+    profiles: ["gherkin"]
+    image: api-gateway:dev
+    container_name: api-gateway-gherkin
+    ports:
+      - "9080:8080"
+    environment:
+      BOOK_SERVICE_URL: http://book-service-gherkin:8080
+      LOAN_SERVICE_URL: http://loan-service-gherkin:8080
+      USER_SERVICE_URL: http://user-service-gherkin:8080
+      SPRING_RABBITMQ_HOST: rabbitmq-gherkin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_PROFILES_ACTIVE: gherkin
+      APP_TEST_MODE: true
+    extra_hosts:
+      - "auth.local:host-gateway"
+    depends_on:
+      book-service-gherkin:
+        condition: service_started
+      loan-service-gherkin:
+        condition: service_started
+      user-service-gherkin:
+        condition: service_started
+      keycloak:
+        condition: service_started
+        
 volumes:
+  rabbitmq_data:
   keycloak_db:
   keycloak_data:
+  mysql_book_data:
+  mysql_loan_data:
+  mysql_user_data:

@@ -53,7 +53,7 @@ management:
 
 keycloak:
   base-url: ${KEYCLOAK_BASE_URL:http://localhost:8084}
-  admin-realm: library-microservices
-  realm: library-microservices
-  admin-client-id: user-service-admin
-  admin-client-secret: CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm
+  admin-realm: ${KEYCLOAK_ADMIN_REALM:library-microservices}
+  realm: ${KEYCLOAK_REALM:library-microservices}
+  admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:user-service-admin}
+  admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:default-secret}
