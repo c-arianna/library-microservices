@@ -48,7 +48,8 @@ public class BookIntegrationEventListener {
 						mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class));
 			}
 
-			case BOOK_REGISTERED , BOOK_COPIES_UPDATED, BOOK_RESERVED, BOOK_BORROWED, BOOK_RELEASED, BOOK_RETURNED -> {
+			case BOOK_REGISTERED , BOOK_COPIES_UPDATED, BOOK_RESERVED, BOOK_BORROWED, BOOK_RELEASED, BOOK_RETURNED, BOOK_BORROW_REJECTED,
+			    BOOK_RESERVATION_REJECTED -> {
 				eventProcessor.processProducerEvent(eventEnvelope);
 			}
 

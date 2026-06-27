@@ -68,7 +68,8 @@ public class LoanEventProcessor {
 			Map.entry(IntegrationEventTypes.LOAN_CANCELED, LoanIntegrationConsumerEventVersions.LOAN_CANCELED),
 			Map.entry(IntegrationEventTypes.LOAN_RETURNED, LoanIntegrationConsumerEventVersions.LOAN_RETURNED),
 			Map.entry(IntegrationEventTypes.LOAN_RESERVED, LoanIntegrationConsumerEventVersions.LOAN_RESERVED),
-			Map.entry(IntegrationEventTypes.LOAN_FAILED, LoanIntegrationConsumerEventVersions.LOAN_FAILED));
+			Map.entry(IntegrationEventTypes.LOAN_FAILED, LoanIntegrationConsumerEventVersions.LOAN_FAILED),
+			Map.entry(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, LoanIntegrationConsumerEventVersions.LOAN_CONFIRM_REQUESTED));
 	
 	private static final int MAX_ITERATIONS = 10;
 	private static final int MAX_RETRY_PER_EVENT = 5;
@@ -217,6 +218,10 @@ public class LoanEventProcessor {
 				case LOAN_FAILED -> {
 					LoanIntegrationPayload payload = mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class);
 					projection.failLoan(payload, eventEnvelope.occurredAt());
+				}
+				
+				case LOAN_CONFIRM_REQUESTED -> {
+					logger.info("No handle needed for process event {}", eventEnvelope.eventType());
 				}
 				
 				default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));

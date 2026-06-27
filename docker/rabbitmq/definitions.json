@@ -123,6 +123,20 @@
       "destination_type": "queue",
       "routing_key": "book.returned"
     },
+	{
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "book-service.queue",
+      "destination_type": "queue",
+      "routing_key": "book.reservation.rejected"
+    },
+	{
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "book-service.queue",
+      "destination_type": "queue",
+      "routing_key": "book.borrow.rejected"
+    },
     {
       "source": "events.exchange",
       "vhost": "/",
@@ -199,6 +213,13 @@
       "destination": "loan-service.queue",
       "destination_type": "queue",
       "routing_key": "loan.failed"
+    },
+	{
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "loan-service.queue",
+      "destination_type": "queue",
+      "routing_key": "loan.confirm.requested"
     },
 	{
       "source": "events.exchange",

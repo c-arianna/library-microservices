@@ -8,6 +8,7 @@ public final class LoanIntegrationConsumerEventVersions {
 	public static final int LOAN_RETURNED = 1;
 	public static final int LOAN_RESERVED = 1;
 	public static final int LOAN_FAILED = 1;
+	public static final int LOAN_CONFIRM_REQUESTED = 1;
 	
 	public static final int BOOK_RESERVED = 1;
 	public static final int BOOK_RESERVATION_REJECTED = 1;

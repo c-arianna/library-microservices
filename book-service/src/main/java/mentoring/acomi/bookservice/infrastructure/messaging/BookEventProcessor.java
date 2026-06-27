@@ -174,6 +174,10 @@ public class BookEventProcessor {
 					projection.returnBorrowed(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
 				}
 		
+				case BOOK_BORROW_REJECTED, BOOK_RESERVATION_REJECTED -> {
+					logger.info("No handle needed for process event {}", eventEnvelope.eventType());
+				}
+				
 				default ->
 					throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));
 				}

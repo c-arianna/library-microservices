@@ -40,7 +40,7 @@ public class LoanIntegrationEventListener {
 
 			switch (eventEnvelope.eventType()) {
 			
-			case LOAN_REQUESTED, LOAN_CONFIRMED, LOAN_CANCELED, LOAN_RETURNED, LOAN_RESERVED, LOAN_FAILED -> eventProcessor.processProducerEvent(eventEnvelope);			
+			case LOAN_REQUESTED, LOAN_CONFIRMED, LOAN_CANCELED, LOAN_RETURNED, LOAN_RESERVED, LOAN_FAILED, LOAN_CONFIRM_REQUESTED -> eventProcessor.processProducerEvent(eventEnvelope);			
 			
 			case BOOK_RESERVED, BOOK_RESERVATION_REJECTED, BOOK_BORROWED, BOOK_BORROW_REJECTED, USER_SUBSCRIBED, USER_UNSUBSCRIBED, USER_SUSPENDED, 
 				 USER_UNSUSPENDED -> eventProcessor.processConsumerEvent(eventEnvelope);
