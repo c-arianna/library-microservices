@@ -145,11 +145,11 @@ public class LoanReplayService extends AbstractReplayService<LoanEventEntity> {
 	
 	private LoanIntegrationPayload getLoanPayload(JsonNode payload) {
 		
-		String loanId = getLoanId(payload);
+		String id = getId(payload);
 		String isbn = getIsbn(payload);
 		String userId = getUserId(payload);
 		
-		return new LoanIntegrationPayload(loanId, isbn, userId);
+		return new LoanIntegrationPayload(id, isbn, userId);
 	}
 
 	private void handleEventReactor(LoanEventEntity entity) {
@@ -217,10 +217,6 @@ public class LoanReplayService extends AbstractReplayService<LoanEventEntity> {
 		return getRequired(jsonPayload, "end");
 	}
 
-	private String getLoanId(JsonNode jsonPayload) {
-		return getRequired(jsonPayload, "loanId");
-	}
-		
 	private String getEmail(JsonNode jsonPayload) {
 		return getRequired(jsonPayload, "email");
 	}
