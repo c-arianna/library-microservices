@@ -1,0 +1,327 @@
+Feature: Gestione dei prestiti dei libri tramite l'applicazione
+  L'amministratore della bibloteca può
+  - confermare una richiesta di prestito
+  - rifiutare una richiesta di prestito
+  - eseguire la restituzione di un libro
+
+  Gli utenti possono
+  - inserire una richiesta di prestito per un libro
+  
+  Background:
+    Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+    Given l'amministratore aggiunge un libro con isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante" e descrizione
+     """
+
+     """
+    And l'amministratore aggiunge 1 copie del libro "9788804336327"
+    And esiste l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678"
+    
+  Rule: Creazione di una richiesta di prestito
+
+    Scenario: Creazione di una richiesta di prestito con successo
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente crea una richiesta di prestito con i seguenti dati:
+        """
+        {
+          "isbn": "9788804336327",
+          "userId": "${USER_ID}",
+          "startDate": "2026-02-23"
+        }
+        """
+      Then la risposta ha status code 201
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      
+      Scenario: Creazione di una richiesta di prestito per un libro non presente
+      Given il catalogo non contiene il libro con isbn "9788804776369"
+      And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente crea una richiesta di prestito con i seguenti dati:
+        """
+        {
+          "isbn": "9788804776369",
+          "userId": "${USER_ID}",
+          "startDate": "2026-02-23"
+        }
+        """
+      Then la risposta ha status code 201
+      And il prestito ha isbn "9788804776369", userId "${USER_ID}", stato "FAILED"
+          
+    Scenario: Creazione di una richiesta di prestito con dati non validi
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente crea una richiesta di prestito con i seguenti dati:
+        """
+        {
+          "userId": "${USER_ID}",
+          "startDate": "2026-02-23"
+        }
+        """
+      Then la risposta ha status code 400
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "VALIDATION_ERROR" |
+      | type    | "VALIDATION_ERROR" |
+      
+    Scenario: Creazione di una richiesta di prestito per un libro non disponibile
+      Given l'amministratore rimuove una copia del libro "9788804336327"
+      And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente crea una richiesta di prestito con i seguenti dati:
+        """
+        {
+          "isbn": "9788804336327",
+          "userId": "${USER_ID}",
+          "startDate": "2026-02-23"
+        }
+        """
+      Then la risposta ha status code 201
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "FAILED"
+  
+    Scenario: L'utente READER può creare prestiti solo per sè stesso
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente crea una richiesta di prestito con i seguenti dati:
+        """
+        {
+          "isbn": "9788804336327",
+          "userId": "${USER_ID}",
+          "startDate": "2026-02-23"
+        }
+        """
+      Then la risposta ha status code 403
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "INVALID_USER" |
+      | type    | "LOAN_INVALID_USER" |
+  
+    Scenario: L'amministratore può creare prestiti per altri utenti
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      When l'amministratore crea una richiesta di prestito con i seguenti dati:
+        """
+        {
+          "isbn": "9788804336327",
+          "userId": "${USER_ID}",
+          "startDate": "2026-02-23"
+        }
+        """
+      Then la risposta ha status code 201
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      
+     Scenario: L'amministratore non può creare prestiti per un utente non presente
+       Given l'utente con ID "123456" non esiste
+       When l'amministratore crea una richiesta di prestito con i seguenti dati:
+         """
+        {
+          "isbn": "9788804336327",
+          "userId": "123456",
+          "startDate": "2026-02-23"
+        }
+        """
+      Then la risposta ha status code 404
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "USER_NOT_FOUND" |
+      | type    | "RESOURCE_NOT_FOUND" |
+      
+  Rule: Conferma della prenotazione di un prestito
+  
+    Scenario: Conferma di una richiesta di prestito in stato reserved
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'amministratore conferma la richiesta del prestito
+      Then la risposta ha status code 204
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED"
+      
+    Scenario: Conferma di una richiesta di prestito non esistente
+      Given il prestito con ID "100" non esiste
+      When l'amministratore conferma la richiesta del prestito
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "LOAN_NOT_CREATED"           |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+    Scenario: Conferma di una richiesta di prestito non in stato reserved
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato annullato
+      And il prestito è in stato "CANCELED"
+      When l'amministratore conferma la richiesta del prestito
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "INVALID_STATE_TRANSATION"   |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+  Rule: Annullo di una richiesta di prestito
+    
+    Scenario: Annullo di una richiesta di prestito in stato reserved
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'amministratore annulla la richiesta del prestito
+      Then la risposta ha status code 204
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CANCELED"
+      
+    Scenario: Annullo di una richiesta di prestito non in stato reserved
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      When l'amministratore annulla la richiesta del prestito
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "INVALID_STATE_TRANSATION"   |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+            
+    Scenario: Annullo di una richiesta di prestito inesistente
+      Given il prestito con ID "100" non esiste
+      When l'amministratore annulla la richiesta del prestito
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "LOAN_NOT_CREATED"           |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+  Rule: Restituzione di un libro prestato
+  
+    Scenario: Registrazione del reso di un prestito confermato
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      When l'amministratore esegue l'operazione di reso del prestito
+      Then la risposta ha status code 204
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RETURNED"
+      
+    Scenario: Conferma restituzione di un libro prestato, con richiesta in stato non "confirmed"
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'amministratore esegue l'operazione di reso del prestito
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "INVALID_STATE_TRANSATION"   |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+    Scenario: Conferma restituzione di un libro prestato, con richiesta di prestito non esistente
+      Given il prestito con ID "100" non esiste
+      When l'amministratore esegue l'operazione di reso del prestito
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "LOAN_NOT_CREATED"           |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+  Rule: Consultazione delle richieste di prestito
+  
+    Scenario: Consultazione elenco prestiti con nessun prestito presente
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente visualizza l'elenco dei prestiti
+      Then la risposta ha status code 200
+      And la risposta contiene il campo "loans"
+      And eventualmente "loans" è una lista vuota
+      
+    Scenario: Consultazione elenco prestiti con prestiti presenti, senza applicare filtro di ricerca
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      When l'utente visualizza l'elenco dei prestiti
+      Then la risposta ha status code 200
+      And la risposta contiene il campo "loans"
+      And eventualmente "loans" contiene 1 elementi
+      And eventualmente "loans" ha un elemento con i campi:
+        | id     | ${LOAN_ID}      |
+        | isbn   | "9788804336327" |
+        | status | "CONFIRMED"     |
+        
+    Scenario: Consultazione elenco prestiti, filtrato per ISBN non presente
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'utente visualizza l'elenco dei prestiti, con filtro di ricerca
+      | isbn | "9788804336322" |
+      Then la risposta ha status code 200
+      And la risposta contiene il campo "loans"
+      And eventualmente "loans" è una lista vuota
+      
+    Scenario: Consultazione elenco prestiti, filtrato per ISBN presente
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'utente visualizza l'elenco dei prestiti, con filtro di ricerca
+      | isbn   | "9788804336327"    |
+      Then la risposta ha status code 200
+      And la risposta contiene il campo "loans"
+      And eventualmente "loans" contiene 1 elementi
+      And eventualmente "loans" ha un elemento con i campi:
+        | id     | ${LOAN_ID}      |
+        | isbn   | "9788804336327" |
+        | userId | ${USER_ID}      |
+        
+    Scenario: Consultazione elenco prestiti, un utente può vedere solo i suoi prestiti
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente visualizza l'elenco dei prestiti
+      Then la risposta ha status code 200
+      And la risposta contiene il campo "loans"
+      And eventualmente "loans" è una lista vuota
+      
+  Rule: visualizzazione dettaglio prestito
+  
+    Scenario: Dettaglio di un prestito esistente
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'utente visualizza il dettaglio del prestito
+      Then la risposta ha status code 200
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      
+     Scenario: Dettaglio di un prestito non presente nel catalogo
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And il prestito con ID "100" non esiste
+      When l'utente visualizza il dettaglio del prestito
+      Then la risposta ha status code 404
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "LOAN_NOT_FOUND"    |
+      | type    | "APPLICATION_ERROR" |
+      
+     Scenario: Un utente READER può vedere solo il dettaglio dei suoi prestiti
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      When l'utente visualizza il dettaglio del prestito
+      Then la risposta ha status code 404
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "LOAN_NOT_FOUND"    |
+      | type    | "APPLICATION_ERROR" |
+      
+     Scenario: L'amministratore può vedere il dettaglio di tutti i prestiti
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'amministratore visualizza il dettaglio del prestito
+      Then la risposta ha status code 200
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      
+  Rule: Completamento del processo di prestito
+  
+    Scenario: Dopo la conferma, il prestito raggiunge lo stato finale "confirmed" e la disponibilità del libro è aggiornata
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'amministratore conferma la richiesta del prestito
+      Then il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED"
+      And il libro "9788804336327" ha totalCopies = 1, borrowedCopies = 1, reservedCopies = 0

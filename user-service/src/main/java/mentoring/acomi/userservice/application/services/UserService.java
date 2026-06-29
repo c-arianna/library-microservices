@@ -1,6 +1,7 @@
 package mentoring.acomi.userservice.application.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -34,6 +35,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakException;
 
 @Service
@@ -55,7 +57,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserResponse subscribe(SubscribeRequest request, String role) {
+	public UserSubscribedResponse subscribe(SubscribeRequest request, String role) {
 
 		String userId = UUID.randomUUID().toString();
 		String email = request.email();
@@ -70,7 +72,7 @@ public class UserService {
 		User user = getUser(userId, request, keycloakUser.identityProviderId());
 		aggregate.subscribe(user);
 
-		return new UserResponse(user.getId(), user.getEmail().getValue(), user.getUserIdentityProviderId(), user.getRole(), user.getStatus());
+		return new UserSubscribedResponse(user.getId(), user.getEmail().getValue(), user.getUserIdentityProviderId(),  user.getRole(), user.getStatus());
 
 	}
 
@@ -178,6 +180,19 @@ public class UserService {
 		}
 
 		return new UserCreationError(message);
+	}
+
+	public UserResponse getUser(String userId) {
+		Optional<UserView> user = userViewRepository.findById(userId);
+		
+		if(user.isEmpty()) {
+			throw new UserNotFound("User ID %s".formatted(userId));
+		}
+	
+		UserView userView = user.get();
+		
+		return new UserResponse(userView.id(), userView.email(), userView.userIdentityProviderId(), userView.role(), userView.status());
+	
 	}
 	
 }

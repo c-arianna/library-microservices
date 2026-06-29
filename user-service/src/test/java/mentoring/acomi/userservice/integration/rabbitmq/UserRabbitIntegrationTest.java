@@ -45,7 +45,7 @@ import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -121,7 +121,7 @@ class UserRabbitIntegrationTest {
 		String routingKey = IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey();
 		String tmpQueue = createTmpQueue(routingKey);
 
-		UserResponse user = subscribeUser();
+		UserSubscribedResponse user = subscribeUser();
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId()).orElseThrow();
@@ -154,7 +154,7 @@ class UserRabbitIntegrationTest {
 
 		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey());
 
-		UserResponse user = subscribeUser();
+		UserSubscribedResponse user = subscribeUser();
 
 		setAuthenticatedUser(user.email(), ADMIN_ROLE);
 
@@ -192,7 +192,7 @@ class UserRabbitIntegrationTest {
 
 		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_UNSUSPENDED.getRoutingKey());
 
-		UserResponse user = subscribeUser();
+		UserSubscribedResponse user = subscribeUser();
 
 		setAuthenticatedUser(user.email(), ADMIN_ROLE);
 
@@ -237,7 +237,7 @@ class UserRabbitIntegrationTest {
 
 		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey());
 
-		UserResponse user = subscribeUser();
+		UserSubscribedResponse user = subscribeUser();
 
 		setAuthenticatedUser(user.email(), ADMIN_ROLE);
 
@@ -304,11 +304,11 @@ class UserRabbitIntegrationTest {
 		return new String(message.getBody(), StandardCharsets.UTF_8);
 	}
 
-	private UserResponse subscribeUser() {
+	private UserSubscribedResponse subscribeUser() {
 		String email = String.format("test.%s@mail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
 		
-		UserResponse response = userService.subscribe(request, "ROLE_READER");
+		UserSubscribedResponse response = userService.subscribe(request, "ROLE_READER");
 		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			userViewRepository.findById(response.userId()).orElseThrow();

@@ -28,6 +28,7 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 	private static final String DISABLE_USER_ENDPOINT = "%s/admin/realms/%s/users/%s";
 	private static final String ASSIGN_ROLE_ENDPOINT = "%s/admin/realms/%s/users/%s/role-mappings/realm";
 	private static final String ROLE_INFO_ENDPOINT = "%s/admin/realms/%s/roles/%s";
+	private static final String DELETE_USER_ENDPOINT = "%s/admin/realms/%s/users/%s";
 
 	private final RestClient restClient;
 	private final KeycloakProperties properties;
@@ -134,6 +135,18 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 		return restClient.get().uri(String.format(ROLE_INFO_ENDPOINT, properties.baseUrl(), properties.realm(), roleName))
 		.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", accessToken)).retrieve().body(KeycloakRole.class);
 		
+	}
+	
+	@Override
+	public void deleteUser(String identityProviderUserId) {
+		
+		String accessToken = tokenService.getAccessToken();
+		
+		restClient.delete().uri(String.format(DELETE_USER_ENDPOINT, properties.baseUrl(), properties.realm(), identityProviderUserId))
+		.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", accessToken))
+		.retrieve()
+	    .toBodilessEntity();
+
 	}
 
 }

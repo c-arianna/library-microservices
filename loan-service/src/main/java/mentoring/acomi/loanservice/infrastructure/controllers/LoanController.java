@@ -15,6 +15,7 @@ import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
+import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
 
@@ -61,6 +62,12 @@ public class LoanController {
 		    @RequestParam(required = false) LoanStatus status) {
 	    LoanFilter loanFilter = new LoanFilter(isbn, userId, status);
 		return service.findLoans(loanFilter);
+	}
+	
+	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")
+	@GetMapping("/{loanId}")
+	public LoanDto getLoan(@PathVariable String loanId) {
+		return service.getLoan(loanId);
 	}
 
 }

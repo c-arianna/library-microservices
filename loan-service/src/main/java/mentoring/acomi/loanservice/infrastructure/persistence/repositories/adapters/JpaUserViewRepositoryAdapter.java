@@ -50,4 +50,9 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 		return entity.isEmpty() ? Optional.empty() : Optional.of(mapper.toDomain(entity.get()));
 	}
 
+	@Override
+	public void deleteAll() {
+		repository.deleteAll();		
+	}
+
 }

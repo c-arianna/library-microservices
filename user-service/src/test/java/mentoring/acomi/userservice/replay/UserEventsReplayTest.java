@@ -32,7 +32,7 @@ import mentoring.acomi.userservice.config.SecurityTestConfig;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.messaging.replay.UserReplayService;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserViewJpaRepository;
@@ -91,7 +91,7 @@ public class UserEventsReplayTest {
 		String email = String.format("test.%s@mail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
 		
-		UserResponse user = userService.subscribe(request, "ROLE_READER");
+		UserSubscribedResponse user = userService.subscribe(request, "ROLE_READER");
 		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			userViewRepository.findById(user.userId()).orElseThrow();

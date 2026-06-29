@@ -39,4 +39,9 @@ public class LoanViewReplayRepository extends BaseReplayRepository implements Lo
 		jdbcTemplate.update("UPDATE %s SET status = ?, updated_at = ? WHERE id = ?".formatted(TABLE_TMP), status.name(), updatedAt, id);
 	}
 
+	@Override
+	public void deleteAll() {
+		throw new UnsupportedOperationException("Not needed");
+	}
+
 }

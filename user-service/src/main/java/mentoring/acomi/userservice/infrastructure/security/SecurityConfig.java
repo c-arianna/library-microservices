@@ -1,5 +1,6 @@
 package mentoring.acomi.userservice.infrastructure.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -20,17 +21,27 @@ import java.util.Map;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+	
+	@Value("${app.test-mode:false}")
+	private boolean testMode;
 
 	private static final String KEYCLOAK_FIELD_ROLES = "roles";
 	private static final String KEYCLOAK_FIELD_REALM_ACCESS = "realm_access";
 	private static final String KEYCLOAK_FIELD_USERNAME = "preferred_username";
 	
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http)
-			throws Exception {
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf(csrf -> csrf.disable()).httpBasic(httpBasic -> httpBasic.disable()).formLogin(form -> form.disable())
-				.authorizeHttpRequests(
-						auth -> auth.requestMatchers(HttpMethod.POST, "/subscribe").permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(auth -> {
+					
+					auth.requestMatchers(HttpMethod.POST, "/subscribe").permitAll();
+					
+					if (testMode) {
+						auth.requestMatchers("/test/**").permitAll();
+					}
+					
+					auth.anyRequest().authenticated();
+				})
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
 				.build();
 	}

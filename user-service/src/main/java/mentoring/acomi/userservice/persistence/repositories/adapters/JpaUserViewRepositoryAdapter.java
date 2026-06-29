@@ -50,4 +50,9 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 		repository.updateStatus(id, status, updatedAt);
 	}
 
+	@Override
+	public void deleteAll() {
+		repository.deleteAll();		
+	}
+
 }

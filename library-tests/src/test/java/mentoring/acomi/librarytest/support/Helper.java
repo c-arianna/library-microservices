@@ -1,6 +1,14 @@
 package mentoring.acomi.librarytest.support;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 
 public class Helper {
 
@@ -53,12 +61,51 @@ public class Helper {
 		return ExpectedValue.ofString(value);
 	}
 	
-	public static String resolve(String value, TestContext world) {
+	public static String resolve(String value, TestContext context) {
 		if (value.startsWith("${") && value.endsWith("}")) {
 			String key = value.substring(2, value.length() - 1);
-			return world.get(key, String.class);
+			return context.get(key, String.class);
 		}
 		return value;
 	}
+	
+	public static void awaitAndAssert(Supplier<EntityExchangeResult<byte[]>> query, Consumer<DocumentContext> assertions, int timeoutMs, int intervalMs) {
+
+		long start = System.currentTimeMillis();
+
+		AssertionError lastError = null;
+
+		while (System.currentTimeMillis() - start < timeoutMs) {
+
+			try {
+
+				var result = query.get();
+
+				String body = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+				DocumentContext json = JsonPath.parse(body);
+
+				assertions.accept(json);
+
+				return;
+
+			} catch (AssertionError e) {
+				lastError = e;
+			}
+
+			try {
+				Thread.sleep(intervalMs);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(e);
+			}
+		}
+
+		if (lastError != null) {
+			throw lastError;
+		}
+
+		throw new AssertionError("Condition not met within timeout");
+	}
+
 	
 }

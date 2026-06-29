@@ -75,6 +75,18 @@
             "realmRoles": [
                 "ROLE_READER"
             ]
+        },
+		{
+            "username": "service-account-user-service-admin",
+            "enabled": true,
+            "serviceAccountClientId": "user-service-admin",
+            "clientRoles": {
+                "realm-management": [
+                    "manage-users",
+                    "view-users",
+                    "view-realm"
+                ]
+            }
         }
     ],
     "clients": [

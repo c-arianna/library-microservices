@@ -1,6 +1,8 @@
 package mentoring.acomi.librarytest.support;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,6 +10,8 @@ public class TestContext {
 
 	private Map<String, Object> context = new HashMap<>();
 
+	public List<String> userPrividerIdToDelete = new ArrayList<>();
+	
 	public void put(String key, Object value) {
 		context.put(key, value);
 	}

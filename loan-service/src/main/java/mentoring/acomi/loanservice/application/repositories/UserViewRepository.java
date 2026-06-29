@@ -8,4 +8,5 @@ import mentoring.acomi.sharedlibrary.model.UserStatus;
 public interface UserViewRepository {
 	public void add(UserView user, Instant createdAt);
 	public void updateStatus(String id, UserStatus status, Instant updatedAt);
+	public void deleteAll();
 }

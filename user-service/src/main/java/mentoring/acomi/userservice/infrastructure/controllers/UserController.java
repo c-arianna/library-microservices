@@ -1,6 +1,8 @@
 package mentoring.acomi.userservice.infrastructure.controllers;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,6 +13,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 
 @RestController
 public class UserController {
@@ -40,8 +43,14 @@ public class UserController {
 	}
 	
 	@PostMapping("/subscribe")
-	public UserResponse subscribe(@RequestBody @Valid SubscribeRequest request) {
+	public UserSubscribedResponse subscribe(@RequestBody @Valid SubscribeRequest request) {
 		return service.subscribe(request, "ROLE_READER");
+	}
+	
+	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")
+	@GetMapping("/{userId}")
+	public UserResponse getUser(@PathVariable String userId) {
+		return service.getUser(userId);
 	}
 	
 }

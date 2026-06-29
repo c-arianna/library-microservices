@@ -54,4 +54,9 @@ public class JpaLoanViewRepositoryAdapter implements LoanViewRepository, LoanVie
 		return repository.findAll(spec).stream().map(mapper::toView).toList();
 	}
 
+	@Override
+	public void deleteAll() {
+		repository.deleteAll();	
+	}
+
 }

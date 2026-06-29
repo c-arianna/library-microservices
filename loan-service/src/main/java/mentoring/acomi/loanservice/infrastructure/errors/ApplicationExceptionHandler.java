@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import mentoring.acomi.loanservice.application.errors.InvalidUser;
+import mentoring.acomi.loanservice.application.errors.LoanNotFound;
 import mentoring.acomi.loanservice.application.errors.UserNotFound;
 import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
@@ -77,6 +78,12 @@ public class ApplicationExceptionHandler {
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
 	public ErrorResponse handleInvalidLoanStateTransitionError(InvalidLoanStateTransition e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+	
+	@ExceptionHandler(LoanNotFound.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleLoanNotFoundError(LoanNotFound e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "APPLICATION_ERROR");
 	}
 	
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

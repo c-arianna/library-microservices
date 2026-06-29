@@ -1,6 +1,7 @@
 package mentoring.acomi.loanservice.application.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.errors.InvalidUser;
+import mentoring.acomi.loanservice.application.errors.LoanNotFound;
 import mentoring.acomi.loanservice.application.errors.UserNotFound;
 import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
@@ -114,7 +116,8 @@ public class LoanService {
 
 		if (userInfo.isReader()) {
 
-			UserView user = userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+			UserView user = userViewRepository.findByEmail(email)
+					.orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
 
 			String loggedUserId = user.id();
 			if (!loggedUserId.equals(userId)) {
@@ -194,6 +197,31 @@ public class LoanService {
 		boolean isReader = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_READER"));
 
 		return new UserInfo(email, isReader);
+	}
+
+	public LoanDto getLoan(String loanId) {
+
+		Optional<LoanView> loan = loanViewRepository.findById(loanId);
+
+		if (loan.isEmpty()) {
+			throw new LoanNotFound(String.format("Loan %s not found", loanId));
+		}
+
+		LoanView loanView = loan.get();
+		
+		UserInfo userInfo = getUserInfo();
+
+		String email = userInfo.email();
+
+		if (userInfo.isReader) {
+			UserView user = userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Mail: %s", email)));
+
+			if(!loanView.userId().equalsIgnoreCase(user.id())) {
+				throw new LoanNotFound("User %s cannot see loan %s, loan user ID: %s".formatted(user.id(), loanId, loanView.userId()));
+			}
+		}
+
+		return new LoanDto(loanView.id(), loanView.isbn(), loanView.userId(), loanView.status(), loanView.start(), loanView.end());
 	}
 
 }
