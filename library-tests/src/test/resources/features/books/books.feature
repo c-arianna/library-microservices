@@ -1,10 +1,13 @@
 Feature: Gestione del catalogo della biblioteca tramite l'applicazione
   L'amministratore della bibloteca può
   - aggiungere nuovi libri
+  - aggiungere/rimuovere copie dei libri
   - visualizzare i libri presenti nel catalogo
+  - visualizzare il dettaglio dei libri
 
   Gli utenti possono
   - visualizzare i libri presenti nel catalogo
+  - visualizzare il dettaglio dei libri
    
   Rule: Inserimento di un nuovo libro nel catalogo
 

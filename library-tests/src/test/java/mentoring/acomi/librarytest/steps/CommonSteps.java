@@ -1,5 +1,6 @@
 package mentoring.acomi.librarytest.steps;
 
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,8 @@ public class CommonSteps {
 	public static final String RESPONSE_BODY = "responseBody";
 	public static final String RESPONSE_STATUS = "responseStatus";
 	public static final String LAST_QUERY = "LAST_QUERY";
+	
+	public static final String USER_ID = "USER_ID";
 	
 	
 	private RestTestClient client = RestTestClient.bindToServer().baseUrl(TestConfig.BASE_URL).build();;
@@ -111,7 +114,49 @@ public class CommonSteps {
 
 		Assertions.assertEquals(204, result.getStatus().value());
 	}
+	
+	@Given("esiste l'utente con credenziali {string}, {string}")
+	public void subscribeUser(String mail, String password) {
 
+		String body = """
+				{
+				  "name": "Mario",
+				  "lastname": "Rossi",
+				  "email": "%s",
+				  "password": "%s"
+				}
+				""".formatted(mail, password);
+
+		var result = client.post().uri("/users/subscribe").contentType(MediaType.APPLICATION_JSON).body(body).exchange()
+				.expectBody().returnResult();
+
+		Assertions.assertEquals(200, result.getStatus().value());
+
+		String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+
+		var bodyResponse = JsonPath.parse(response);
+
+		String userId = bodyResponse.read("$.userId");
+		String userIdentityProviderId = bodyResponse.read("$.userIdentityProviderId");
+
+		context.put(USER_ID, userId);
+		context.userProviderIdToDelete.add(userIdentityProviderId);
+		context.put(mail, userId);
+
+	}
+
+	@Given("l'utente con ID {string} non esiste")
+	public void userNotExist(String userId) {
+
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+
+		var result = client.get().uri("/users/%s".formatted(userId))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		Assertions.assertEquals(result.getStatus().value(), 404);
+		
+		context.put(USER_ID, userId);
+	}
 	/*
 	 * ############################### THEN #####################################
 	 */

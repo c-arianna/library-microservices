@@ -19,7 +19,7 @@ public class Hooks {
 	public void cleanup() {
 		client.post().uri("/test/reset").exchange().expectStatus().isOk().expectBody().isEmpty();
 		
-		for(String userIdentityProviderId : context.userPrividerIdToDelete) {
+		for(String userIdentityProviderId : context.userProviderIdToDelete) {
 			client.post().uri(String.format("/test/reset/user/%s", userIdentityProviderId)).exchange().expectStatus().isOk().expectBody().isEmpty();
 		}
 	}

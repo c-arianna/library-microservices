@@ -27,7 +27,7 @@ public class TestController {
 
     @PostMapping("/reset")
     public void reset() {
-    	userRepository.deleteAll();
+    	userRepository.deleteAllReaderUsers();
         eventRepository.deleteAll();
     }
     

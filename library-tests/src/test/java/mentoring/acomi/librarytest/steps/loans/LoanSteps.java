@@ -24,7 +24,6 @@ import mentoring.acomi.librarytest.support.TestContext;
 
 public class LoanSteps {
 
-	private static final String USER_ID = "USER_ID";
 	private static final String LOAN_ID = "LOAN_ID";
 	
 	private final TestContext context;
@@ -39,52 +38,12 @@ public class LoanSteps {
 	 * ############################### GIVEN #####################################
 	 */
 
-	@Given("esiste l'utente con credenziali {string}, {string}")
-	public void subscribeUser(String mail, String password) {
-
-		String body = """
-				{
-				  "name": "Mario",
-				  "lastname": "Rossi",
-				  "email": "%s",
-				  "password": "%s"
-				}
-				""".formatted(mail, password);
-
-		var result = client.post().uri("/users/subscribe").contentType(MediaType.APPLICATION_JSON).body(body).exchange()
-				.expectBody().returnResult();
-
-		Assertions.assertEquals(200, result.getStatus().value());
-
-		String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
-
-		var bodyResponse = JsonPath.parse(response);
-
-		String userId = bodyResponse.read("$.userId");
-		String userIdentityProviderId = bodyResponse.read("$.userIdentityProviderId");
-
-		context.put(USER_ID, userId);
-		context.userPrividerIdToDelete.add(userIdentityProviderId);
-
-	}
-
 	@Given("il catalogo non contiene il libro con isbn {string}")
 	public void bookNotExist(String isbn) {
 
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 
 		var result = client.get().uri("/books/%s".formatted(isbn))
-				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
-
-		Assertions.assertEquals(result.getStatus().value(), 404);
-	}
-
-	@Given("l'utente con ID {string} non esiste")
-	public void userNotExist(String userId) {
-
-		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
-
-		var result = client.get().uri("/users/%s".formatted(userId))
 				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
 
 		Assertions.assertEquals(result.getStatus().value(), 404);
@@ -182,6 +141,7 @@ public class LoanSteps {
 				Assertions.assertEquals(status, responseStatus);
 		}), 5000, 200);
 	}
+	
 	/*
 	 * ############################### WHEN #####################################
 	 */
@@ -308,6 +268,7 @@ public class LoanSteps {
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
         getLoanDetail(accessToken);
 	}
+	
 	/*
 	 * ############################### THEN #####################################
 	 */

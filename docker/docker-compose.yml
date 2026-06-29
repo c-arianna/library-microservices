@@ -138,7 +138,7 @@ services:
       - "3309:3306"
     volumes:
       - mysql_user_data:/var/lib/mysql
-      - ./mysql-user:/docker-entrypoint-initdb.d
+      - ./mysql-user/init-dev:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -201,7 +201,7 @@ services:
     tmpfs:
       - /var/lib/mysql
     volumes:
-      - ./mysql-user:/docker-entrypoint-initdb.d
+      - ./mysql-user/init-test:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s

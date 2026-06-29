@@ -10,7 +10,7 @@ public class TestContext {
 
 	private Map<String, Object> context = new HashMap<>();
 
-	public List<String> userPrividerIdToDelete = new ArrayList<>();
+	public List<String> userProviderIdToDelete = new ArrayList<>();
 	
 	public void put(String key, Object value) {
 		context.put(key, value);

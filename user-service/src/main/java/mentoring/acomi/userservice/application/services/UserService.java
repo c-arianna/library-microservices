@@ -36,6 +36,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
 import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakException;
 
 @Service
@@ -182,7 +183,14 @@ public class UserService {
 		return new UserCreationError(message);
 	}
 
-	public UserResponse getUser(String userId) {
+	public UserResponse getUserProfile(String userId) {
+		
+		UserView loggedUser = getLoggedUser();
+		
+		if (loggedUser.role() == UserRole.READER && !loggedUser.id().equalsIgnoreCase(userId)) {
+			throw new UserNotFound("Reader user ID %s cannot see user ID %s profile".formatted(loggedUser.id(), userId));
+		}
+		
 		Optional<UserView> user = userViewRepository.findById(userId);
 		
 		if(user.isEmpty()) {
@@ -193,6 +201,16 @@ public class UserService {
 		
 		return new UserResponse(userView.id(), userView.email(), userView.userIdentityProviderId(), userView.role(), userView.status());
 	
+	}
+
+	public UsersResponse getUsers() {
+		List<UserView> users = userViewRepository.findAll();
+		
+		if(users.isEmpty()) {
+			return new UsersResponse(List.of());
+		}
+		
+		return new UsersResponse(users.stream().map(u -> new UserResponse(u.id(), u.email(), u.userIdentityProviderId(), u.role(), u.status())).toList());
 	}
 	
 }

@@ -1,6 +1,7 @@
 package mentoring.acomi.userservice.persistence.repositories.adapters;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
@@ -51,8 +52,13 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 	}
 
 	@Override
-	public void deleteAll() {
-		repository.deleteAll();		
+	public void deleteAllReaderUsers() {
+		repository.deleteAllReaderUsers();		
+	}
+
+	@Override
+	public List<UserView> findAll() {
+		return repository.findAll().stream().map(e -> mapper.toDomain(e)).toList();
 	}
 
 }

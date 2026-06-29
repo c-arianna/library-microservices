@@ -41,7 +41,7 @@ public class UserViewReplayRepository extends BaseReplayRepository implements Us
 	}
 
 	@Override
-	public void deleteAll() {
+	public void deleteAllReaderUsers() {
 		throw new UnsupportedOperationException("Not needed");		
 	}
 

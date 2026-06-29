@@ -14,6 +14,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
 
 @RestController
 public class UserController {
@@ -26,7 +27,7 @@ public class UserController {
 	
 	@PreAuthorize("hasAnyRole('READER')")
 	@PostMapping("/unsubscribe")
-	public UserResponse unsubscribe(@RequestBody @Valid UnsubscribeRequest request) {
+	public UserResponse unsubscribe(@RequestBody UnsubscribeRequest request) {
 		return service.unsubscribe(request);
 	}
 	
@@ -49,8 +50,14 @@ public class UserController {
 	
 	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")
 	@GetMapping("/{userId}")
-	public UserResponse getUser(@PathVariable String userId) {
-		return service.getUser(userId);
+	public UserResponse getUserProfile(@PathVariable String userId) {
+		return service.getUserProfile(userId);
+	}
+	
+	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+	@GetMapping("/")
+	public UsersResponse getUsers() {
+		return service.getUsers();
 	}
 	
 }

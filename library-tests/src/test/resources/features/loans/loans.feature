@@ -3,9 +3,13 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
   - confermare una richiesta di prestito
   - rifiutare una richiesta di prestito
   - eseguire la restituzione di un libro
+  - visualizzare l'elenco di tutti i prestiti
+  - visualizzare il dettaglio di tutti i prestiti
 
   Gli utenti possono
   - inserire una richiesta di prestito per un libro
+  - visualizzare l'elenco dei propri prestiti
+  - visualizzare il dettaglio dei propri prestiti
   
   Background:
     Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
