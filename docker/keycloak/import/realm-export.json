@@ -565,7 +565,7 @@
         {
             "id": "323b18ce-02f6-46bf-996f-00d5cbbcbdee",
             "username": "librarian@gmail.com",
-			"firstName": "Librarian",
+            "firstName": "Librarian",
             "lastName": "Librarian",
             "email": "librarian@gmail.com",
             "emailVerified": true,
@@ -573,7 +573,7 @@
             "createdTimestamp": 1781173193517,
             "totp": false,
             "credentials": [
-				{
+                {
                     "type": "password",
                     "value": "librarian12345678",
                     "temporary": false
@@ -594,7 +594,7 @@
         {
             "id": "52e30755-fb2e-4f13-b7e2-ca61bf6561df",
             "username": "reader@gmail.com",
-			"firstName": "Reader",
+            "firstName": "Reader",
             "lastName": "Reader",
             "email": "reader@gmail.com",
             "emailVerified": true,
@@ -602,7 +602,7 @@
             "createdTimestamp": 1781173167992,
             "totp": false,
             "credentials": [
-			{
+                {
                     "type": "password",
                     "value": "Test12345678",
                     "temporary": false
@@ -979,6 +979,69 @@
                 "organization",
                 "microprofile-jwt"
             ]
+        },
+        {
+            "clientId": "library-frontend",
+            "name": "",
+            "description": "",
+            "rootUrl": "",
+            "adminUrl": "",
+            "baseUrl": "",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "redirectUris": [
+                "http://localhost:4200/*"
+            ],
+            "webOrigins": [
+                "http://localhost:4200"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": true,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+                "realm_client": "false",
+                "oidc.ciba.grant.enabled": "false",
+                "backchannel.logout.session.required": "true",
+                "standard.token.exchange.enabled": "false",
+                "oauth2.jwt.authorization.grant.enabled": "false",
+                "oauth2.device.authorization.grant.enabled": "false",
+                "pkce.code.challenge.method": "S256",
+                "backchannel.logout.revoke.offline.tokens": "false",
+                "dpop.bound.access.tokens": "false"
+            },
+            "authenticationFlowBindingOverrides": {
+            },
+            "fullScopeAllowed": true,
+            "nodeReRegistrationTimeout": -1,
+            "defaultClientScopes": [
+                "web-origins",
+                "acr",
+                "roles",
+                "profile",
+                "basic",
+                "email"
+            ],
+            "optionalClientScopes": [
+                "address",
+                "phone",
+                "offline_access",
+                "organization",
+                "microprofile-jwt"
+            ],
+            "access": {
+                "view": true,
+                "configure": true,
+                "manage": true
+            }
         },
         {
             "id": "9ade93b6-04e3-41a2-92e4-7098ee4aa062",
