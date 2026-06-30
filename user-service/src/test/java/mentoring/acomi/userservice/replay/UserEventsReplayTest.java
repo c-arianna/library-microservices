@@ -64,8 +64,8 @@ public class UserEventsReplayTest {
 
 		keycloak.start();
 		
-		registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
-				() -> keycloak.getAuthServerUrl() + "/realms/library-microservices");
+		registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri",
+				() -> keycloak.getAuthServerUrl() + "/realms/library-microservices/protocol/openid-connect/certs");
 		registry.add("keycloak.base-url", keycloak::getAuthServerUrl);
 		registry.add("keycloak.realm", () -> "library-microservices");
 		registry.add("keycloak.admin-realm", () -> "library-microservices");

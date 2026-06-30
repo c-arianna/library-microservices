@@ -21,7 +21,7 @@ services:
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
     command: 
-      - start
+      - start-dev
       - --http-enabled=true
       - --hostname-strict=false
       - --import-realm
@@ -37,10 +37,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
-      
-      KC_HOSTNAME: auth.local
-    extra_hosts:
-      - "auth.local:host-gateway"
+   
     ports:
       - "8084:8080"
     volumes:
@@ -219,10 +216,8 @@ services:
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: dev
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       mysql-book:
         condition: service_healthy
@@ -242,10 +237,8 @@ services:
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: dev
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       mysql-loan:
         condition: service_healthy
@@ -270,10 +263,8 @@ services:
       KEYCLOAK_ADMIN_CLIENT_ID: user-service-admin
       KEYCLOAK_ADMIN_CLIENT_SECRET: CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm
       SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: dev
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       mysql-user:
         condition: service_healthy
@@ -293,11 +284,9 @@ services:
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       mysql-book-gherkin:
         condition: service_healthy
@@ -317,11 +306,9 @@ services:
       SPRING_DATASOURCE_USERNAME: libraryApp
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       mysql-loan-gherkin:
         condition: service_healthy
@@ -346,11 +333,9 @@ services:
       KEYCLOAK_ADMIN_CLIENT_ID: user-service-admin
       KEYCLOAK_ADMIN_CLIENT_SECRET: CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       mysql-user-gherkin:
         condition: service_healthy
@@ -370,10 +355,8 @@ services:
       BOOK_SERVICE_URL: http://book-service:8080
       LOAN_SERVICE_URL: http://loan-service:8080
       USER_SERVICE_URL: http://user-service:8080
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: dev
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       book-service:
         condition: service_started
@@ -395,11 +378,9 @@ services:
       LOAN_SERVICE_URL: http://loan-service-gherkin:8080
       USER_SERVICE_URL: http://user-service-gherkin:8080
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://auth.local:8084/realms/library-microservices-test
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
-    extra_hosts:
-      - "auth.local:host-gateway"
     depends_on:
       book-service-gherkin:
         condition: service_started

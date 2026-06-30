@@ -28,7 +28,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8084/realms/library-microservices
+          jwk-set-uri: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}
