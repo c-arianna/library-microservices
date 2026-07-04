@@ -20,6 +20,12 @@
 		<maven.test.skip>true</maven.test.skip>
 	</properties>
 
-	<dependencies></dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>com.networknt</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>3.0.5</version>
+		</dependency>
+	</dependencies>
 
 </project>

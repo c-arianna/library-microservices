@@ -1,84 +1,64 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"title": "UserSubscribedEventV1",
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"eventId": {
-			"type": "string",
-			"format": "uuid"
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
 		},
-		"eventType": {
-			"type": "string",
-			"const": "USER_SUBSCRIBED"
-		},
-		"producer": {
-			"type": "string",
-			"const": "user-service"
-		},
-		"aggregateId": {
-			"type": "string"
-		},
-		"aggregateType": {
-			"type": "string",
-			"const": "USER"
-		},
-		"eventVersion": {
-			"type": "integer"
-		},
-		"occurredAt": {
-			"type": "string",
-			"format": "date-time"
-		},
-		"schemaVersion": {
-			"type": "integer",
-			"const": 1
-		},
-		"payload": {
+		{
+			"type": "object",
 			"properties": {
-				"userId": {
-					"type": "string"
+				"eventType": {
+					"const": "USER_SUBSCRIBED"
 				},
-				"email": {
-					"type": "string"
+				"producer": {
+					"const": "user-service"
 				},
-				"name": {
-					"type": "string"
+				"aggregateType": {
+					"const": "USER"
 				},
-				"lastname": {
-					"type": "string"
-				},
-				"userIdentityProviderId": {
-					"type": "string"
-				},
-				"status": {
-					"type": "string",
-					"const": "ACTIVE"
-				},
-				"role": {
-					"type": "string"
+				"payload": {
+					"properties": {
+						"userId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"email": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"name": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"lastname": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"userIdentityProviderId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"status": {
+							"const": "ACTIVE"
+						},
+						"role": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						}
+					},
+					"required": [
+						"userId",
+						"email",
+						"name",
+						"lastname",
+						"userIdentityProviderId",
+						"status",
+						"role"
+					]
 				}
 			},
 			"required": [
-				"userId",
-				"email",
-				"name",
-				"lastname",
-				"userIdentityProviderId",
-				"status",
-				"role"
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
 			]
 		}
-	},
-	"required": [
-		"eventId",
-		"eventType",
-		"producer",
-		"aggregateId",
-		"aggregateType",
-		"eventVersion",
-		"occurredAt",
-		"schemaVersion",
-		"payload"
-	]
+	],
+	"unevaluatedProperties": false
 }

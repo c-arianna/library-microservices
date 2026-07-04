@@ -1,72 +1,53 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"title": "BookRegisteredEventV1",
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"eventId": {
-			"type": "string",
-			"format": "uuid"
+	"title": "BookBorrowRejectedEventV1",
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
 		},
-		"eventType": {
-			"type": "string",
-			"const": "BOOK_REGISTERED"
-		},
-		"producer": {
-			"type": "string",
-			"const": "book-service"
-		},
-		"aggregateId": {
-			"type": "string"
-		},
-		"aggregateType": {
-			"type": "string",
-			"const": "BOOK"
-		},
-		"eventVersion": {
-			"type": "integer"
-		},
-		"occurredAt": {
-			"type": "string",
-			"format": "date-time"
-		},
-		"schemaVersion": {
-			"type": "integer",
-			"const": 1
-		},
-		"payload": {
+		{
 			"type": "object",
 			"properties": {
-				"isbn": {
-					"type": "string"
+				"eventType": {
+					"const": "BOOK_REGISTERED"
 				},
-				"author": {
-					"type": "string"
+				"producer": {
+					"const": "book-service"
 				},
-				"title": {
-					"type": "string"
+				"aggregateType": {
+					"const": "BOOK"
 				},
-				"description": {
-					"type": "string"
+				"payload": {
+					"type": "object",
+					"properties": {
+						"isbn": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"author": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"title": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"description": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"isbn",
+						"author",
+						"title",
+						"description"
+					]
 				}
 			},
 			"required": [
-				"isbn",
-				"author",
-				"title",
-				"description"
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
 			]
 		}
-	},
-	"required": [
-		"eventId",
-		"eventType",
-		"producer",
-		"aggregateId",
-		"aggregateType",
-		"eventVersion",
-		"occurredAt",
-		"schemaVersion",
-		"payload"
-	]
+	],
+	"unevaluatedProperties": false
 }

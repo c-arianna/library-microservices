@@ -1,66 +1,48 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"title": "BookReleasedEventV1",
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"eventId": {
-			"type": "string",
-			"format": "uuid"
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
 		},
-		"eventType": {
-			"type": "string",
-			"const": "BOOK_RELEASED"
-		},
-		"producer": {
-			"type": "string",
-			"const": "book-service"
-		},
-		"aggregateId": {
-			"type": "string"
-		},
-		"aggregateType": {
-			"type": "string",
-			"const": "BOOK"
-		},
-		"eventVersion": {
-			"type": "integer"
-		},
-		"occurredAt": {
-			"type": "string",
-			"format": "date-time"
-		},
-		"schemaVersion": {
-			"type": "integer",
-			"const": 1
-		},
-		"payload": {
+		{
+			"type": "object",
 			"properties": {
-				"isbn": {
-					"type": "string"
+				"eventType": {
+					"const": "BOOK_RELEASED"
 				},
-				"loanId": {
-					"type": "string"
+				"producer": {
+					"const": "book-service"
 				},
-				"userId": {
-					"type": "string"
+				"aggregateType": {
+					"const": "BOOK"
+				},
+				"payload": {
+					"properties": {
+						"isbn": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"loanId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"userId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						}
+					},
+					"required": [
+						"isbn",
+						"loanId",
+						"userId"
+					]
 				}
 			},
 			"required": [
-				"isbn",
-				"loanId",
-				"userId"
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
 			]
 		}
-	},
-	"required": [
-		"eventId",
-		"eventType",
-		"producer",
-		"aggregateId",
-		"eventVersion",
-		"occurredAt",
-		"schemaVersion",
-		"payload"
-	]
+	],
+	"unevaluatedProperties": false
 }

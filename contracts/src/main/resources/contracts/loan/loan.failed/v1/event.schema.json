@@ -1,63 +1,44 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"title": "LoanFailedEventV1",
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"eventId": {
-			"type": "string",
-			"format": "uuid"
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
 		},
-		"eventType": {
-			"type": "string",
-			"const": "LOAN_FAILED"
-		},
-		"producer": {
-			"type": "string",
-			"const": "loan-service"
-		},
-		"aggregateId": {
-			"type": "string"
-		},
-		"aggregateType": {
-			"type": "string",
-			"const": "LOAN"
-		},
-		"eventVersion": {
-			"type": "integer"
-		},
-		"occurredAt": {
-			"type": "string",
-			"format": "date-time"
-		},
-		"schemaVersion": {
-			"type": "integer",
-			"const": 1
-		},
-		"payload": {
+		{
+			"type": "object",
 			"properties": {
-				"loanId": {
-					"type": "string"
+				"eventType": {
+					"const": "LOAN_FAILED"
 				},
-				"reason": {
-					"type": "string"
+				"producer": {
+					"const": "loan-service"
+				},
+				"aggregateType": {
+					"const": "LOAN"
+				},
+				"payload": {
+					"properties": {
+						"loanId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"reason": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"loanId",
+						"reason"
+					]
 				}
 			},
 			"required": [
-				"loanId",
-				"reason"
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
 			]
 		}
-	},
-	"required": [
-		"eventId",
-		"eventType",
-		"producer",
-		"aggregateId",
-		"aggregateType",
-		"eventVersion",
-		"occurredAt",
-		"schemaVersion",
-		"payload"
-	]
+	],
+	"unevaluatedProperties": false
 }

@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 
-import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -23,9 +22,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
-import com.networknt.schema.SchemaRegistry;
-import com.networknt.schema.SpecificationVersion;
 
+import mentoring.acomi.contracts.support.JsonSchemaSupport;
 import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.BookRegisteredV1NotificationHandler;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.BookRegisteredNotificationPayload;
@@ -36,7 +34,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
-public class BookRegisteredNotificationHandlerTest {
+public class BookRegisteredNotificationHandlerTest extends JsonSchemaSupport {
 
 	private static final String BOOK_REGISTERED_EVENT_NAME = IntegrationEventTypes.BOOK_REGISTERED.eventName;
 
@@ -134,22 +132,6 @@ public class BookRegisteredNotificationHandlerTest {
 		Assertions.assertTrue(validationErrors.isEmpty(), validationErrors.toString());
 
 		return eventJson;
-	}
-
-	private InputStream loadResource(String path) {
-
-		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-
-		if (is == null) {
-			throw new IllegalStateException(String.format("File not found in classpath: %s", path));
-		}
-
-		return is;
-	}
-
-	private Schema loadSchema(String path) {
-		SchemaRegistry registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
-		return registry.getSchema(loadResource(path));
 	}
 
 }

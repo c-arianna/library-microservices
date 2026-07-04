@@ -1,8 +1,7 @@
 package mentoring.acomi.userservice.event.contract.producer;
 
-import java.io.InputStream;
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -11,15 +10,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
 
+import mentoring.acomi.contracts.support.JsonSchemaSupport;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
@@ -33,9 +27,11 @@ import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserUnsubscribedPayload;
 import mentoring.acomi.userservice.infrastructure.messaging.UserIntegrationEventMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 
-public class UserEventProducerContractTest {
+public class UserEventProducerContractTest extends JsonSchemaSupport {
 	
 	private static final String USER_UNSUSPENDED_EVENT_NAME = IntegrationEventTypes.USER_UNSUSPENDED.eventName;
 	private static final String USER_SUSPENDED_EVENT_NAME = IntegrationEventTypes.USER_SUSPENDED.eventName;
@@ -45,7 +41,7 @@ public class UserEventProducerContractTest {
 	private static final String SCHEMA_PATH = "contracts/user/%s/v1/event.schema.json";
 	private static final String SAMPLE_PATH = "contracts/user/%s/v1/sample.json";
 	
-	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private final UserIntegrationEventMapper mapper = new UserIntegrationEventMapper();
 
@@ -193,42 +189,26 @@ public class UserEventProducerContractTest {
 		IntegrationEventEnvelope<?> integrationEvent = mapper.map(userEvent);
 		JsonNode json = objectMapper.valueToTree(integrationEvent);
 
-		JsonSchema schema = loadSchema(eventSchema);
-		Set<ValidationMessage> errors = schema.validate(json);
+		Schema schema = loadSchema(eventSchema);
+		List<Error> errors = schema.validate(json);
 
 		Assertions.assertTrue(errors.isEmpty(), errors.toString());
 	}
 
 	private void validateSample(String samplePath, String eventSchema) throws Exception {
 		JsonNode sample = objectMapper.readTree(loadResource(samplePath));
-		JsonSchema schema = loadSchema(eventSchema);
+		Schema schema = loadSchema(eventSchema);
 
-		Set<ValidationMessage> errors = schema.validate(sample);
+		List<Error> errors = schema.validate(sample);
 		Assertions.assertTrue(errors.isEmpty(), errors.toString());
 	}
 
 	private void validateInvalidJson(String invalidJson, String eventSchema) throws Exception {
 		JsonNode json = objectMapper.readTree(invalidJson);
-		JsonSchema schema = loadSchema(eventSchema);
+		Schema schema = loadSchema(eventSchema);
 
-		Set<ValidationMessage> errors = schema.validate(json);
+		List<Error> errors = schema.validate(json);
 		Assertions.assertFalse(errors.isEmpty());
-	}
-
-	private JsonSchema loadSchema(String path) {
-		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-		return factory.getSchema(loadResource(path));
-	}
-
-	private InputStream loadResource(String path) {
-
-		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-
-		if (is == null) {
-			throw new IllegalStateException(String.format("File not found in classpath: %s", path));
-		}
-
-		return is;
 	}
 
 }

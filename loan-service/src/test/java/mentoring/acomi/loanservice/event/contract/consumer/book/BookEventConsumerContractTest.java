@@ -1,7 +1,6 @@
 package mentoring.acomi.loanservice.event.contract.consumer.book;
 
-import java.io.InputStream;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -10,23 +9,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
 
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
+import mentoring.acomi.contracts.support.JsonSchemaSupport;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
-public class BookEventConsumerContractTest {
+public class BookEventConsumerContractTest extends JsonSchemaSupport {
 
 	private static final String BOOK_BORROW_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROW_REJECTED.eventName;
 	private static final String BOOK_RESERVATION_REJECTED_EVENT_NAME =IntegrationEventTypes.BOOK_RESERVATION_REJECTED.eventName;
@@ -36,7 +28,7 @@ public class BookEventConsumerContractTest {
 	private static final String BOOK_SCHEMA_PATH = "contracts/book/%s/v1/event.schema.json";
 	private static final String BOOK_SAMPLE_PATH = "contracts/book/%s/v1/sample.json";
 
-	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@ParameterizedTest(name = "[{index}] valid sample -> {0}")
 	@MethodSource("sampleCases")
@@ -48,7 +40,7 @@ public class BookEventConsumerContractTest {
 	void shouldDeserializeBookBorrowedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_BORROWED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<BookLoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("BOOK_BORROWED", event.eventType().toString());
 	}
@@ -57,7 +49,7 @@ public class BookEventConsumerContractTest {
 	void shouldDeserializeBookReservedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_RESERVED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<BookLoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("BOOK_RESERVED", event.eventType().toString());
 	}
@@ -66,7 +58,7 @@ public class BookEventConsumerContractTest {
 	void shouldDeserializeBookReserveRejectedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_RESERVATION_REJECTED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("BOOK_RESERVATION_REJECTED", event.eventType().toString());
 	}
@@ -75,7 +67,7 @@ public class BookEventConsumerContractTest {
 	void shouldDeserializeBookBorrowRejectedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_BORROW_REJECTED_EVENT_NAME)));
 		
-		IntegrationEventEnvelope<BookBorrowRejectedIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("BOOK_BORROW_REJECTED", event.eventType().toString());
 		
@@ -83,9 +75,9 @@ public class BookEventConsumerContractTest {
 	
 	private void validateSample(String samplePath, String eventSchema) throws Exception {
 		JsonNode sample = objectMapper.readTree(loadResource(samplePath));
-		JsonSchema schema = loadSchema(eventSchema);
+		Schema schema = loadSchema(eventSchema);
 
-		Set<ValidationMessage> errors = schema.validate(sample);
+		List<Error> errors = schema.validate(sample);
 		Assertions.assertTrue(errors.isEmpty(), errors.toString());
 	}
 
@@ -103,19 +95,4 @@ public class BookEventConsumerContractTest {
 				String.format(BOOK_SAMPLE_PATH, eventName));
 	}
 
-	private JsonSchema loadSchema(String path) {
-		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-		return factory.getSchema(loadResource(path));
-	}
-
-	private InputStream loadResource(String path) {
-
-		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-
-		if (is == null) {
-			throw new IllegalStateException(String.format("File not found in classpath: %s", path));
-		}
-
-		return is;
-	}
 }

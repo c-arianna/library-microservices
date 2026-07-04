@@ -1,63 +1,44 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"title": "BookCopiesUpdateEventV1",
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"eventId": {
-			"type": "string",
-			"format": "uuid"
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
 		},
-		"eventType": {
-			"type": "string",
-			"const": "BOOK_COPIES_UPDATED"
-		},
-		"producer": {
-			"type": "string",
-			"const": "book-service"
-		},
-		"aggregateId": {
-			"type": "string"
-		},
-		"aggregateType": {
-			"type": "string",
-			"const": "BOOK"
-		},
-		"eventVersion": {
-			"type": "integer"
-		},
-		"occurredAt": {
-			"type": "string",
-			"format": "date-time"
-		},
-		"schemaVersion": {
-			"type": "integer",
-			"const": 1
-		},
-		"payload": {
+		{
+			"type": "object",
 			"properties": {
-				"isbn": {
-					"type": "string"
+				"eventType": {
+					"const": "BOOK_COPIES_UPDATED"
 				},
-				"quantity": {
-					"type": "integer"
+				"producer": {
+					"const": "book-service"
+				},
+				"aggregateType": {
+					"const": "BOOK"
+				},
+				"payload": {
+					"properties": {
+						"isbn": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"quantity": {
+							"type": "integer"
+						}
+					},
+					"required": [
+						"isbn",
+						"quantity"
+					]
 				}
 			},
 			"required": [
-				"isbn",
-				"quantity"
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
 			]
 		}
-	},
-	"required": [
-		"eventId",
-		"eventType",
-		"producer",
-		"aggregateId",
-		"aggregateType",
-		"eventVersion",
-		"occurredAt",
-		"schemaVersion",
-		"payload"
-	]
+	],
+	"unevaluatedProperties": false
 }

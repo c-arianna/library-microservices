@@ -1,8 +1,7 @@
 package mentoring.acomi.bookservice.event.contract.producer;
 
-import java.io.InputStream;
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -10,10 +9,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.ValidationMessage;
-import com.networknt.schema.SpecVersion;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
 
 import mentoring.acomi.bookservice.domain.events.BookBorrowRejectReason;
 import mentoring.acomi.bookservice.domain.events.BookBorrowRejectedEvent;
@@ -32,15 +29,13 @@ import mentoring.acomi.bookservice.domain.events.payload.BookLoanPayload;
 import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
 import mentoring.acomi.bookservice.domain.events.payload.BookReservationRejectedPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationEventMapper;
+import mentoring.acomi.contracts.support.JsonSchemaSupport;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-public class BookEventProducerContractTest {
+public class BookEventProducerContractTest extends JsonSchemaSupport {
 
 	private static final String BOOK_BORROW_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROW_REJECTED.eventName;
 	private static final String BOOK_RESERVATION_REJECTED_EVENT_NAME = IntegrationEventTypes.BOOK_RESERVATION_REJECTED.eventName;
@@ -54,10 +49,10 @@ public class BookEventProducerContractTest {
 	private static final String SCHEMA_PATH = "contracts/book/%s/v1/event.schema.json";
 	private static final String SAMPLE_PATH = "contracts/book/%s/v1/sample.json";
 	
-    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final BookIntegrationEventMapper mapper = new BookIntegrationEventMapper();
-
+    
     @ParameterizedTest(name = "[{index}] valid producer event -> {0}")
     @MethodSource("validProducerCases")
     void shouldProduceValidEvent(String name, BookContractCase testCase) {
@@ -313,41 +308,26 @@ public class BookEventProducerContractTest {
         IntegrationEventEnvelope<?> integrationEvent = mapper.map(bookEvent);
         JsonNode json = objectMapper.valueToTree(integrationEvent);
 
-        JsonSchema schema = loadSchema(eventSchema);
-        Set<ValidationMessage> errors = schema.validate(json);
+        Schema schema = loadSchema(eventSchema);
+        List<Error> errors = schema.validate(json);
 
         Assertions.assertTrue(errors.isEmpty(), errors.toString());
     }
 
     private void validateSample(String samplePath, String eventSchema) throws Exception {
         JsonNode sample = objectMapper.readTree(loadResource(samplePath));
-        JsonSchema schema = loadSchema(eventSchema);
+        Schema schema = loadSchema(eventSchema);
 
-        Set<ValidationMessage> errors = schema.validate(sample);
+        List<Error> errors = schema.validate(sample);
         Assertions.assertTrue(errors.isEmpty(), errors.toString());
     }
 
-    protected void validateInvalidJson(String invalidJson, String eventSchema) throws Exception {
+    private void validateInvalidJson(String invalidJson, String eventSchema) throws Exception {
         JsonNode json = objectMapper.readTree(invalidJson);
-        JsonSchema schema = loadSchema(eventSchema);
+        Schema schema = loadSchema(eventSchema);
 
-        Set<ValidationMessage> errors = schema.validate(json);
+        List<Error> errors = schema.validate(json);
         Assertions.assertFalse(errors.isEmpty());
     }
 
-    private JsonSchema loadSchema(String path) {
-        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-        return factory.getSchema(loadResource(path));
-    }
-
-    private InputStream loadResource(String path) {
-        
-    	InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-
-        if (is == null) {
-            throw new IllegalStateException(String.format("File not found in classpath: %s", path));
-        }
-
-        return is;
-    }
 }

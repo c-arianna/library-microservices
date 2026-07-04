@@ -1,7 +1,6 @@
 package mentoring.acomi.bookservice.event.contract.consumer;
 
-import java.io.InputStream;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -10,23 +9,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
 
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanRequestedIntegrationPayload;
+import mentoring.acomi.contracts.support.JsonSchemaSupport;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 
-public class LoanEventConsumerContractTest {
+public class LoanEventConsumerContractTest extends JsonSchemaSupport {
 	
 	private static final String LOAN_RETURNED_EVENT_NAME = IntegrationEventTypes.LOAN_RETURNED.eventName;
 	private static final String LOAN_CANCELED_EVENT_NAME = IntegrationEventTypes.LOAN_CANCELED.eventName;
@@ -36,7 +29,7 @@ public class LoanEventConsumerContractTest {
 	private static final String LOAN_SCHEMA_PATH = "contracts/loan/%s/v1/event.schema.json";
 	private static final String LOAN_SAMPLE_PATH = "contracts/loan/%s/v1/sample.json";
 	
-	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@ParameterizedTest(name = "[{index}] valid sample -> {0}")
 	@MethodSource("sampleCases")
@@ -48,7 +41,7 @@ public class LoanEventConsumerContractTest {
 	void shouldDeserializeLoanRequestedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_REQUESTED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("LOAN_REQUESTED", event.eventType().toString());
 	}
@@ -57,7 +50,7 @@ public class LoanEventConsumerContractTest {
 	void shouldDeserializeLoanConfirmRequestedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_CONFIRM_REQUESTED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("LOAN_CONFIRM_REQUESTED", event.eventType().toString());
 	}
@@ -66,7 +59,7 @@ public class LoanEventConsumerContractTest {
 	void shouldDeserializeLoanCanceledEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_CANCELED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("LOAN_CANCELED", event.eventType().toString());
 	}
@@ -75,16 +68,16 @@ public class LoanEventConsumerContractTest {
 	void shouldDeserializeLoanReturnedEvent() throws Exception {
 		JsonNode json = objectMapper.readTree(loadResource(String.format(LOAN_SAMPLE_PATH, LOAN_RETURNED_EVENT_NAME)));
 
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = objectMapper.treeToValue(json, new TypeReference<>() {});
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
 
 		Assertions.assertEquals("LOAN_RETURNED", event.eventType().toString());
 	}
 	
 	private void validateSample(String samplePath, String eventSchema) throws Exception {
 		JsonNode sample = objectMapper.readTree(loadResource(samplePath));
-		JsonSchema schema = loadSchema(eventSchema);
+		Schema schema = loadSchema(eventSchema);
 
-		Set<ValidationMessage> errors = schema.validate(sample);
+		List<Error> errors = schema.validate(sample);
 		Assertions.assertTrue(errors.isEmpty(), errors.toString());
 	}
 
@@ -98,22 +91,6 @@ public class LoanEventConsumerContractTest {
 
 	private static LoanContractCase getLoanContractCase(String eventName) {
 		return new LoanContractCase(eventName, String.format(LOAN_SCHEMA_PATH, eventName), String.format(LOAN_SAMPLE_PATH, eventName));
-	}
-
-	private JsonSchema loadSchema(String path) {
-		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
-		return factory.getSchema(loadResource(path));
-	}
-
-	private InputStream loadResource(String path) {
-
-		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-
-		if (is == null) {
-			throw new IllegalStateException(String.format("File not found in classpath: %s", path));
-		}
-
-		return is;
 	}
 
 }

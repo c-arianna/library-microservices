@@ -1,0 +1,32 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$defs": {
+		"eventEnvelope": {
+			"type": "object",
+			"properties": {
+				"eventId": {
+					"$ref": "common-types.schema.json#/$defs/uuid"
+				},
+				"aggregateId": {
+					"$ref": "common-types.schema.json#/$defs/nonBlankString"
+				},
+				"eventVersion": {
+					"type": "integer"
+				},
+				"occurredAt": {
+					"$ref": "common-types.schema.json#/$defs/dateTime"
+				},
+				"schemaVersion": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"eventId",
+				"aggregateId",
+				"eventVersion",
+				"occurredAt",
+				"schemaVersion"
+			]
+		}
+	}
+}
