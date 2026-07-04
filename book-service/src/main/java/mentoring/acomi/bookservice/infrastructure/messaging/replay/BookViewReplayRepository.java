@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.view.BookView;
-import mentoring.acomi.sharedlibrary.eventstore.replay.BaseReplayRepository;
-import mentoring.acomi.sharedlibrary.replay.TempTableCreator;
+import mentoring.acomi.sharedcorelibrary.replay.TempTableCreator;
+import mentoring.acomi.sharedjpalibrary.eventstore.replay.BaseReplayRepository;
 
 @Repository("replayRepo")
 public class BookViewReplayRepository extends BaseReplayRepository implements BookViewRepository {

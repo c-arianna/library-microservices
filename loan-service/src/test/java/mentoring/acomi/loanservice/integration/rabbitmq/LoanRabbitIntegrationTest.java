@@ -38,6 +38,11 @@ import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.Boo
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewQueryRepository;
@@ -51,11 +56,6 @@ import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
-import mentoring.acomi.sharedlibrary.model.UserRole;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
 
 @SpringBootTest
 @Testcontainers

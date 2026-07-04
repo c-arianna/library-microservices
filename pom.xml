@@ -13,7 +13,8 @@
 	</parent>
 	
     <modules>
-        <module>shared-library</module>
+        <module>shared-core-library</module>
+		<module>shared-jpa-library</module>
 		<module>contracts</module>
         <module>api-gateway</module>
         <module>book-service</module>
@@ -26,7 +27,12 @@
 		<dependencies>
 			<dependency>
 				<groupId>mentoring.acomi</groupId>
-				<artifactId>shared-library</artifactId>
+				<artifactId>shared-core-library</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>mentoring.acomi</groupId>
+				<artifactId>shared-jpa-library</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

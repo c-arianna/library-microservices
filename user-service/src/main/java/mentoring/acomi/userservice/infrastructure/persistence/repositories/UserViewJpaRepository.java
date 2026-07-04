@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 
 @Repository

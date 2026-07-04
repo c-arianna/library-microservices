@@ -15,8 +15,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import mentoring.acomi.sharedlibrary.model.UserRole;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
 import mentoring.acomi.userservice.application.errors.InvalidUser;
 import mentoring.acomi.userservice.application.errors.InvalidUserData;

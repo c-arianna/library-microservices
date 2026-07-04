@@ -1,6 +1,6 @@
 package mentoring.acomi.loanservice.application.view;
 
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 public record UserView(String id, String email, UserStatus status) {
 

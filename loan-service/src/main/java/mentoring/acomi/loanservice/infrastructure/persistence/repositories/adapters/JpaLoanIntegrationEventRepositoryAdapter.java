@@ -10,13 +10,13 @@ import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEn
 import mentoring.acomi.loanservice.infrastructure.persistence.mapper.LoanIntegrationEventJpaMapper;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanEventJpaRepository;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanIntegrationRepository;
-import mentoring.acomi.sharedlibrary.eventstore.AbstractJpaIntegrationEventRepositoryAdapter;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedjpalibrary.eventstore.AbstractJpaIntegrationEventRepositoryAdapter;
 
 @Repository
 @Transactional
-public class JpaLoanIntegrationEventRepositoryAdapter
-		extends AbstractJpaIntegrationEventRepositoryAdapter<IntegrationEventEnvelope<?>, LoanEventEntity>
+public class JpaLoanIntegrationEventRepositoryAdapter 
+                 extends AbstractJpaIntegrationEventRepositoryAdapter<IntegrationEventEnvelope<?>, LoanEventEntity>
 		implements LoanIntegrationRepository {
 
 	public JpaLoanIntegrationEventRepositoryAdapter(LoanEventJpaRepository repository,

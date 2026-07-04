@@ -1,8 +1,8 @@
 package mentoring.acomi.notificationservice.messaging.handler;
 
 import mentoring.acomi.notificationservice.infrastructure.messaging.AbstractNotificationHandler;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import tools.jackson.databind.JsonNode;
 
 public class TestNotificationHandler extends AbstractNotificationHandler {

@@ -30,8 +30,8 @@ import mentoring.acomi.notificationservice.application.errors.NotificationHandli
 import mentoring.acomi.notificationservice.infrastructure.messaging.BookRegisteredV1NotificationHandler;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.BookRegisteredNotificationPayload;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNotification;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

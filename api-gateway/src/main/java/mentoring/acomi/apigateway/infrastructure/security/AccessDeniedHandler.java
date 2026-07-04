@@ -9,7 +9,7 @@ import org.springframework.security.web.server.authorization.ServerAccessDeniedH
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-import mentoring.acomi.sharedlibrary.model.ErrorResponse;
+import mentoring.acomi.sharedcorelibrary.model.ErrorResponse;
 import reactor.core.publisher.Mono;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;

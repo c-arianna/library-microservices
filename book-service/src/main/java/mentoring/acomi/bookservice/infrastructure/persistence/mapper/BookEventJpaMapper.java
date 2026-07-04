@@ -20,10 +20,9 @@ import mentoring.acomi.bookservice.domain.events.payload.BookLoanPayload;
 import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
 import mentoring.acomi.bookservice.domain.events.payload.BookReservationRejectedPayload;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventMapper;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-
-import mentoring.acomi.sharedlibrary.eventstore.EventMapper;
 
 @Component
 public class BookEventJpaMapper implements EventMapper<BookEvent, BookEventEntity>{

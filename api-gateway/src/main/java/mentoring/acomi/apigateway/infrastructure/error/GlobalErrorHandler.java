@@ -19,7 +19,7 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import mentoring.acomi.sharedlibrary.model.ErrorResponse;
+import mentoring.acomi.sharedcorelibrary.model.ErrorResponse;
 import reactor.core.publisher.Mono;
 
 @Component

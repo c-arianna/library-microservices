@@ -10,7 +10,7 @@ import mentoring.acomi.loanservice.domain.events.LoanEvent;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.mapper.LoanEventJpaMapper;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanEventJpaRepository;
-import mentoring.acomi.sharedlibrary.eventstore.AbstractJpaEventRepositoryAdapter;
+import mentoring.acomi.sharedjpalibrary.eventstore.AbstractJpaEventRepositoryAdapter;
 
 @Repository
 @Transactional

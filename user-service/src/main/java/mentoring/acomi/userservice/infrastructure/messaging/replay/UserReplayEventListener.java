@@ -3,8 +3,8 @@ package mentoring.acomi.userservice.infrastructure.messaging.replay;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.sharedlibrary.eventstore.replay.ReplayRequestedEvent;
-import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayRequestedEvent;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 
 @Component
 public class UserReplayEventListener {

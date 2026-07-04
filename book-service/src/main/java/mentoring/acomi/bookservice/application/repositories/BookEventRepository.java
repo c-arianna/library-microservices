@@ -4,7 +4,7 @@ import java.util.List;
 
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
-import mentoring.acomi.sharedlibrary.eventstore.EventRepository;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventRepository;
 
 public interface BookEventRepository extends EventRepository<BookEvent>{
 

@@ -63,7 +63,7 @@
 		</dependency>
 		<dependency>
 			<groupId>mentoring.acomi</groupId>
-			<artifactId>shared-library</artifactId>
+			<artifactId>shared-jpa-library</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

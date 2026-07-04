@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.userservice.application.errors.NonRetryableEventException;
 import mentoring.acomi.userservice.application.projection.UserProjection;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
@@ -44,7 +44,7 @@ public class UserEventProcessor {
 		
 	}
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void processProducerEvent( IntegrationEventEnvelope<?> eventEnvelope) {
+	public void processProducerEvent(IntegrationEventEnvelope<?> eventEnvelope) {
 		
 		if (userEventRepository.existsEventProcessed(eventEnvelope.eventId(), AggregateType.USER.name())) {
 			return;

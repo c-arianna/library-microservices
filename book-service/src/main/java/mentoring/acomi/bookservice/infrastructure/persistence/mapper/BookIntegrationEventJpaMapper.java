@@ -3,8 +3,8 @@ package mentoring.acomi.bookservice.infrastructure.persistence.mapper;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
-import mentoring.acomi.sharedlibrary.eventstore.EventMapper;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

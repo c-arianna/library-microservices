@@ -7,9 +7,10 @@ import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.view.UserView;
-import mentoring.acomi.sharedlibrary.eventstore.replay.BaseReplayRepository;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
-import mentoring.acomi.sharedlibrary.replay.TempTableCreator;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.replay.TempTableCreator;
+import mentoring.acomi.sharedjpalibrary.eventstore.replay.BaseReplayRepository;
+
 
 @Repository("userReplayRepo")
 public class UserViewReplayRepository extends BaseReplayRepository implements UserViewRepository{

@@ -10,7 +10,8 @@ import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
 import mentoring.acomi.bookservice.infrastructure.persistence.mapper.BookEventJpaMapper;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookEventJpaRepository;
-import mentoring.acomi.sharedlibrary.eventstore.AbstractJpaEventRepositoryAdapter;
+import mentoring.acomi.sharedjpalibrary.eventstore.AbstractJpaEventRepositoryAdapter;
+
 
 @Repository
 @Transactional

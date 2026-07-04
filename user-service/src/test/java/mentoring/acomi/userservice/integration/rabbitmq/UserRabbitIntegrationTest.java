@@ -34,8 +34,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.services.UserService;

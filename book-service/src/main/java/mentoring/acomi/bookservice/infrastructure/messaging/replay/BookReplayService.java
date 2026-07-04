@@ -12,9 +12,9 @@ import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.Boo
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
-import mentoring.acomi.sharedlibrary.eventstore.EventCategory;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.replay.AbstractReplayService;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventCategory;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.replay.AbstractReplayService;
 import tools.jackson.databind.JsonNode;
 
 @Service

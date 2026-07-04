@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;

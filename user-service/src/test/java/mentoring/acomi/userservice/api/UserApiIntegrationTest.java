@@ -33,8 +33,8 @@ import org.springframework.web.client.RestClient;
 import org.testcontainers.junit.jupiter.Container;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
-import mentoring.acomi.sharedlibrary.model.UserRole;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;

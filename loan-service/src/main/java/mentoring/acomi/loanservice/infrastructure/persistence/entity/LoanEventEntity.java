@@ -12,7 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import mentoring.acomi.sharedlibrary.eventstore.BaseEventEntity;
+import mentoring.acomi.sharedjpalibrary.eventstore.BaseEventEntity;
 import tools.jackson.databind.JsonNode;
 
 @Entity
@@ -20,7 +20,7 @@ import tools.jackson.databind.JsonNode;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoanEventEntity extends BaseEventEntity{
+public class LoanEventEntity extends BaseEventEntity {
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "json")

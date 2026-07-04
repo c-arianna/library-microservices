@@ -15,7 +15,7 @@ import mentoring.acomi.loanservice.domain.events.payload.LoanFailedPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
-import mentoring.acomi.sharedlibrary.eventstore.EventMapper;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventMapper;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

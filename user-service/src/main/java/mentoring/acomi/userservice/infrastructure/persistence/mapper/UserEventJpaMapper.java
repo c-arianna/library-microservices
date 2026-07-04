@@ -2,7 +2,7 @@ package mentoring.acomi.userservice.infrastructure.persistence.mapper;
 
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.sharedlibrary.eventstore.EventMapper;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventMapper;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;

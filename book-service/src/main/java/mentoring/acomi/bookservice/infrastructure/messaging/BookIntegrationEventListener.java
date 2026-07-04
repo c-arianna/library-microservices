@@ -9,9 +9,9 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import mentoring.acomi.bookservice.application.errors.NonRetryableEventException;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 import tools.jackson.databind.ObjectMapper;
 
 @Component

@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.sharedlibrary.replay.TempTableCreator;
+import mentoring.acomi.sharedcorelibrary.replay.TempTableCreator;
 
 @Component
 @Profile("H2")

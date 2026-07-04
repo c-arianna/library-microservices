@@ -7,8 +7,8 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 
 @TestConfiguration
 public class RabbitMQConfigTest {

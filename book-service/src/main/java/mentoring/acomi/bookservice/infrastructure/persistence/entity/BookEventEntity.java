@@ -12,7 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import mentoring.acomi.sharedlibrary.eventstore.BaseEventEntity;
+import mentoring.acomi.sharedjpalibrary.eventstore.BaseEventEntity;
 import tools.jackson.databind.JsonNode;
 
 @Entity

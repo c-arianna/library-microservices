@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import mentoring.acomi.sharedlibrary.model.UserRole;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;

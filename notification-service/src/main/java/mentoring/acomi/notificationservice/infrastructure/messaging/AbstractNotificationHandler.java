@@ -1,7 +1,7 @@
 package mentoring.acomi.notificationservice.infrastructure.messaging;
 
 import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
-import mentoring.acomi.sharedlibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import tools.jackson.databind.JsonNode;
 
 public abstract class AbstractNotificationHandler implements EventHandler {

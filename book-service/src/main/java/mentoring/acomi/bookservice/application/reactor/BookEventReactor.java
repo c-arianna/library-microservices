@@ -14,7 +14,7 @@ import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.domain.model.ISBN;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
 public class BookEventReactor {

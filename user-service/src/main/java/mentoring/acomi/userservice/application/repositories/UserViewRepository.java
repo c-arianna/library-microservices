@@ -2,7 +2,7 @@ package mentoring.acomi.userservice.application.repositories;
 
 import java.time.Instant;
 
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.view.UserView;
 
 public interface UserViewRepository {

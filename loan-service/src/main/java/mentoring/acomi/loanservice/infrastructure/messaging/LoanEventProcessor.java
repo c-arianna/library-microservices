@@ -22,6 +22,8 @@ import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
+import mentoring.acomi.loanservice.infrastructure.messaging.handlers.BookBorrowedV1Handler;
+import mentoring.acomi.loanservice.infrastructure.messaging.handlers.BookReservedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
@@ -31,16 +33,18 @@ import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.Loa
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanIntegrationRepository;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.model.UserRole;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerManager;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class LoanEventProcessor {
 
+	private final HandlerManager handlerManager = new HandlerManager();
 	private final LoanEventReactor reactor;
 	private final LoanProjection projection;
 	private final LoanIntegrationRepository loanIntegrationRepository;
@@ -52,7 +56,6 @@ public class LoanEventProcessor {
 
 	private List<IntegrationEventTypes> reactorConsumerEvents = List.of(IntegrationEventTypes.BOOK_RESERVED, IntegrationEventTypes.BOOK_RESERVATION_REJECTED,
 			IntegrationEventTypes.BOOK_BORROWED, IntegrationEventTypes.BOOK_BORROW_REJECTED);
-	
 	
 	public static final Map<IntegrationEventTypes, Integer> consumerSupportedVersion = Map.ofEntries(
 			Map.entry(IntegrationEventTypes.BOOK_RESERVED, LoanIntegrationConsumerEventVersions.BOOK_RESERVED),
@@ -86,6 +89,12 @@ public class LoanEventProcessor {
 		this.mapper = mapper;
 		this.eventMapper = eventMapper;
 		this.userProjection = userProjection;
+		initEventsHandler();
+	}
+
+	private void initEventsHandler() {
+		this.handlerManager.addHandler(IntegrationEventTypes.BOOK_RESERVED, new BookReservedV1Handler(reactor, mapper));
+		this.handlerManager.addHandler(IntegrationEventTypes.BOOK_BORROWED, new BookBorrowedV1Handler(reactor, mapper));
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -260,6 +269,8 @@ public class LoanEventProcessor {
 	private void handleReactorConsumerEvent(IntegrationEventEnvelope<?> event) {
 		
 		try {
+			//TODO: implementare anche  BOOK_RESERVATION_REJECTED e BOOK_BORROW_REJECTED in handlerManager
+			//handlerManager.handleEvent(event);
 			handleReactorConsumerEvent(event.eventId(), event.eventType(), getEventPayload(event.eventType(), event.payload()), event.occurredAt());
 			loanEventRepository.markProcessed(event.eventId(), event.aggregateType());
 			retryPendingReactorEvents(event.aggregateId(), extractLoanId(getEventPayload(event.eventType(), event.payload())));
@@ -275,6 +286,7 @@ public class LoanEventProcessor {
 
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
 
+		
 		switch (eventType) {
 
 			case BOOK_RESERVED -> {

@@ -36,7 +36,7 @@ import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.messaging.replay.LoanReplayService;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanViewJpaRepository;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @SpringBootTest
 @Testcontainers

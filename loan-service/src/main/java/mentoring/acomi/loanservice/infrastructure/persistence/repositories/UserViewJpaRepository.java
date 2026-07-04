@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.UserViewEntity;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @Repository
 public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, String>{

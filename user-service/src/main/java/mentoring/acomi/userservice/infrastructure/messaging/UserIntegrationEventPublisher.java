@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 
 @Component

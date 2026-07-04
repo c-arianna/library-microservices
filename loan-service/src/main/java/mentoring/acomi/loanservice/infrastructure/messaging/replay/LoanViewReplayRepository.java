@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.sharedlibrary.eventstore.replay.BaseReplayRepository;
-import mentoring.acomi.sharedlibrary.replay.TempTableCreator;
+import mentoring.acomi.sharedcorelibrary.replay.TempTableCreator;
+import mentoring.acomi.sharedjpalibrary.eventstore.replay.BaseReplayRepository;
 
 @Repository("replayRepo")
 public class LoanViewReplayRepository extends BaseReplayRepository implements LoanViewRepository{

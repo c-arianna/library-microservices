@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
-import mentoring.acomi.sharedlibrary.eventstore.BaseEventJpaRepository;
+import mentoring.acomi.sharedjpalibrary.eventstore.BaseEventJpaRepository;
 
 @Repository
 public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEventEntity> {

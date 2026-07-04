@@ -12,7 +12,7 @@ import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.UserViewEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.mapper.UserViewJpaMapper;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.UserViewJpaRepository;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @Primary
 @Repository

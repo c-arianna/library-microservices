@@ -32,8 +32,8 @@ import mentoring.acomi.bookservice.domain.events.payload.BookLoanPayload;
 import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
 import mentoring.acomi.bookservice.domain.events.payload.BookReservationRejectedPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationEventMapper;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

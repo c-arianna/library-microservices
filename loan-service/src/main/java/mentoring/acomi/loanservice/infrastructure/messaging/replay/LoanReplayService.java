@@ -14,11 +14,11 @@ import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.Use
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
-import mentoring.acomi.sharedlibrary.eventstore.EventCategory;
-import mentoring.acomi.sharedlibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedlibrary.model.UserRole;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
-import mentoring.acomi.sharedlibrary.replay.AbstractReplayService;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventCategory;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.replay.AbstractReplayService;
 import tools.jackson.databind.JsonNode;
 
 @Service

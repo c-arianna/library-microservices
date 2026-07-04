@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import mentoring.acomi.sharedlibrary.model.ErrorResponse;
+import mentoring.acomi.sharedcorelibrary.model.ErrorResponse;
 import mentoring.acomi.userservice.application.errors.InvalidUser;
 import mentoring.acomi.userservice.application.errors.InvalidUserData;
 import mentoring.acomi.userservice.application.errors.InvalidUserStatus;

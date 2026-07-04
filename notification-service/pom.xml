@@ -44,7 +44,7 @@
 
 		<dependency>
 			<groupId>mentoring.acomi</groupId>
-			<artifactId>shared-library</artifactId>
+			<artifactId>shared-core-library</artifactId>
 		</dependency>
 
 		<dependency>

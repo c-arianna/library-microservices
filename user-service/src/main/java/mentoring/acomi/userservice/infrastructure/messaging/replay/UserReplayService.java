@@ -8,10 +8,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.sharedlibrary.eventstore.EventCategory;
-import mentoring.acomi.sharedlibrary.model.UserRole;
-import mentoring.acomi.sharedlibrary.model.UserStatus;
-import mentoring.acomi.sharedlibrary.replay.AbstractReplayService;
+import mentoring.acomi.sharedcorelibrary.eventstore.EventCategory;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.sharedcorelibrary.replay.AbstractReplayService;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
