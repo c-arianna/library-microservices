@@ -33,6 +33,8 @@ public class SecurityConfig {
 
 					exchange.pathMatchers("/users/subscribe").permitAll();
 
+					exchange.pathMatchers("/ws/**").permitAll();
+					
 					exchange.pathMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 					
 					if (testMode) {

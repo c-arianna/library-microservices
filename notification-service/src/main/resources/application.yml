@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: notification-service
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: libraryApp
+    password: libraryAppTest!
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs

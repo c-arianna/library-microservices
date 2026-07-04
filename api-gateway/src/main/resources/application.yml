@@ -5,6 +5,13 @@ spring:
         webflux:
           routes:
 
+          - id: notification-service
+            uri: ${NOTIFICATION_SERVICE_WS:ws://notification-service:8080}
+            predicates:
+              - Path=/ws/notifications**
+            filters:
+              - PreserveHostHeader
+
           - id: user-service
             uri: ${USER_SERVICE_URL:http://user-service:8080}
             predicates:
@@ -18,7 +25,7 @@ spring:
               - Path=/books, /books/**
             filters:
               - StripPrefix=1
-
+ 
           - id: loan-service
             uri: ${LOAN_SERVICE_URL:http://loan-service:8080}
             predicates:

@@ -48,6 +48,11 @@
       "name": "replay.user.queue",
       "vhost": "/",
       "durable": true
+    },
+	{
+      "name": "notification.queue",
+      "vhost": "/",
+      "durable": true
     }
   ],
 
@@ -248,6 +253,13 @@
       "destination": "replay.user.queue",
       "destination_type": "queue",
       "routing_key": "replay.user"
+    },
+	{
+      "source": "events.exchange",
+      "vhost": "/",
+      "destination": "notification.queue",
+      "destination_type": "queue",
+      "routing_key": "book.registered"
     }
   ],
 "users": [

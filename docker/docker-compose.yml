@@ -272,7 +272,23 @@ services:
         condition: service_started
       keycloak:
         condition: service_started
-
+        
+  notification-service:
+    profiles: ["dev"]
+    image: notification-service:dev
+    container_name: notification-service
+    ports:
+      - "8085:8080"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      keycloak:
+        condition: service_started
+        
   book-service-gherkin:
     profiles: ["gherkin"]
     image: book-service:dev
@@ -344,6 +360,23 @@ services:
       keycloak:
         condition: service_started
         
+  notification-service-gherkin:
+    profiles: ["gherkin"]
+    image: notification-service:dev
+    container_name: notification-service-gherkin
+    ports:
+      - "9085:8080"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq-gherkin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
+      SPRING_PROFILES_ACTIVE: gherkin
+      APP_TEST_MODE: true
+    depends_on:
+      rabbitmq-gherkin:
+        condition: service_started
+      keycloak:
+        condition: service_started
+        
   api-gateway:
     profiles: ["dev"]
     image: api-gateway:dev
@@ -352,6 +385,7 @@ services:
       - "8080:8080"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
+      NOTIFICATION_SERVICE_WS: ws://notification-service:8080
       BOOK_SERVICE_URL: http://book-service:8080
       LOAN_SERVICE_URL: http://loan-service:8080
       USER_SERVICE_URL: http://user-service:8080
@@ -374,6 +408,7 @@ services:
     ports:
       - "9080:8080"
     environment:
+      NOTIFICATION_SERVICE_WS: ws://notification-service-gherkin:8080
       BOOK_SERVICE_URL: http://book-service-gherkin:8080
       LOAN_SERVICE_URL: http://loan-service-gherkin:8080
       USER_SERVICE_URL: http://user-service-gherkin:8080
