@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
 
 public class AbstractLoanProjection {
@@ -24,28 +23,28 @@ public class AbstractLoanProjection {
 	}
 	
 	@Transactional
-	public void confirmLoan(LoanIntegrationPayload payload, Instant occurredAt) {
-		repository.updateStatus(payload.loanId(), LoanStatus.CONFIRMED, occurredAt);
+	public void confirmLoan(String loanId, Instant occurredAt) {
+		repository.updateStatus(loanId, LoanStatus.CONFIRMED, occurredAt);
 	}
 	
 	@Transactional
-	public void cancelLoan(LoanIntegrationPayload payload, Instant occurredAt) {
-		repository.updateStatus(payload.loanId(), LoanStatus.CANCELED, occurredAt);
+	public void cancelLoan(String loanId, Instant occurredAt) {
+		repository.updateStatus(loanId, LoanStatus.CANCELED, occurredAt);
 	}
 	
 	@Transactional
-	public void returnLoan(LoanIntegrationPayload payload, Instant occurredAt) {
-		repository.updateStatus(payload.loanId(), LoanStatus.RETURNED, occurredAt);
+	public void returnLoan(String loanId, Instant occurredAt) {
+		repository.updateStatus(loanId, LoanStatus.RETURNED, occurredAt);
 	}
 	
 	@Transactional
-	public void reserveLoan(LoanIntegrationPayload payload, Instant occurredAt) {
-		repository.updateStatus(payload.loanId(), LoanStatus.RESERVED, occurredAt);
+	public void reserveLoan(String loanId, Instant occurredAt) {
+		repository.updateStatus(loanId, LoanStatus.RESERVED, occurredAt);
 	}
 	
 	@Transactional
-	public void failLoan(LoanIntegrationPayload payload, Instant occurredAt) {
-		repository.updateStatus(payload.loanId(), LoanStatus.FAILED, occurredAt);
+	public void failLoan(String loanId, Instant occurredAt) {
+		repository.updateStatus(loanId, LoanStatus.FAILED, occurredAt);
 	}
 	
 	private LoanView getLoan(LoanRequestedIntegrationPayload payload) {

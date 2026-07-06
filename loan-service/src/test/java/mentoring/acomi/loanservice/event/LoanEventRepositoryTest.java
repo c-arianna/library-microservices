@@ -33,6 +33,7 @@ import mentoring.acomi.loanservice.domain.model.LoanStatus;
 @Import(SecurityTestConfig.class)
 public class LoanEventRepositoryTest {
 
+	private static final int EVENT_VERSION = 1;
 	@Autowired
 	private LoanEventRepository repository;
 
@@ -45,7 +46,7 @@ public class LoanEventRepositoryTest {
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent event = createLoanRequestedEvent(loanId, "9788804336327");
 
-		repository.appendToStream(event);
+		repository.appendToStream(event, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -60,10 +61,10 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent);
+		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
 
 		LoanCanceledEvent loanCanceledEvent = createLoanCanceledEvent(loanId, isbn);
-		repository.appendToStream(loanCanceledEvent);
+		repository.appendToStream(loanCanceledEvent, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -82,7 +83,7 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent);
+		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -105,7 +106,7 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent);
+		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
 
 		entityManager.clear();
 		
@@ -128,7 +129,7 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent);
+		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
 
 		List<LoanEvent> loaded = repository.loadStream(loanId);
 

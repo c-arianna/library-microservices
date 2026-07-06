@@ -30,6 +30,8 @@ import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 @Import(SecurityTestConfig.class)
 public class UserEventRepositoryTest {
 
+	private static final int EVENT_VERSION = 1;
+	
 	@Autowired
 	private UserEventRepository repository;
 
@@ -42,7 +44,7 @@ public class UserEventRepositoryTest {
 		String userId = UUID.randomUUID().toString();
 		UserEvent event = createUserSubscribedEvent(userId);
 
-		repository.appendToStream(event);
+		repository.appendToStream(event, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -56,10 +58,10 @@ public class UserEventRepositoryTest {
 
 		String userId = UUID.randomUUID().toString();
 		UserSubscribedEvent userSubscribedEvent = createUserSubscribedEvent(userId);
-		repository.appendToStream(userSubscribedEvent);
+		repository.appendToStream(userSubscribedEvent, EVENT_VERSION);
 
 		UserSuspendEvent userSuspenedEvent = createUserSuspendedEvent(userId);
-		repository.appendToStream(userSuspenedEvent);
+		repository.appendToStream(userSuspenedEvent, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -77,7 +79,7 @@ public class UserEventRepositoryTest {
 
 		String userId = UUID.randomUUID().toString();
 		UserSubscribedEvent userSubscribedEvent = createUserSubscribedEvent(userId);
-		repository.appendToStream(userSubscribedEvent);
+		repository.appendToStream(userSubscribedEvent, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -99,7 +101,7 @@ public class UserEventRepositoryTest {
 
 		String userId = UUID.randomUUID().toString();
 		UserSubscribedEvent userSubscribedEvent = createUserSubscribedEvent(userId);
-		repository.appendToStream(userSubscribedEvent);
+		repository.appendToStream(userSubscribedEvent, EVENT_VERSION);
 
 		entityManager.clear();
 		
@@ -121,7 +123,7 @@ public class UserEventRepositoryTest {
 
 		String userId = UUID.randomUUID().toString();
 		UserSubscribedEvent userSubscribedEvent = createUserSubscribedEvent(userId);
-		repository.appendToStream(userSubscribedEvent);
+		repository.appendToStream(userSubscribedEvent, EVENT_VERSION);
 
 		List<UserEvent> loaded = repository.loadStream(userId);
 

@@ -20,9 +20,10 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 	}
 
 	@Override
-	public void appendToStream(E event) {
+	public void appendToStream(E event, int schemaVersion) {
 		ENTITY entity = mapper.toEntity(event);
 		entity.setEventCategory(EventCategory.PRODUCER.name());
+		entity.setSchemaVersion(schemaVersion);
 		repository.save(entity);
 	}
 

@@ -19,6 +19,7 @@ import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
+import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.domain.model.Book;
 import mentoring.acomi.bookservice.domain.model.ISBN;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
@@ -27,6 +28,7 @@ import mentoring.acomi.bookservice.infrastructure.dto.BookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.BookResponse;
 import mentoring.acomi.bookservice.infrastructure.dto.BooksResponse;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
+import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationConsumerEventVersions;
 
 @Service
 public class BookService {
@@ -92,7 +94,7 @@ public class BookService {
 
 		List<BookEvent> events = bookEventRepository.loadStream(isbn);
 		Consumer<BookEvent> dispatch = event -> {
-			bookEventRepository.appendToStream(event);
+			bookEventRepository.appendToStream(event, getSchemaVersion(event.type()));
 			try {
 				eventDispatcher.dispatch(event);
 			} catch (Exception e) {
@@ -115,5 +117,39 @@ public class BookService {
 		
 		return new BookDto(bookView.isbn(), bookView.author(), bookView.title(), bookView.description(), bookView.totalCopies(), 
 				bookView.borrowedCopies(), bookView.reservedCopies(), bookView.availableCopies() > 0);
+	}
+	
+	private int getSchemaVersion(BookEventType eventType) {
+		return switch(eventType) {
+		
+		case BookBorrowRejected -> {
+			yield BookIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED;
+		}
+		case BookBorrowed-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_BORROWED;
+		}
+		case BookCopiesAdded-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED;
+		}
+		case BookCopiesRemoved-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED;
+		}
+		case BookRegistered-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_REGISTERED;
+		}
+		case BookReleased-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RELEASED;
+		}
+		case BookReservationRejected-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED;
+		}
+		case BookReserved-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RESERVED;
+		}
+		case BookReturned-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RETURNED;
+		}
+		
+		};
 	}
 }

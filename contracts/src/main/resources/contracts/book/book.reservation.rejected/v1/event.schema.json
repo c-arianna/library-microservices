@@ -29,7 +29,7 @@
 							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
 						},
 						"reason": {
-							"type": "string"
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
 						}
 					},
 					"required": [

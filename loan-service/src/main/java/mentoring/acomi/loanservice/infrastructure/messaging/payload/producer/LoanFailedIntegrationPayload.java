@@ -1,5 +1,7 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.payload.producer;
 
-public record LoanFailedIntegrationPayload(String loanId, String reason) {
+import jakarta.validation.constraints.NotBlank;
+
+public record LoanFailedIntegrationPayload(@NotBlank String loanId, String reason) {
 
 }

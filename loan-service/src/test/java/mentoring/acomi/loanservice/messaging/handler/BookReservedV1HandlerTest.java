@@ -1,0 +1,128 @@
+package mentoring.acomi.loanservice.messaging.handler;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.mockito.Mockito.times;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import mentoring.acomi.loanservice.application.errors.InvalidEventPayloadException;
+import mentoring.acomi.loanservice.application.event.handlers.EventPayloadMapper;
+import mentoring.acomi.loanservice.application.reactor.LoanEventReactor;
+import mentoring.acomi.loanservice.application.reactor.command.CommandBookEvent;
+import mentoring.acomi.loanservice.domain.events.AggregateType;
+import mentoring.acomi.loanservice.infrastructure.messaging.handlers.BookReservedV1Handler;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import tools.jackson.databind.ObjectMapper;
+
+@ExtendWith(MockitoExtension.class)
+class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
+
+    @Mock
+    private LoanEventReactor reactor;
+
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+	private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+	
+	private EventPayloadMapper mapper;
+
+    private BookReservedV1Handler handler;
+
+    @BeforeEach
+    void setUp() {
+        mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
+        handler = new BookReservedV1Handler(reactor, mapper);
+    }
+
+    @Test
+    void shouldHandleBookReservedEvent() {
+
+        IntegrationEventEnvelope<BookLoanIntegrationPayload> event = validEvent();
+
+        handler.handleEvent(event);
+
+        CommandBookEvent command = new CommandBookEvent(event.payload().loanId());
+
+        verify(reactor, times(1)).handleBookReserved(command);
+
+    }
+
+    @Test
+    void shouldRejectPayloadWithBlankIsbn() {
+
+        IntegrationEventEnvelope<BookLoanIntegrationPayload> event = getBookReservedEvent("", UUID.randomUUID().toString(),
+                        UUID.randomUUID().toString(), 1);
+
+        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+
+        verifyNoInteractions(reactor);
+    }
+
+    @Test
+    void shouldRejectPayloadWithBlankLoanId() {
+
+        IntegrationEventEnvelope<BookLoanIntegrationPayload> event = getBookReservedEvent("9788804336327", "", UUID.randomUUID().toString(), 1);
+
+        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+
+        verifyNoInteractions(reactor);
+    }
+
+    @Test
+    void shouldRejectPayloadWithBlankUserId() {
+
+        IntegrationEventEnvelope<BookLoanIntegrationPayload> event = getBookReservedEvent("9788804336327", UUID.randomUUID().toString(), "", 1);
+
+        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+
+        verifyNoInteractions(reactor);
+    }
+
+    @Override
+    protected EventHandler handler() {
+        return handler;
+    }
+
+    @Override
+    protected IntegrationEventTypes eventType() {
+        return handler.eventType();
+    }
+
+    @Override
+    protected IntegrationEventEnvelope<BookLoanIntegrationPayload> validEvent() {
+        return getBookReservedEvent("9788804336327", UUID.randomUUID().toString(), UUID.randomUUID().toString(), 1);
+    }
+
+    @Override
+    protected IntegrationEventEnvelope<?> differentEvent() {
+        return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_BORROWED,
+                "book-service", "9788804336327", AggregateType.BOOK.name(), 1, Instant.now(), 1, Map.of());
+    }
+
+    @Override
+    protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
+        return getBookReservedEvent("9788804336327", UUID.randomUUID().toString(), UUID.randomUUID().toString(), schemaVersion);
+    }
+    
+    private IntegrationEventEnvelope<BookLoanIntegrationPayload> getBookReservedEvent(String isbn, String loanId, String userId, int schemaVersion) {
+
+        return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, "test-handler", isbn,
+                AggregateType.BOOK.name(), 0, Instant.now(), schemaVersion, new BookLoanIntegrationPayload(isbn, loanId, userId));
+    }
+}

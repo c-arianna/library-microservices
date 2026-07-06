@@ -30,6 +30,7 @@ import mentoring.acomi.userservice.application.sso.ProviderUserCreated;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.events.UserEvent;
+import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
@@ -37,6 +38,7 @@ import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
+import mentoring.acomi.userservice.infrastructure.messaging.UserIntegrationPublisherEventVersions;
 import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakException;
 
 @Service
@@ -136,7 +138,7 @@ public class UserService {
 	private UserAggregate loadUser(String userId) {
 		List<UserEvent> events = userEventRepository.loadStream(userId);
 		Consumer<UserEvent> dispatch = event -> {
-			userEventRepository.appendToStream(event);
+			userEventRepository.appendToStream(event, getSchemaVersion(event.type()));
 			try {
 				eventDispatcher.dispatch(event);
 			} catch (Exception e) {
@@ -145,6 +147,24 @@ public class UserService {
 		};
 
 		return new UserAggregate(userId, dispatch, events);
+	}
+
+	private int getSchemaVersion(UserEventType eventType) {
+		
+		return switch(eventType) {
+			case UserSubscribed -> {
+				yield UserIntegrationPublisherEventVersions.USER_SUBSCRIBED;
+			}
+			case UserUnsubscribed ->{
+				yield UserIntegrationPublisherEventVersions.USER_UNSUBSCRIBED;
+			}
+			case UserSuspended ->{
+				yield UserIntegrationPublisherEventVersions.USER_SUSPENDED;
+			}
+			case UserUnsuspended ->{
+				yield UserIntegrationPublisherEventVersions.USER_UNSUSPENDED;
+			}
+		};
 	}
 
 	private ProviderUserCreated createIdentityProviderUser(SubscribeRequest request, String role) {

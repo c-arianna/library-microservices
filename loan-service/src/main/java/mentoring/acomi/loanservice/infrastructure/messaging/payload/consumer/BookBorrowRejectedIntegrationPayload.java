@@ -1,3 +1,5 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer;
 
-public record BookBorrowRejectedIntegrationPayload(String isbn, String loanId, String userId, String reason) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record BookBorrowRejectedIntegrationPayload(@NotBlank String isbn, @NotBlank String loanId, @NotBlank String userId, @NotBlank String reason) {}

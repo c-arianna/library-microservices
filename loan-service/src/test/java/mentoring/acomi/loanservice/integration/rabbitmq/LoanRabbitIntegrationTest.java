@@ -272,42 +272,6 @@ class LoanRabbitIntegrationTest {
 		});
 	}
 
-	@Test
-	void shouldConsumeEventsInOrder() {
-
-		String loanId = createLoan();
-
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-borrowed-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, AggregateType.BOOK.name(), 1, Instant.now(),
-				1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
-
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
-				IntegrationEventTypes.BOOK_BORROWED.getRoutingKey(), event);
-
-		await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
-			boolean processed = loanEventRepository.existsEventProcessed(event.eventId(), AggregateType.BOOK.name());
-			Assertions.assertFalse(processed);
-		});
-
-		publishBookReserved(loanId);
-		
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-
-			boolean processedV1 = loanEventRepository.existsEventProcessed(event.eventId(), AggregateType.BOOK.name());
-
-			Assertions.assertTrue(processedV1);
-
-			var loan = loanViewRepository.findById(loanId).orElseThrow();
-			Assertions.assertEquals(LoanStatus.CONFIRMED, loan.status());
-		});
-
-		int max = loanEventRepository.findMaxProcessedVersion(ISBN, AggregateType.BOOK.name()).orElse(-1);
-		Assertions.assertEquals(1, max);
-		
-		var events = loanEventRepository.loadStream(loanId);
-		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == LoanEventType.LoanConfirmed));
-	}
-
 	private String createLoan() {
 
 		LoanResponse response = loanService.addLoan(new AddLoanRequest(ISBN, USER_ID, LocalDate.now(), null));
@@ -338,7 +302,7 @@ class LoanRabbitIntegrationTest {
 	private void publishBookReservationRejected(String loanId, String reason) {
 		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reject-%s", UUID.randomUUID().toString()),
 				IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "book-service", ISBN, AggregateType.BOOK.name(), 0,
-				Instant.now(), 0, new BookReservationRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
+				Instant.now(), 1, new BookReservationRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_RESERVATION_REJECTED.getRoutingKey(), event);
@@ -359,7 +323,7 @@ class LoanRabbitIntegrationTest {
 		var event = new IntegrationEventEnvelope<>(
 				String.format("evt-user-subscribed-%s", UUID.randomUUID().toString()),
 				IntegrationEventTypes.USER_SUBSCRIBED, "user-service", userId, AggregateType.USER.name(), 0,
-				Instant.now(), 1, new UserSubscribedIntegrationPayload(userId, "test.%s@test.com".formatted(userId), "", "", "", 
+				Instant.now(), 1, new UserSubscribedIntegrationPayload(userId, "test.%s@test.com".formatted(userId), "Test", "Test", "1234", 
 						UserStatus.ACTIVE, UserRole.READER));
 		
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,

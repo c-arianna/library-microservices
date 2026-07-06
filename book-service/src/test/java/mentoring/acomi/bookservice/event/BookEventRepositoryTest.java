@@ -28,6 +28,8 @@ import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
 @Import(SecurityTestConfig.class)
 public class BookEventRepositoryTest {
 
+	private static final int EVENT_VERSION = 1;
+	
 	@Autowired
 	private BookEventRepository repository;
 
@@ -40,7 +42,7 @@ public class BookEventRepositoryTest {
 		String isbn = "9788804336327";
 		BookEvent event = createBookRegisteredEvent(isbn);
 
-		repository.appendToStream(event);
+		repository.appendToStream(event, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -54,10 +56,10 @@ public class BookEventRepositoryTest {
 
 		String isbn = "9788804336327";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
-		repository.appendToStream(bookRegisteredEvent);
+		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
 		BookReservedEvent bookReservedEvent = createBookReservedEvent(isbn);
-		repository.appendToStream(bookReservedEvent);
+		repository.appendToStream(bookReservedEvent, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -75,7 +77,7 @@ public class BookEventRepositoryTest {
 
 		String isbn = "9788804336327";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
-		repository.appendToStream(bookRegisteredEvent);
+		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -97,7 +99,7 @@ public class BookEventRepositoryTest {
 
 		String isbn = "9788804336327";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
-		repository.appendToStream(bookRegisteredEvent);
+		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
 		entityManager.clear();
 		
@@ -119,7 +121,7 @@ public class BookEventRepositoryTest {
 
 		String isbn = "9788804336327";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
-		repository.appendToStream(bookRegisteredEvent);
+		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
 		List<BookEvent> loaded = repository.loadStream(isbn);
 

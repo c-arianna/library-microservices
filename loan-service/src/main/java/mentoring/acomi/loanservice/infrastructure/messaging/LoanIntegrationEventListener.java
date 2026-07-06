@@ -9,7 +9,6 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import mentoring.acomi.loanservice.application.errors.NonRetryableEventException;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 
 @Component
@@ -36,8 +35,6 @@ public class LoanIntegrationEventListener {
 
 		try {
 
-			checkEventSchemaVersion(eventEnvelope.eventType(), eventEnvelope.schemaVersion());
-
 			switch (eventEnvelope.eventType()) {
 			
 			case LOAN_REQUESTED, LOAN_CONFIRMED, LOAN_CANCELED, LOAN_RETURNED, LOAN_RESERVED, LOAN_FAILED, LOAN_CONFIRM_REQUESTED -> eventProcessor.processProducerEvent(eventEnvelope);			
@@ -55,25 +52,6 @@ public class LoanIntegrationEventListener {
 		} catch (Exception e) {
 			logger.error("Failed to process event {}", eventEnvelope.eventType(), e);
 			throw e;
-		}
-
-	}
-
-	private void checkEventSchemaVersion(IntegrationEventTypes eventType, int eventSchemaVersion) {
-
-		int supportedVersion = LoanEventProcessor.consumerSupportedVersion.getOrDefault(eventType, -1);
-
-		if (supportedVersion == -1) {
-			throw new NonRetryableEventException(String.format("Unknown event type: %s", eventType));
-		}
-
-		if (eventSchemaVersion > supportedVersion) {
-			throw new NonRetryableEventException(String.format("Unsupported newer version: %d > %d", eventSchemaVersion, supportedVersion));
-		}
-
-		if (eventSchemaVersion < supportedVersion) {
-			logger.warn("Older version detected: {}", eventSchemaVersion);
-			return;
 		}
 
 	}

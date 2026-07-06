@@ -13,7 +13,9 @@ import mentoring.acomi.loanservice.application.reactor.command.CommandBookEvent;
 import mentoring.acomi.loanservice.application.reactor.command.CommandBookRejectedEvent;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
+import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.events.LoanFailedReason;
+import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationPublisherEventVersions;
 
 @Component
 public class LoanEventReactor {
@@ -70,7 +72,7 @@ public class LoanEventReactor {
 
 		List<LoanEvent> events = eventRepository.loadStream(loanId);
 		Consumer<LoanEvent> dispatch = event -> {
-			eventRepository.appendToStream(event);
+			eventRepository.appendToStream(event, getSchemaVersion(event.type()));
 			try {
 				eventDispatcher.dispatch(event);
 			} catch (Exception e) {
@@ -81,5 +83,32 @@ public class LoanEventReactor {
 		return new LoanAggregate(loanId, dispatch, events);
 	}
 
+	private int getSchemaVersion(LoanEventType type) {
+
+		return switch(type) {
+		
+		case LoanRequested -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_REQUESTED;
+		}
+		case LoanFailed -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_FAILED;
+		}
+		case LoanReserved -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_RESERVED;
+		}
+		case LoanConfirmed -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_CONFIRMED;
+		}
+		case LoanCanceled -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_CANCELED;
+		}
+		case LoanReturned -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_RETURNED;
+		}
+		case LoanConfirmRequested -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_CONFIRM_REQUESTED;
+		}
+		};
+	}
 
 }

@@ -4,27 +4,26 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.loanservice.application.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.reactor.LoanEventReactor;
-import mentoring.acomi.loanservice.application.reactor.command.CommandBookEvent;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
+import mentoring.acomi.loanservice.application.reactor.command.CommandBookRejectedEvent;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
-public class BookReservedV1Handler implements EventHandler {
-	
+public class BookReservationRejectedV1Handler implements EventHandler {
+
 	private final LoanEventReactor reactor;
 	private final EventPayloadMapper mapper;
-	
-	public BookReservedV1Handler(LoanEventReactor reactor, EventPayloadMapper mapper) {
+
+	public BookReservationRejectedV1Handler(LoanEventReactor reactor, EventPayloadMapper mapper) {
 		this.reactor = reactor;
 		this.mapper = mapper;
 	}
-		
+
 	@Override
-	public void handleEvent(IntegrationEventEnvelope<?> event) {
-		BookLoanIntegrationPayload payload = mapper.mapAndValidate(event.payload(), BookLoanIntegrationPayload.class);	
-	    reactor.handleBookReserved(new CommandBookEvent(payload.loanId()));
+	public IntegrationEventTypes eventType() {
+		return IntegrationEventTypes.BOOK_RESERVATION_REJECTED;
 	}
 
 	@Override
@@ -33,8 +32,10 @@ public class BookReservedV1Handler implements EventHandler {
 	}
 
 	@Override
-	public IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.BOOK_RESERVED;
+	public void handleEvent(IntegrationEventEnvelope<?> event) {
+		BookReservationRejectedIntegrationPayload payload = mapper.mapAndValidate(event.payload(), BookReservationRejectedIntegrationPayload.class);
+		reactor.handleBookReservationRejected(new CommandBookRejectedEvent(payload.loanId(), payload.reason()));
+
 	}
-		
+
 }

@@ -28,11 +28,13 @@ import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
+import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.model.Loan;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
+import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationPublisherEventVersions;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @Service
@@ -147,7 +149,7 @@ public class LoanService {
 	private LoanAggregate loadLoan(String loanId) {
 		List<LoanEvent> events = loanEventRepository.loadStream(loanId);
 		Consumer<LoanEvent> dispatch = event -> {
-			loanEventRepository.appendToStream(event);
+			loanEventRepository.appendToStream(event, getSchemaVersion(event.type()));
 			try {
 				eventDispatcher.dispatch(event);
 			} catch (Exception e) {
@@ -156,6 +158,34 @@ public class LoanService {
 		};
 
 		return new LoanAggregate(loanId, dispatch, events);
+	}
+
+	private int getSchemaVersion(LoanEventType type) {
+
+		return switch(type) {
+		
+		case LoanRequested -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_REQUESTED;
+		}
+		case LoanFailed -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_FAILED;
+		}
+		case LoanReserved -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_RESERVED;
+		}
+		case LoanConfirmed -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_CONFIRMED;
+		}
+		case LoanCanceled -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_CANCELED;
+		}
+		case LoanReturned -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_RETURNED;
+		}
+		case LoanConfirmRequested -> {
+			yield LoanIntegrationPublisherEventVersions.LOAN_CONFIRM_REQUESTED;
+		}
+		};
 	}
 
 	private LoanFilter applyCheckUserFilter(LoanFilter filter) {

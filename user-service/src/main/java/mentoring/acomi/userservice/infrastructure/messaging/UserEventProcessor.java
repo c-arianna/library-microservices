@@ -110,7 +110,7 @@ public class UserEventProcessor {
 			
 			default -> throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));
 				}
-			logger.info("Event processed successfully");
+			logger.info("Event {} processed successfully", eventEnvelope.eventId());
 		} catch (Exception e) {
 			logger.error("Failed to process event {}", eventEnvelope.eventType(), e);
 			throw e;
