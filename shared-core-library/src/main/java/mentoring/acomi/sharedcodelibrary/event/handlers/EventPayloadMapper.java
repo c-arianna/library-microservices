@@ -1,12 +1,8 @@
-package mentoring.acomi.loanservice.application.event.handlers;
-
-import org.springframework.stereotype.Component;
+package mentoring.acomi.sharedcodelibrary.event.handlers;
 
 import jakarta.validation.Validator;
-import mentoring.acomi.loanservice.application.errors.InvalidEventPayloadException;
 import tools.jackson.databind.ObjectMapper;
 
-@Component
 public class EventPayloadMapper {
 
     private final ObjectMapper mapper;

@@ -2,7 +2,7 @@ package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.loanservice.application.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.UserProjection;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;

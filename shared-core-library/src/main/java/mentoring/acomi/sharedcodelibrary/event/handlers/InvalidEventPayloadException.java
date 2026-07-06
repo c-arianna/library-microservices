@@ -1,4 +1,4 @@
-package mentoring.acomi.loanservice.application.errors;
+package mentoring.acomi.sharedcodelibrary.event.handlers;
 
 public class InvalidEventPayloadException extends RuntimeException {
 

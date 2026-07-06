@@ -1,3 +1,7 @@
 package mentoring.acomi.bookservice.infrastructure.messaging.payload.producer;
 
-public record BookRegisteredIntegrationPayload(String isbn, String author, String title, String description) {}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record BookRegisteredIntegrationPayload(@NotBlank String isbn, @NotBlank String author, @NotBlank String title, 
+		@NotNull String description) {}

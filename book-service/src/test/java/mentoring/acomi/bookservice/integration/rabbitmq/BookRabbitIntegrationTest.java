@@ -216,41 +216,6 @@ class BookRabbitIntegrationTest {
 
 	}
 
-	@Test
-	void shouldConsumeEventsInOrder() {
-
-		IntegrationEventTypes type = IntegrationEventTypes.LOAN_CONFIRM_REQUESTED;
-		String eventId = UUID.randomUUID().toString();
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = new IntegrationEventEnvelope<>(eventId, type,
-				"loan-service", LOAN_ID, AggregateType.LOAN.name(), 1, Instant.now(), 1,
-				new LoanIntegrationPayload(LOAN_ID, ISBN, USER_ID));
-
-		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
-
-		await().during(Duration.ofMillis(200)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
-			boolean processed = eventRepository.existsEventProcessed(event.eventId(), AggregateType.LOAN.name());
-			Assertions.assertFalse(processed);
-		});
-
-		publishLoanRequestedEvent();
-
-		await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {
-
-			boolean processedV1 = eventRepository.existsEventProcessed(event.eventId(), AggregateType.LOAN.name());
-
-			Assertions.assertTrue(processedV1);
-
-			var book = viewRepository.findById(ISBN).orElseThrow();
-			Assertions.assertEquals(1, book.borrowedCopies());
-		});
-
-		int max = eventRepository.findMaxProcessedVersion(LOAN_ID, AggregateType.LOAN.name()).orElse(-1);
-		Assertions.assertEquals(1, max);
-		
-		var events = eventRepository.loadStream(ISBN);
-		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == BookEventType.BookBorrowed));
-	}
-
 	private void publishLoanConfirmedRequestEvent() {
 
 		IntegrationEventTypes type = IntegrationEventTypes.LOAN_CONFIRM_REQUESTED;

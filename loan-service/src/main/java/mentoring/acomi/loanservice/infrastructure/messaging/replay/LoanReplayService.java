@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.loanservice.application.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;

@@ -1,9 +1,8 @@
 package mentoring.acomi.bookservice.infrastructure.messaging;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,63 +11,29 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import mentoring.acomi.bookservice.application.errors.NonRetryableEventException;
-import mentoring.acomi.bookservice.application.projection.BookProjection;
-import mentoring.acomi.bookservice.application.reactor.BookEventReactor;
-import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
-import mentoring.acomi.bookservice.domain.errors.ReservationMissing;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
-import mentoring.acomi.bookservice.domain.events.BookEvent;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookCopiesUpdatedIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
-import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookIntegrationRepository;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class BookEventProcessor {
 
-	private final BookEventReactor reactor;
-	private final BookProjection projection;
+	private final Map<IntegrationEventTypes, List<EventHandler>> handlers;
+	
 	private final BookIntegrationRepository bookIntegrationRepository;
 	private final BookEventRepository bookEventRepository;
-	private final ObjectMapper mapper;
-	
-	private final BookIntegrationEventMapper eventMapper;
 	
 	private final Logger logger = LogManager.getLogger(BookEventProcessor.class);
 	
-	public static final Map<IntegrationEventTypes, Integer> consumerSupportedVersion = Map.ofEntries(
-			Map.entry(IntegrationEventTypes.LOAN_REQUESTED, BookIntegrationConsumerEventVersions.LOAN_REQUESTED),
-			Map.entry(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, BookIntegrationConsumerEventVersions.LOAN_CONFIRM_REQUESTED),
-			Map.entry(IntegrationEventTypes.LOAN_CANCELED, BookIntegrationConsumerEventVersions.LOAN_CANCELED),
-			Map.entry(IntegrationEventTypes.LOAN_RETURNED, BookIntegrationConsumerEventVersions.LOAN_RETURNED),
-			Map.entry(IntegrationEventTypes.BOOK_REGISTERED, BookIntegrationConsumerEventVersions.BOOK_REGISTERED),
-			Map.entry(IntegrationEventTypes.BOOK_COPIES_UPDATED, BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED),
-			Map.entry(IntegrationEventTypes.BOOK_RESERVED, BookIntegrationConsumerEventVersions.BOOK_RESERVED),
-			Map.entry(IntegrationEventTypes.BOOK_BORROWED, BookIntegrationConsumerEventVersions.BOOK_BORROWED),
-			Map.entry(IntegrationEventTypes.BOOK_RELEASED, BookIntegrationConsumerEventVersions.BOOK_RELEASED),
-			Map.entry(IntegrationEventTypes.BOOK_RETURNED, BookIntegrationConsumerEventVersions.BOOK_RETURNED),
-			Map.entry(IntegrationEventTypes.BOOK_RESERVATION_REJECTED, BookIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED),
-			Map.entry(IntegrationEventTypes.BOOK_BORROW_REJECTED, BookIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED));
-	
-	private static final int MAX_ITERATIONS = 10;
-	private static final int MAX_RETRY_PER_EVENT = 5;
-	
-	public BookEventProcessor(BookEventReactor reactor, BookProjection projection, BookIntegrationRepository bookIntegrationRepository, 
-			BookEventRepository bookEventRepository, BookIntegrationEventMapper eventMapper, ObjectMapper mapper) {
-		this.reactor = reactor;
-		this.projection = projection;
+	public BookEventProcessor(BookIntegrationRepository bookIntegrationRepository, BookEventRepository bookEventRepository, 
+			List<EventHandler> handlers) {
 		this.bookIntegrationRepository = bookIntegrationRepository;
 		this.bookEventRepository = bookEventRepository;
-		this.eventMapper = eventMapper;
-		this.mapper = mapper;
+		this.handlers = handlers.stream().collect(Collectors.groupingBy(EventHandler::eventType));
 	}
 	
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -78,191 +43,52 @@ public class BookEventProcessor {
 			return;
 		}
 
-		validatePayload(event.eventType(), payload);
-
 		try {
 			bookIntegrationRepository.save(event);
 		} catch (DataIntegrityViolationException e) {
 			return;
 		}
 		
-		try {
-			handleConsumerEvent(event.eventId(), event.eventType(), new CommandLoanEvent(payload.loanId(), payload.isbn(), payload.userId()));
-			bookEventRepository.markProcessed(event.eventId(), event.aggregateType());
-			retryPendingLoanEvents(event.aggregateId(), payload.isbn());			
-		}catch (ReservationMissing e) {
-			 logger.warn("Event too early or invalid state, will retry later. Event: {}", event.eventType());
-		}
-		catch (Exception e) {
-			 logger.warn("Event not fully applied, will retry later {}", event.eventType());
-		}
-		
+		handleEvent(event);
+		bookEventRepository.markProcessed(event.eventId(), event.aggregateType());	
 	}
 	
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void processProducerEvent( IntegrationEventEnvelope<?> eventEnvelope) {
+	public void processProducerEvent( IntegrationEventEnvelope<?> event) {
 		
-		if (bookEventRepository.existsEventProcessed(eventEnvelope.eventId(), AggregateType.BOOK.name())) {
+		if (bookEventRepository.existsEventProcessed(event.eventId(), AggregateType.BOOK.name())) {
 			return;
 		}
 		
-		String aggregateId = eventEnvelope.aggregateId();
-		String aggregateType = eventEnvelope.aggregateType();
+		handleEvent(event);
+		bookEventRepository.markProcessed(event.eventId(), event.aggregateType());	
+	}
+		     
+    private void handleEvent(IntegrationEventEnvelope<?> eventEnvelope) {
+
+		IntegrationEventTypes eventType = eventEnvelope.eventType();
+		String eventId = eventEnvelope.eventId();
 		
-		int lastEventVersionProcessed = bookEventRepository.findMaxProcessedVersion(aggregateId, aggregateType).orElse(-1);
-		int eventVersion = eventEnvelope.eventVersion();
-		
-		if(eventVersion == lastEventVersionProcessed + 1) {
-			
-			handleDomainEvent(eventEnvelope);
-			bookEventRepository.markProcessed(eventEnvelope.eventId(), aggregateType);
-								
-			int nextEventVersionToProcess = eventVersion + 1;
-			
-			while(true) {
-				
-				Optional<BookEvent> nextEventToProcess = bookEventRepository.findNextEventToProcess(aggregateId, aggregateType, nextEventVersionToProcess);
-				
-				if(nextEventToProcess.isEmpty()) {
-					break;
-				}
-				
-				BookEvent eventToProcess = nextEventToProcess.get();
-				handleDomainEvent(eventMapper.map(eventToProcess));
-				bookEventRepository.markProcessed(eventToProcess.eventId(), eventToProcess.aggregateType());
-				
-				nextEventVersionToProcess++;
-			}
+		if(eventType == IntegrationEventTypes.BOOK_RESERVATION_REJECTED || eventType == IntegrationEventTypes.BOOK_BORROW_REJECTED) {
+			logger.info("No handle needed for process event {}", eventEnvelope.eventType());
 		}
 		
-	}
-
-	private void handleConsumerEvent(String eventId, IntegrationEventTypes eventType, CommandLoanEvent command) {
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
-		reactor.handle(eventType, command);
-		logger.info("Event processed successfully");
-	}
-	
-	private void handleDomainEvent(IntegrationEventEnvelope<?> eventEnvelope) {
-		
-		logger.info("Processing event {}, ID: {}", eventEnvelope.eventType().eventName, eventEnvelope.eventId());
-		
-		try {
-			switch (eventEnvelope.eventType()) {
-			
-				case BOOK_REGISTERED -> {
-					projection.addBook(mapper.convertValue(eventEnvelope.payload(), BookRegisteredIntegrationPayload.class), eventEnvelope.occurredAt());
-				}
-		
-				case BOOK_COPIES_UPDATED -> {
-					projection.updateCopies(mapper.convertValue(eventEnvelope.payload(), BookCopiesUpdatedIntegrationPayload.class), eventEnvelope.occurredAt());
-				}
-		
-				case BOOK_RESERVED -> {
-					projection.reserve(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
-				}
-		
-				case BOOK_BORROWED -> {
-					projection.borrow(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
-				}
-		
-				case BOOK_RELEASED -> {
-					projection.release(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
-				}
-		
-				case BOOK_RETURNED -> {
-					projection.returnBorrowed(mapper.convertValue(eventEnvelope.payload(), BookLoanIntegrationPayload.class), eventEnvelope.occurredAt());
-				}
-		
-				case BOOK_BORROW_REJECTED, BOOK_RESERVATION_REJECTED -> {
-					logger.info("No handle needed for process event {}", eventEnvelope.eventType());
-				}
-				
-				default ->
-					throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));
-				}
-			logger.info("Event processed successfully");
-		} catch (Exception e) {
-			logger.error("Failed to process event {}", eventEnvelope.eventType(), e);
-			throw e;
-		}
-	}
-	
-	private void validatePayload(IntegrationEventTypes eventType, LoanIntegrationPayload payload) {
 
-		if (payload == null || payload.loanId() == null || payload.userId() == null || payload.isbn() == null) {
-			throw new NonRetryableEventException(String.format("Invalid payload for event %s", eventType));
-		}
-	}
-	
-    private String getPayloadField(String eventType, JsonNode jsonPayload, String field) {
+		List<EventHandler> eventHandlers = handlers.get(eventType);
 		
-		String fieldValue = jsonPayload.get(field).asString();
-
-		if (fieldValue == null || fieldValue.isBlank()) {
-			throw new NonRetryableEventException(String.format("Missing payload field %s for event %s", field, eventType));
+		if (eventHandlers  == null) {
+			 logger.warn("No handler found for event {} ({})", eventId, eventType);
+			 return;
 		}
 		
-		return fieldValue;
+		eventHandlers.stream().filter(h -> h.accepts(eventEnvelope)).findFirst()
+			.ifPresentOrElse(h -> h.handleEvent(eventEnvelope), () -> logger.warn("No handler found for event {} with schemaVersion {}",
+	                eventEnvelope.eventType(), eventEnvelope.schemaVersion()
+	            )
+	        );
+		
+		logger.info("Event {} processed successfully", eventEnvelope.eventId());
 	}
-    
-    private void retryPendingLoanEvents(String aggregateId, String isbn) {
-
-        int iteration = 0;
-
-        while (iteration++ < MAX_ITERATIONS) {
-
-            List<BookEventEntity> pendingEvents = findUnprocessedLoanEvents(aggregateId, isbn);
-
-            boolean progressed = false;
-
-            for (BookEventEntity event : pendingEvents) {
-
-                if (event.isProcessed() || event.isFailed()) {
-                	continue;
-                }
-
-                if (event.getRetryCount() >= MAX_RETRY_PER_EVENT) {
-                    bookIntegrationRepository.markFailed(event.getEventId(), event.getAggregateType());
-                    logger.error("Event permanently failed {}", event.getEventId());
-                    continue;
-                }
-
-                try {
-                   
-                    String loanId = getPayloadField(event.getEventType(), event.getPayload(), "loanId");
-                    String isbnPayload = getPayloadField(event.getEventType(), event.getPayload(), "isbn");
-                    String userId = getPayloadField(event.getEventType(), event.getPayload(), "userId");
-                    
-                    CommandLoanEvent command = new CommandLoanEvent(loanId, isbnPayload, userId);
-
-                    handleConsumerEvent(event.getEventId(), IntegrationEventTypes.valueOf(event.getEventType()), command);
-
-                    bookEventRepository.markProcessed(event.getEventId(), event.getAggregateType());
-
-                    progressed = true;
-
-                }catch (ReservationMissing e) {
-               	    bookIntegrationRepository.incrementRetry(event.getEventId(), event.getAggregateType());
-               	    int retry = event.getRetryCount() + 1;
-                    logger.debug("Event {} still not applicable (retry={})", event.getEventId(), retry);
-
-                }  
-                catch (Exception e) {
-                    bookIntegrationRepository.incrementRetry(event.getEventId(), event.getAggregateType());
-                }
-            }
-
-            if (!progressed) break;
-        }
-    }
-
-    private List<BookEventEntity> findUnprocessedLoanEvents(String aggregateId, String isbn) {
-
-        List<BookEventEntity> events = bookIntegrationRepository.findEventsToProcess(aggregateId, List.of(IntegrationEventTypes.LOAN_REQUESTED.name(), 
-            		IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.name(), IntegrationEventTypes.LOAN_CANCELED.name(), IntegrationEventTypes.LOAN_RETURNED.name()));
-
-        return events.stream().filter(e -> getPayloadField(e.getEventType(), e.getPayload(), "isbn").equals(isbn))
-        		.sorted(Comparator.comparing(BookEventEntity::getOccurredAt)).toList();
-    }
+	
 }

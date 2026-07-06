@@ -17,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import mentoring.acomi.loanservice.application.errors.InvalidEventPayloadException;
-import mentoring.acomi.loanservice.application.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcodelibrary.event.handlers.InvalidEventPayloadException;
+import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanCanceledV1Handler;

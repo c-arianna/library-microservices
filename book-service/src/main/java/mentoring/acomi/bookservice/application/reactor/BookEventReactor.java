@@ -1,7 +1,6 @@
 package mentoring.acomi.bookservice.application.reactor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
@@ -13,13 +12,12 @@ import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.BookEvent;
+import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.domain.model.ISBN;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationConsumerEventVersions;
 
 @Component
 public class BookEventReactor {
-
-	private final Map<IntegrationEventTypes, Consumer<CommandLoanEvent>> handlers;
 
 	private final BookEventRepository bookEventRepository;
 	private final EventDispatcher eventDispatcher;
@@ -28,32 +26,19 @@ public class BookEventReactor {
 	public BookEventReactor(BookEventRepository eventRepository, EventDispatcher eventDispatcher) {
 		this.bookEventRepository = eventRepository;
 		this.eventDispatcher = eventDispatcher;
-		this.handlers = Map.of(IntegrationEventTypes.LOAN_REQUESTED, this::handleLoanRequested,
-				IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, this::handleLoanConfirmRequested,
-				IntegrationEventTypes.LOAN_CANCELED, this::handleLoanCanceled, IntegrationEventTypes.LOAN_RETURNED,
-				this::handleLoanReturned);
 	}
 
-	public void handle(IntegrationEventTypes eventType, CommandLoanEvent command) {
-		Consumer<CommandLoanEvent> handler = handlers.get(eventType);
-		if (handler == null) {
-			throw new IllegalArgumentException(String.format("Unsupported event type: %s", eventType));
-		}
-		handler.accept(command);
-
-	}
-
-	private void handleLoanRequested(CommandLoanEvent command) {
+	public void handleLoanRequested(CommandLoanEvent command) {
 		BookAggregate book = loadBook(command.isbn());
 		book.reserve(command.loanId(), command.userId());
 	}
 
-	private void handleLoanConfirmRequested(CommandLoanEvent command) {
+	public void handleLoanConfirmRequested(CommandLoanEvent command) {
 		BookAggregate book = loadBook(command.isbn());
 		book.borrow(command.loanId(), command.userId());
 	}
 
-	private void handleLoanCanceled(CommandLoanEvent command) {
+	public void handleLoanCanceled(CommandLoanEvent command) {
 
 		String loanId = command.loanId();
 
@@ -65,7 +50,7 @@ public class BookEventReactor {
 		}
 	}
 
-	private void handleLoanReturned(CommandLoanEvent command) {
+	public void handleLoanReturned(CommandLoanEvent command) {
 
 		String loanId = command.loanId();
 
@@ -82,7 +67,7 @@ public class BookEventReactor {
 
 		List<BookEvent> events = bookEventRepository.loadStream(isbn);
 		Consumer<BookEvent> dispatch = event -> {
-			bookEventRepository.appendToStream(event);
+			bookEventRepository.appendToStream(event, getSchemaVersion(event.type()));
 			try {
 				eventDispatcher.dispatch(event);
 			} catch (Exception e) {
@@ -91,6 +76,40 @@ public class BookEventReactor {
 		};
 
 		return new BookAggregate(ISBN.of(isbn), dispatch, events);
+	}
+	
+	private int getSchemaVersion(BookEventType eventType) {
+		return switch(eventType) {
+		
+		case BookBorrowRejected -> {
+			yield BookIntegrationConsumerEventVersions.BOOK_BORROW_REJECTED;
+		}
+		case BookBorrowed-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_BORROWED;
+		}
+		case BookCopiesAdded-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED;
+		}
+		case BookCopiesRemoved-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_COPIES_UPDATED;
+		}
+		case BookRegistered-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_REGISTERED;
+		}
+		case BookReleased-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RELEASED;
+		}
+		case BookReservationRejected-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RESERVATION_REJECTED;
+		}
+		case BookReserved-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RESERVED;
+		}
+		case BookReturned-> {
+			yield BookIntegrationConsumerEventVersions.BOOK_RETURNED;
+		}
+		
+		};
 	}
 
 }
