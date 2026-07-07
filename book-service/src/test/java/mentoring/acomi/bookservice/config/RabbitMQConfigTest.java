@@ -1,15 +1,20 @@
 package mentoring.acomi.bookservice.config;
 
+import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 
+@EnableAutoConfiguration
 @TestConfiguration
 public class RabbitMQConfigTest {
 
@@ -29,32 +34,64 @@ public class RabbitMQConfigTest {
 	}
 
 	@Bean
-    Declarables bookBindings(Queue bookQueue, TopicExchange exchange) {
+    Declarables bookBindings(Queue bookQueue, TopicExchange eventsExchange) {
         return new Declarables(
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey()),
 
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.LOAN_CONFIRM_REQUESTED.getRoutingKey()),
 
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.LOAN_CANCELED.getRoutingKey()),
 
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.LOAN_RETURNED.getRoutingKey()),
 
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.BOOK_REGISTERED.getRoutingKey()),
                 
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.BOOK_COPIES_UPDATED.getRoutingKey()),
                 
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.BOOK_RESERVED.getRoutingKey()),
                 
-            BindingBuilder.bind(bookQueue).to(exchange)
+            BindingBuilder.bind(bookQueue).to(eventsExchange)
                 .with(IntegrationEventTypes.BOOK_BORROWED.getRoutingKey())
         );
     }
+	
+	@Bean
+	FanoutExchange dlx() {
+	    return new FanoutExchange("dlq-test.dlx");
+	}
+
+	@Bean
+	Queue testQueue() {
+	    return QueueBuilder.durable("test.queue")
+	            .deadLetterExchange("dlq-test.dlx")
+	            .deadLetterRoutingKey("test.routing.key")
+	            .build();
+	}
+
+	@Bean
+	Queue deadLetterQueue() {
+	    return QueueBuilder.durable("test.dlq").build();
+	}
+	
+	@Bean
+	Binding testQueueBinding(Queue testQueue, TopicExchange eventsExchange) {
+
+	    return BindingBuilder.bind(testQueue)
+	            .to(eventsExchange)
+	            .with("test.routing.key");
+	}
+
+	@Bean
+	Binding deadLetterBinding(Queue deadLetterQueue, FanoutExchange dlx) {
+	    return BindingBuilder.bind(deadLetterQueue)
+	            .to(dlx);
+	}
 
 }

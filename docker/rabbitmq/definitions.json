@@ -1,281 +1,344 @@
 {
-  "vhosts": [
-    { "name": "/" }
-  ],
-
-  "exchanges": [
-    {
-      "name": "events.exchange",
-      "vhost": "/",
-      "type": "topic",
-      "durable": true
-    },
-	{
-      "name": "replay.exchange",
-      "vhost": "/",
-      "type": "topic",
-      "durable": true
-    }
-  ],
-
-  "queues": [
-    {
-      "name": "book-service.queue",
-      "vhost": "/",
-      "durable": true
-    },
-    {
-      "name": "loan-service.queue",
-      "vhost": "/",
-      "durable": true
-    },
-    {
-      "name": "user-service.queue",
-      "vhost": "/",
-      "durable": true
-    },
-	{
-      "name": "replay.book.queue",
-      "vhost": "/",
-      "durable": true
-    },
-	{
-      "name": "replay.loan.queue",
-      "vhost": "/",
-      "durable": true
-    },
-	{
-      "name": "replay.user.queue",
-      "vhost": "/",
-      "durable": true
-    },
-	{
-      "name": "notification.queue",
-      "vhost": "/",
-      "durable": true
-    }
-  ],
-
-  "bindings": [
-
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.requested"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.confirm.requested"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.canceled"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.returned"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.registered"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.copies.updated"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.reserved"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.borrowed"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.released"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.returned"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.reservation.rejected"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "book-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.borrow.rejected"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.reserved"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.reservation.rejected"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.borrowed"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "book.borrow.rejected"
-    },
-    {
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "user.*"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.requested"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.confirmed"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.canceled"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.returned"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.reserved"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.failed"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "loan-service.queue",
-      "destination_type": "queue",
-      "routing_key": "loan.confirm.requested"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "user-service.queue",
-      "destination_type": "queue",
-      "routing_key": "user.*"
-    },
-	{
-      "source": "replay.exchange",
-      "vhost": "/",
-      "destination": "replay.book.queue",
-      "destination_type": "queue",
-      "routing_key": "replay.book"
-    },
-	{
-      "source": "replay.exchange",
-      "vhost": "/",
-      "destination": "replay.loan.queue",
-      "destination_type": "queue",
-      "routing_key": "replay.loan"
-    },
-	{
-      "source": "replay.exchange",
-      "vhost": "/",
-      "destination": "replay.user.queue",
-      "destination_type": "queue",
-      "routing_key": "replay.user"
-    },
-	{
-      "source": "events.exchange",
-      "vhost": "/",
-      "destination": "notification.queue",
-      "destination_type": "queue",
-      "routing_key": "book.registered"
-    }
-  ],
-"users": [
-    {
-      "name": "libraryApp",
-      "password": "libraryAppTest!",
-      "tags": "administrator"
-    }
-  ],
-  "permissions": [
-    {
-      "user": "libraryApp",
-      "vhost": "/",
-      "configure": ".*",
-      "write": ".*",
-      "read": ".*"
-    }
-  ]
+    "vhosts": [
+        {
+            "name": "/"
+        }
+    ],
+    "exchanges": [
+        {
+            "name": "events.exchange",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+			"autoDelete": false
+        },
+        {
+            "name": "replay.exchange",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+			"autoDelete": false
+        },
+        {
+            "name": "book-service.dlx",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+			"autoDelete": false
+        },
+        {
+            "name": "loan-service.dlx",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+			"autoDelete": false
+        },
+        {
+            "name": "user-service.dlx",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+			"autoDelete": false
+        }
+    ],
+    "queues": [
+        {
+            "name": "book-service.queue",
+            "vhost": "/",
+            "durable": true,
+            "arguments": {
+                "x-dead-letter-exchange": "book-service.dlx"
+            }
+        },
+        {
+            "name": "loan-service.queue",
+            "vhost": "/",
+            "durable": true,
+            "arguments": {
+                "x-dead-letter-exchange": "loan-service.dlx"
+            }
+        },
+        {
+            "name": "user-service.queue",
+            "vhost": "/",
+            "durable": true,
+            "arguments": {
+                "x-dead-letter-exchange": "user-service.dlx"
+            }
+        },
+        {
+            "name": "replay.book.queue",
+            "vhost": "/",
+            "durable": true
+        },
+        {
+            "name": "replay.loan.queue",
+            "vhost": "/",
+            "durable": true
+        },
+        {
+            "name": "replay.user.queue",
+            "vhost": "/",
+            "durable": true
+        },
+        {
+            "name": "notification.queue",
+            "vhost": "/",
+            "durable": true
+        },
+        {
+            "name": "book-service.dlq",
+            "vhost": "/",
+            "durable": true
+        },
+        {
+            "name": "loan-service.dlq",
+            "vhost": "/",
+            "durable": true
+        },
+        {
+            "name": "user-service.dlq",
+            "vhost": "/",
+            "durable": true
+        }
+    ],
+    "bindings": [
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.requested"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.confirm.requested"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.canceled"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.returned"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.registered"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.copies.updated"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.reserved"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.borrowed"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.released"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.returned"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.reservation.rejected"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.borrow.rejected"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.reserved"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.reservation.rejected"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.borrowed"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.borrow.rejected"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "user.*"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.requested"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.confirmed"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.canceled"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.returned"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.reserved"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.failed"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "loan-service.queue",
+            "destination_type": "queue",
+            "routing_key": "loan.confirm.requested"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "user-service.queue",
+            "destination_type": "queue",
+            "routing_key": "user.*"
+        },
+        {
+            "source": "replay.exchange",
+            "vhost": "/",
+            "destination": "replay.book.queue",
+            "destination_type": "queue",
+            "routing_key": "replay.book"
+        },
+        {
+            "source": "replay.exchange",
+            "vhost": "/",
+            "destination": "replay.loan.queue",
+            "destination_type": "queue",
+            "routing_key": "replay.loan"
+        },
+        {
+            "source": "replay.exchange",
+            "vhost": "/",
+            "destination": "replay.user.queue",
+            "destination_type": "queue",
+            "routing_key": "replay.user"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "notification.queue",
+            "destination_type": "queue",
+            "routing_key": "book.registered"
+        },
+        {
+            "source": "book-service.dlx",
+            "vhost": "/",
+            "destination": "book-service.dlq",
+            "destination_type": "queue"
+        },
+        {
+            "source": "loan-service.dlx",
+            "vhost": "/",
+            "destination": "loan-service.dlq",
+            "destination_type": "queue"
+        },
+        {
+            "source": "user-service.dlx",
+            "vhost": "/",
+            "destination": "user-service.dlq",
+            "destination_type": "queue"
+        }
+    ],
+    "users": [
+        {
+            "name": "libraryApp",
+            "password": "libraryAppTest!",
+            "tags": "administrator"
+        }
+    ],
+    "permissions": [
+        {
+            "user": "libraryApp",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        }
+    ]
 }
