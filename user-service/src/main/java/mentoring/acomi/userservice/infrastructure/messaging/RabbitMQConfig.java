@@ -16,11 +16,12 @@ public class RabbitMQConfig {
 	}
 	
 	@Bean
-    SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
+    SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
 
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
 
         factory.setConnectionFactory(connectionFactory);
+        factory.setMessageConverter(messageConverter);
 
         factory.setConcurrentConsumers(1);
         factory.setMaxConcurrentConsumers(1);
