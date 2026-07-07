@@ -27,6 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
+import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
@@ -66,6 +67,9 @@ public class LoanApiIntegrationTest {
 	@Autowired
 	private LoanViewRepository loanViewRepository;
 
+	@MockitoBean
+	private EventDispatcher eventDispatcher;
+	
 	@MockitoBean
 	private JwtDecoder jwtDecoder;
 	

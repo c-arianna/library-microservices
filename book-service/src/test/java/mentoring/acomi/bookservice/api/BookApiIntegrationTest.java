@@ -24,6 +24,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
+import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
@@ -51,6 +52,9 @@ class BookApiIntegrationTest {
 
 	private static final String isbn = "9788804336327";
 
+	@MockitoBean
+	private EventDispatcher eventDispatcher;
+	
 	@MockitoBean
 	private JwtDecoder jwtDecoder;
 

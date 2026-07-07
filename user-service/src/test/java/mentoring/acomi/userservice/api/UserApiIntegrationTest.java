@@ -35,6 +35,7 @@ import org.testcontainers.junit.jupiter.Container;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.messaging.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
@@ -81,6 +82,9 @@ class UserApiIntegrationTest {
 
 	private static final String TOKEN_VALUE = "test-token";
 
+	@MockitoBean
+	private EventDispatcher eventDispatcher;
+	
 	@MockitoBean
 	private JwtDecoder jwtDecoder;
 
