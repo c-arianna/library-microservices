@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.Mockito.times;
@@ -69,9 +70,14 @@ class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
         IntegrationEventEnvelope<BookLoanIntegrationPayload> event = getBookReservedEvent("", UUID.randomUUID().toString(),
                         UUID.randomUUID().toString(), 1);
 
-        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+        InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-        verifyNoInteractions(reactor);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("isbn"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(reactor)
+	    );
     }
 
     @Test
@@ -79,9 +85,14 @@ class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
 
         IntegrationEventEnvelope<BookLoanIntegrationPayload> event = getBookReservedEvent("9788804336327", "", UUID.randomUUID().toString(), 1);
 
-        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+        InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-        verifyNoInteractions(reactor);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("loanId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(reactor)
+	    );
     }
 
     @Test
@@ -89,9 +100,14 @@ class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
 
         IntegrationEventEnvelope<BookLoanIntegrationPayload> event = getBookReservedEvent("9788804336327", UUID.randomUUID().toString(), "", 1);
 
-        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+        InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-        verifyNoInteractions(reactor);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("userId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(reactor)
+	    );
     }
 
     @Override
@@ -122,7 +138,9 @@ class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
     
     private IntegrationEventEnvelope<BookLoanIntegrationPayload> getBookReservedEvent(String isbn, String loanId, String userId, int schemaVersion) {
 
-        return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, "test-handler", isbn,
+    	String aggregateId = isbn == null || isbn.isBlank() ? "9788804336327" : isbn;
+    	
+        return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, "test-handler", aggregateId,
                 AggregateType.BOOK.name(), 0, Instant.now(), schemaVersion, new BookLoanIntegrationPayload(isbn, loanId, userId));
     }
 }

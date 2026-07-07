@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -65,9 +66,14 @@ public class BookRegisteredV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookRegisteredIntegrationPayload> event = getBookRegisteredEvent("", "Italo Calvino", "Il barone rampante", 
 				"Appartiene a una trilogia", 1);
 		
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("isbn"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -76,9 +82,14 @@ public class BookRegisteredV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookRegisteredIntegrationPayload> event = getBookRegisteredEvent("9788804336327", "", "Il barone rampante", 
 				"Appartiene a una trilogia", 1);
 		
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("author"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -87,20 +98,30 @@ public class BookRegisteredV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookRegisteredIntegrationPayload> event = getBookRegisteredEvent("9788804336327", "Italo Calvino", "", 
 				"Appartiene a una trilogia", 1);
 		
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("title"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
 	void shouldRejectPayloadWithoutDescription() {
 	
-		IntegrationEventEnvelope<BookRegisteredIntegrationPayload> event = getBookRegisteredEvent("9788804336327", "Italo Calvino", "Il barone rampante", 
-				null, 1);
+		IntegrationEventEnvelope<BookRegisteredIntegrationPayload> event = getBookRegisteredEvent("9788804336327", "Italo Calvino", 
+				"Il barone rampante", null, 1);
 		
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("description"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Override
@@ -132,7 +153,7 @@ public class BookRegisteredV1HandlerTest extends AbstractEventHandlerTest {
 	private IntegrationEventEnvelope<BookRegisteredIntegrationPayload> getBookRegisteredEvent(String isbn, String author, String title, 
 			String description, int schemaVersion) {
 		
-		String aggregateId = isbn == null ? "" : isbn;
+		String aggregateId = isbn == null || isbn.isBlank() ? "9788804336327" : isbn;
 		
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_REGISTERED,
 				"test-handler", aggregateId, AggregateType.BOOK.name(), 0, Instant.now(),

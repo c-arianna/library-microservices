@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -64,9 +65,14 @@ public class BookCopiesUpdateV1HandlerTest extends AbstractEventHandlerTest {
 	
 		IntegrationEventEnvelope<BookCopiesUpdatedIntegrationPayload> event = getBookCopiesUpdatedEvent("", 5, 1);
 		
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("isbn"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Override
@@ -97,7 +103,7 @@ public class BookCopiesUpdateV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private IntegrationEventEnvelope<BookCopiesUpdatedIntegrationPayload> getBookCopiesUpdatedEvent(String isbn, int quantity, int schemaVersion) {
 		
-		String aggregateId = isbn == null ? "" : isbn;
+		String aggregateId = isbn == null || isbn.isBlank() ? "9788804336327" : isbn;
 		
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_COPIES_UPDATED,
 				"test-handler", aggregateId, AggregateType.BOOK.name(), 0, Instant.now(),

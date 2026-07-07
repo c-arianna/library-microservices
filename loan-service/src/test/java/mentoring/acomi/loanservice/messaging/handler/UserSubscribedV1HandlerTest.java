@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -71,9 +72,14 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent("", MAIL, NAME, LASTNAME, 
 				UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("userId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -82,9 +88,14 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), null, NAME, 
 				LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("email"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -93,9 +104,14 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), "test1", NAME, LASTNAME, 
 				UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("email"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -104,9 +120,14 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, "", LASTNAME, 
 				UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("name"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -115,9 +136,14 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, "", 
 				UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("lastname"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 
 	@Test
@@ -126,9 +152,14 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME,
 				LASTNAME, "", UserStatus.ACTIVE, UserRole.READER, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("userIdentityProviderId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -137,9 +168,15 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, 
 				LASTNAME, UUID.randomUUID().toString(), null, UserRole.READER, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("status"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -148,9 +185,15 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, 
 				LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, null, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("role"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Override
@@ -184,8 +227,10 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	private IntegrationEventEnvelope<UserSubscribedIntegrationPayload> getUserSubscribedEvent(String userId, String mail, String name, 
 			String lastname, String identityProvider, UserStatus status, UserRole role, int schemaVersion) {
 
+		String aggregateId = userId == null || userId.isBlank() ? UUID.randomUUID().toString() : userId;
+		
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.USER_SUBSCRIBED,
-				"test-handler", UUID.randomUUID().toString(), AggregateType.USER.name(), 0, Instant.now(), schemaVersion, 
+				"test-handler", aggregateId, AggregateType.USER.name(), 0, Instant.now(), schemaVersion, 
 				getPayload(userId, mail, name, lastname, identityProvider, status, role));
 	}
 

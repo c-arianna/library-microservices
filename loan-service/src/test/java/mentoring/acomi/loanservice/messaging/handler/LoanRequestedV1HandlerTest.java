@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -69,9 +70,14 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = getLoanRequestedEvent("", "9788804336327", UUID.randomUUID().toString(), 
 				start, end, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("loanId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 
 	}
 	
@@ -81,9 +87,14 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = getLoanRequestedEvent(UUID.randomUUID().toString(), "",
 				UUID.randomUUID().toString(), start, end, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("isbn"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 
 	}
 	
@@ -93,9 +104,14 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = getLoanRequestedEvent(UUID.randomUUID().toString(), "9788804336327", "", 
 				start, end, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("userId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 
 	}
 	
@@ -105,9 +121,14 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = getLoanRequestedEvent(UUID.randomUUID().toString(), "9788804336327",
 				UUID.randomUUID().toString(), null, end, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("start"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 
 	}
 	
@@ -117,9 +138,14 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = getLoanRequestedEvent(UUID.randomUUID().toString(), "9788804336327", 
 				UUID.randomUUID().toString(), start, null, 1);
 
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("end"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 
 	}
 
@@ -152,9 +178,11 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 	private IntegrationEventEnvelope<LoanRequestedIntegrationPayload> getLoanRequestedEvent(String loanId, String isbn,
 			String userId, LocalDate start, LocalDate end, int schemaVersion) {
 
+		String aggregateId = loanId == null || loanId.isBlank() ? UUID.randomUUID().toString() : loanId;
+		
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.LOAN_REQUESTED,
-				"test-handler", UUID.randomUUID().toString(), AggregateType.LOAN.name(), 0, Instant.now(),
-				schemaVersion, new LoanRequestedIntegrationPayload(loanId, isbn, userId, start, end));
+				"test-handler", aggregateId, AggregateType.LOAN.name(), 0, Instant.now(), schemaVersion, 
+				new LoanRequestedIntegrationPayload(loanId, isbn, userId, start, end));
 	}
 
 }

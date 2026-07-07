@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -70,9 +71,14 @@ public class BookReservationRejectedV1HandlerTest extends AbstractEventHandlerTe
         IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> event = getBookReservationRejectedEvent("", 
         		UUID.randomUUID().toString(), UUID.randomUUID().toString(), BOOK_NOT_AVAILABLE, 1);
 
-        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+        InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-        verifyNoInteractions(reactor);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("isbn"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(reactor)
+	    );
     }
 
     @Test
@@ -81,9 +87,14 @@ public class BookReservationRejectedV1HandlerTest extends AbstractEventHandlerTe
         IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> event = getBookReservationRejectedEvent("9788804336327", "", 
         		UUID.randomUUID().toString(), BOOK_NOT_AVAILABLE, 1);
 
-        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+        InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-        verifyNoInteractions(reactor);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("loanId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(reactor)
+	    );
     }
 
     @Test
@@ -92,9 +103,14 @@ public class BookReservationRejectedV1HandlerTest extends AbstractEventHandlerTe
         IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> event = getBookReservationRejectedEvent("9788804336327",
         		UUID.randomUUID().toString(), "", BOOK_NOT_AVAILABLE, 1);
 
-        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+        InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-        verifyNoInteractions(reactor);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("userId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(reactor)
+	    );
     }
     
     @Test
@@ -103,9 +119,14 @@ public class BookReservationRejectedV1HandlerTest extends AbstractEventHandlerTe
         IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> event = getBookReservationRejectedEvent("9788804336327",
         		UUID.randomUUID().toString(), UUID.randomUUID().toString(), "", 1);
 
-        Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+        InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-        verifyNoInteractions(reactor);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("reason"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(reactor)
+	    );
     }
     
 	@Override
@@ -137,8 +158,10 @@ public class BookReservationRejectedV1HandlerTest extends AbstractEventHandlerTe
 	private IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> getBookReservationRejectedEvent(String isbn, String loanId, 
 			String userId, String reason, int schemaVersion) {
 
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "test-handler", isbn,
-	                AggregateType.BOOK.name(), 0, Instant.now(), schemaVersion, 
-	                new BookReservationRejectedIntegrationPayload(isbn, loanId, userId, reason));
+		String aggregateId = isbn == null || isbn.isBlank() ? "9788804336327" : isbn;
+		
+		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "test-handler", 
+				aggregateId, AggregateType.BOOK.name(), 0, Instant.now(), schemaVersion, 
+				new BookReservationRejectedIntegrationPayload(isbn, loanId, userId, reason));
 	}
 }

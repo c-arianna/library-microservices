@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -64,9 +65,14 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		
 		IntegrationEventEnvelope<UserIntegrationPayload> event = getUserUnsubscribedEvent("", UserStatus.DISABLE, 1);
 		
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("userId"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Test
@@ -74,9 +80,14 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		
 		IntegrationEventEnvelope<UserIntegrationPayload> event  = getUserUnsubscribedEvent(UUID.randomUUID().toString(), null, 1);
 		
-		Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
-		verifyNoInteractions(projection);
+		Assertions.assertAll(
+	            () -> Assertions.assertEquals(
+	                    Set.of("status"),
+	                    exception.getInvalidFields()),
+	            () -> verifyNoInteractions(projection)
+	    );
 	}
 	
 	@Override
@@ -107,9 +118,10 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private IntegrationEventEnvelope<UserIntegrationPayload> getUserUnsubscribedEvent(String userId, UserStatus status, int schemaVersion) {
 
+		String aggregateId = userId == null || userId.isBlank() ? UUID.randomUUID().toString() : userId;
+		
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.USER_UNSUBSCRIBED,
-				"test-handler", UUID.randomUUID().toString(), AggregateType.USER.name(), 0, Instant.now(), schemaVersion,  
-				new UserIntegrationPayload(userId, status));
+			"test-handler", aggregateId, AggregateType.USER.name(), 0, Instant.now(), schemaVersion, new UserIntegrationPayload(userId, status));
 	}
 
 }

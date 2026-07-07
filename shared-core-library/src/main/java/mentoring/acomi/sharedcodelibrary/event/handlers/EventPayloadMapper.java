@@ -20,7 +20,7 @@ public class EventPayloadMapper {
         var violations = validator.validate(result);
 
         if (!violations.isEmpty()) {
-            throw new InvalidEventPayloadException(violations.toString());
+            throw new InvalidEventPayloadException(violations);
         }
 
         return result;
