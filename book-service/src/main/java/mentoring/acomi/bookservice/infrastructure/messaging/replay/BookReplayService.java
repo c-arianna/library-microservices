@@ -124,9 +124,9 @@ public class BookReplayService extends AbstractReplayService<BookEventEntity> {
 		replayEvent(eventEnvelope);
 	}
 	
-	private IntegrationEventEnvelope<?> getIntegrationEnvelopeEvent(BookEventEntity event, BookEventType loanEventType) {
-		Object payload = replayMapper.toIntegrationPayload(loanEventType, event.getPayload());
-		IntegrationEventTypes eventType = replayMapper.toIntegrationEventType(loanEventType);
+	private IntegrationEventEnvelope<?> getIntegrationEnvelopeEvent(BookEventEntity event, BookEventType bookEventType) {
+		Object payload = replayMapper.toIntegrationPayload(bookEventType, event.getPayload());
+		IntegrationEventTypes eventType = replayMapper.toIntegrationEventType(bookEventType);
 		return new IntegrationEventEnvelope<>(event.getEventId(), eventType, "",
 				event.getAggregateId(), event.getAggregateType(), event.getEventVersion(), event.getOccurredAt(),
 				event.getSchemaVersion(), payload);

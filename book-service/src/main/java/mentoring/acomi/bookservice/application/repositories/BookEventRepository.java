@@ -7,6 +7,5 @@ import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEn
 import mentoring.acomi.sharedcorelibrary.eventstore.EventRepository;
 
 public interface BookEventRepository extends EventRepository<BookEvent>{
-
 	List<BookEventEntity> findAllEvents();
 }

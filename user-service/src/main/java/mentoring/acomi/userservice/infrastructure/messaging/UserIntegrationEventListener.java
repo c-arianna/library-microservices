@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.userservice.application.errors.NonRetryableEventException;
 
@@ -36,8 +35,6 @@ public class UserIntegrationEventListener {
 		
 		try {
 			
-			checkEventSchemaVersion(eventEnvelope.eventType(), eventEnvelope.schemaVersion());
-
 			switch (eventEnvelope.eventType()) {
 			
 			case USER_SUBSCRIBED, USER_UNSUBSCRIBED, USER_SUSPENDED, USER_UNSUSPENDED -> {
@@ -58,22 +55,4 @@ public class UserIntegrationEventListener {
 		}
 	}
 	
-	private void checkEventSchemaVersion(IntegrationEventTypes eventType, int eventSchemaVersion) {
-
-		int supportedVersion = UserEventProcessor.consumerSupportedVersion.getOrDefault(eventType, -1);
-
-		if (supportedVersion == -1) {
-			throw new NonRetryableEventException(String.format("Unknown event type: %s", eventType));
-		}
-
-		if (eventSchemaVersion > supportedVersion) {
-			throw new NonRetryableEventException(String.format("Unsupported newer version: %d > %d", eventSchemaVersion, supportedVersion));
-		}
-
-		if (eventSchemaVersion < supportedVersion) {
-			logger.warn("Older version detected: {}", eventSchemaVersion);
-			return;
-		}
-
-	}
 }

@@ -15,21 +15,11 @@ public interface BaseEventJpaRepository<ENTITY extends BaseEventEntity> extends 
     Optional<ENTITY> getByEventTypeAndAggregateId(String eventType, String aggregateId);
     
 	boolean existsByEventIdAndAggregateTypeAndEventCategory(String eventId, String aggregateType, String eventCategory);
-
-	Optional<Integer> findMaxProcessedVersion(String aggregateId, String aggregateType); 
-	
-	Optional<ENTITY> findNextEventToProcess(String aggregateId, String aggregateType, int eventVersion);
-	
+		
 	boolean existsByEventIdAndAggregateTypeAndProcessedTrue(String eventId, String aggregateType);
 
 	void markProcessed(String eventId, String aggregateType);
 
 	List<ENTITY> findAllOrderByAggregateAndVersion();
-	
-	List<ENTITY> findByAggregateIdAndProcessedFalseAndFailedFalseAndEventTypeIn(String aggregateId, List<String> eventTypes);
-	
-	void markFailed(String eventId, String aggregateType);
-	
-	void incrementRetry(String eventId, String aggregateType);
-	
+		
 }

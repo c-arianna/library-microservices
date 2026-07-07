@@ -26,14 +26,6 @@ public interface UserEventJpaRepository extends BaseEventJpaRepository<UserEvent
 
 	Optional<UserEventEntity> getByEventTypeAndAggregateId(String eventType, String aggregateId);
 
-	@Query("""
-			    SELECT MAX(e.eventVersion)
-			    FROM UserEventEntity e
-			    WHERE e.aggregateId = :aggregateId AND e.aggregateType = :aggregateType AND e.processed = true
-			""")
-	Optional<Integer> findMaxProcessedVersion(@Param("aggregateId") String aggregateId,
-			@Param("aggregateType") String aggregateType);
-
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("""
 			    UPDATE UserEventEntity e
@@ -43,31 +35,10 @@ public interface UserEventJpaRepository extends BaseEventJpaRepository<UserEvent
 	void markProcessed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
 
 	@Query("""
-			    select e
-				    from UserEventEntity e
-				    where e.aggregateId = :aggregateId and e.aggregateType = :aggregateType and e.eventVersion = :eventVersion and e.processed = false
-			""")
-	Optional<UserEventEntity> findNextEventToProcess(@Param("aggregateId") String aggregateId,
-			@Param("aggregateType") String aggregateType, @Param("eventVersion") int eventVersion);
-
-	@Query("""
 			    SELECT e
 			    FROM UserEventEntity e
 			    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
 			""")
 	List<UserEventEntity> findAllOrderByAggregateAndVersion();
 	
-	@Query("""
-		    UPDATE UserEventEntity e
-		    SET e.failed = true
-		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
-		""")
-    void markFailed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
-	
-	@Query("""
-		    UPDATE UserEventEntity e
-		    SET e.retryCount = e.retryCount +1
-		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
-		""")
-	void incrementRetry(String eventId, String aggregateType);
 }

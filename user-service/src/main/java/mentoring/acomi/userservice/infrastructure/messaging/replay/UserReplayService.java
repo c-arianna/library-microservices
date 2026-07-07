@@ -8,16 +8,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.sharedcorelibrary.eventstore.EventCategory;
-import mentoring.acomi.sharedcorelibrary.model.UserRole;
-import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.replay.AbstractReplayService;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserEventEntity;
-import tools.jackson.databind.JsonNode;
 
 @Service
 public class UserReplayService extends AbstractReplayService<UserEventEntity>{
@@ -25,19 +24,25 @@ public class UserReplayService extends AbstractReplayService<UserEventEntity>{
 	private final UserEventRepository userEventRepository;
 	private final UserViewReplayRepository userViewReplayRepository;
 	private final UserProjectionReplay projection;
+	private final UserReplayEventMapper replayMapper;
+	private final EventPayloadMapper payloadMapper;
 
+	private final Map<UserEventType, Consumer<IntegrationEventEnvelope<?>>> handlers;
+	
 	private final Logger logger = LogManager.getLogger(UserReplayService.class);
 
-	Map<String, Consumer<UserEventEntity>> handlers = Map.ofEntries(
-			Map.entry("%s:%s".formatted(EventCategory.PRODUCER, UserEventType.UserSubscribed), this::handleUserSubscribed),
-			Map.entry("%s:%s".formatted(EventCategory.PRODUCER, UserEventType.UserUnsubscribed), this::handleUserUnsubscribed),
-			Map.entry("%s:%s".formatted(EventCategory.PRODUCER, UserEventType.UserSuspended), this::handleUserSuspended),
-			Map.entry("%s:%s".formatted(EventCategory.PRODUCER, UserEventType.UserUnsuspended), this::handleUserUnsuspended));
-
-	public UserReplayService(UserEventRepository userEventRepository, UserViewReplayRepository userViewReplayRepository, UserProjectionReplay projection) {
+	public UserReplayService(UserEventRepository userEventRepository, UserViewReplayRepository userViewReplayRepository, 
+			UserProjectionReplay projection, UserReplayEventMapper replayMapper, EventPayloadMapper payloadMapper) {
 		this.userEventRepository = userEventRepository;
 		this.userViewReplayRepository = userViewReplayRepository;
 		this.projection = projection;
+		this.replayMapper = replayMapper;
+		this.payloadMapper = payloadMapper;
+		handlers =  Map.ofEntries(
+				Map.entry(UserEventType.UserSubscribed, this::handleUserSubscribed),
+				Map.entry(UserEventType.UserUnsubscribed, this::handleUserUnsubscribed),
+				Map.entry(UserEventType.UserSuspended, this::handleUserSuspended),
+				Map.entry(UserEventType.UserUnsuspended, this::handleUserUnsuspended));
 	}
 
 	@Override
@@ -67,121 +72,60 @@ public class UserReplayService extends AbstractReplayService<UserEventEntity>{
 	
 	private void applyToTempTable(UserEventEntity entity) {
 
-		String key = buildKey(entity);
+		if (entity.getSchemaVersion() != 1) {
+		    throw new IllegalStateException("Unsupported schema version %s".formatted(entity.getSchemaVersion()));
+		}
 
-		Consumer<UserEventEntity> handler = handlers.get(key);
+		UserEventType eventType = UserEventType.valueOf(entity.getEventType());
+		IntegrationEventEnvelope<?> eventEnvelope  = getIntegrationEnvelopeEvent(entity, eventType);
+		replayEvent(eventEnvelope, eventType);
+	}
 
-		if (handler == null) {
-			logger.warn("Replay not defined for {}", key);
+	private IntegrationEventEnvelope<?> getIntegrationEnvelopeEvent(UserEventEntity event, UserEventType userEventType) {
+		Object payload = replayMapper.toIntegrationPayload(userEventType, event.getPayload());
+		IntegrationEventTypes eventType = replayMapper.toIntegrationEventType(userEventType);
+		return new IntegrationEventEnvelope<>(event.getEventId(), eventType, "",
+				event.getAggregateId(), event.getAggregateType(), event.getEventVersion(), event.getOccurredAt(),
+				event.getSchemaVersion(), payload);
+	}
+	
+	private void replayEvent(IntegrationEventEnvelope<?> eventEnvelope, UserEventType eventType) {
+
+		String eventId = eventEnvelope.eventId();
+
+		Consumer<IntegrationEventEnvelope<?>> consumer = handlers.get(eventType);
+
+		if (consumer == null) {
+			logger.warn("No handler found for event {} ({})", eventId, eventType);
 			return;
 		}
 
-		handler.accept(entity);
-	}
+		consumer.accept(eventEnvelope);
 
-	private void handleUserSubscribed(UserEventEntity entity) {
-		projection.subscribeUser(getUserSubscribedPayload(entity.getPayload()), entity.getOccurredAt());
-	}
-
-	private void handleUserUnsubscribed(UserEventEntity entity) {
-		projection.unsubscribeUser(getUserIntegrationPayload(entity.getPayload(), UserStatus.DISABLE), entity.getOccurredAt());
-	}
-
-	private void handleUserSuspended(UserEventEntity entity) {
-		projection.suspendUser(getUserIntegrationPayload(entity.getPayload(), UserStatus.SUSPENDED), entity.getOccurredAt());
-	}
-
-	private void handleUserUnsuspended(UserEventEntity entity) {
-		projection.unsuspendUser(getUserIntegrationPayload(entity.getPayload(), UserStatus.ACTIVE), entity.getOccurredAt());
-	}
-
-	private UserSubscribedIntegrationPayload getUserSubscribedPayload(JsonNode payload) {
-
-		String userId = getId(payload);
-		String email = getEmail(payload);
-		String name = getName(payload);
-		String lastname = getLastname(payload);
-		String userIdentityProviderId = getUserIdentityProviderId(payload);
-
-		UserStatus status = getUserStatus(payload);
-
-		UserRole role = getUserRole(payload);
-
-		return new UserSubscribedIntegrationPayload(userId, email, name, lastname, userIdentityProviderId, status, role);
-	}
-
-	private UserIntegrationPayload getUserIntegrationPayload(JsonNode payload, UserStatus status) {
-		String userId = getUserId(payload);
-		return new UserIntegrationPayload(userId, status);
 	}
 	
-	private UserStatus getUserStatus(JsonNode jsonPayload) {
+	private void handleUserSubscribed(IntegrationEventEnvelope<?> event) {
+		UserSubscribedIntegrationPayload payload = payloadMapper.mapAndValidate(event.payload(), UserSubscribedIntegrationPayload.class);
+		projection.subscribeUser(payload, event.occurredAt());
+	}
+
+	private void handleUserUnsubscribed(IntegrationEventEnvelope<?> event) {
+		UserIntegrationPayload payload = loadUserIntegrationPayload(event);
+		projection.unsubscribeUser(payload, event.occurredAt());
+	}
+
+	private void handleUserSuspended(IntegrationEventEnvelope<?> event) {
+		UserIntegrationPayload payload = loadUserIntegrationPayload(event);
+		projection.suspendUser(payload, event.occurredAt());
+	}
+
+	private void handleUserUnsuspended(IntegrationEventEnvelope<?> event) {
+		UserIntegrationPayload payload = loadUserIntegrationPayload(event);
+		projection.unsuspendUser(payload, event.occurredAt());
+	}
+
+	private UserIntegrationPayload loadUserIntegrationPayload(IntegrationEventEnvelope<?> event) {
+		return payloadMapper.mapAndValidate(event.payload(), UserIntegrationPayload.class);
+	}
 		
-		String status = jsonPayload.get("status").asString();
-
-		if (status == null) {
-			throw new IllegalStateException("Missing field status");
-		}
-
-		try {
-			return UserStatus.valueOf(status);
-		} catch (Exception e) {
-			throw new IllegalStateException("Invalid field status %s".formatted(status));
-		}
-		
-	}
-	
-    private UserRole getUserRole(JsonNode jsonPayload) {
-		
-		String role = jsonPayload.get("role").asString();
-
-		if (role == null) {
-			throw new IllegalStateException("Missing field role");
-		}
-
-		try {
-			return UserRole.valueOf(role);
-		} catch (Exception e) {
-			throw new IllegalStateException("Invalid field role %s".formatted(role));
-		}
-		
-	}
-
-    private String getId(JsonNode jsonPayload) {
-		return getRequired(jsonPayload, "id");
-	}
-    
-	private String getUserId(JsonNode jsonPayload) {
-		return getRequired(jsonPayload, "userId");
-	}
-	
-	private String getEmail(JsonNode jsonPayload) {
-		return getRequired(jsonPayload, "email");
-	}
-	
-	private String getName(JsonNode jsonPayload) {
-		return getRequired(jsonPayload, "name");
-	}
-	
-	private String getLastname(JsonNode jsonPayload) {
-		return getRequired(jsonPayload, "lastname");
-	}
-	
-	private String getUserIdentityProviderId(JsonNode jsonPayload) {
-		return getRequired(jsonPayload, "userIdentityProviderId");
-	}
-	
-	private String getRequired(JsonNode jsonPayload, String field) {
-
-		if (!jsonPayload.has(field) || jsonPayload.get(field).isNull()) {
-			throw new IllegalStateException("Missing field %s".formatted(field));
-		}
-
-		return jsonPayload.get(field).asString();
-	}
-	
-	private String buildKey(UserEventEntity event) {
-		return "%s:%s".formatted(event.getEventCategory(), event.getEventType());
-	}
-
 }

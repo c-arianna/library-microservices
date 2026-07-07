@@ -8,7 +8,7 @@ import mentoring.acomi.sharedcorelibrary.eventstore.IntegrationEventRepository;
 public abstract class AbstractJpaIntegrationEventRepositoryAdapter<E extends IntegrationEvent, ENTITY extends BaseEventEntity>
 		implements IntegrationEventRepository<E> {
 
-	protected final BaseEventJpaRepository<ENTITY> repository;
+	private final BaseEventJpaRepository<ENTITY> repository;
 	private final EventMapper<E, ENTITY> mapper;
 
 	protected AbstractJpaIntegrationEventRepositoryAdapter(BaseEventJpaRepository<ENTITY> repository, EventMapper<E, ENTITY> mapper) {

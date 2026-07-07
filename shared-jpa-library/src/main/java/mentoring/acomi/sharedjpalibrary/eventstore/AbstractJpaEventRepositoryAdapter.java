@@ -47,23 +47,12 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 	public void deleteAll() {
 		repository.deleteAll();
 	}
-	
-	@Override
-	public Optional<Integer> findMaxProcessedVersion(String aggregateId, String aggregateType){
-		return repository.findMaxProcessedVersion(aggregateId, aggregateType);
-	}
-	
+		
 	@Override
 	public void markProcessed(String eventId, String aggregateType) {
 		repository.markProcessed(eventId, aggregateType);
 	}
-	
-	@Override
-	public Optional<E> findNextEventToProcess(String aggregateId,  String aggregateType, int eventVersion){
-		Optional<ENTITY> event = repository.findNextEventToProcess(aggregateId, aggregateType, eventVersion);
-		return event.isEmpty() ? Optional.empty() : Optional.of(mapper.toDomain(event.get()));
-	}
-	
+		
 	@Override
 	public boolean existsEventProcessed(String eventId, String aggregateType) {
 		return repository.existsByEventIdAndAggregateTypeAndProcessedTrue(eventId, aggregateType);

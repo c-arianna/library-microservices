@@ -26,13 +26,6 @@ public interface LoanEventJpaRepository extends BaseEventJpaRepository<LoanEvent
 
 	Optional<LoanEventEntity> getByEventTypeAndAggregateId(String eventType, String aggregateId);
 
-	@Query("""
-			    SELECT MAX(e.eventVersion)
-			    FROM LoanEventEntity e
-			    WHERE e.aggregateId = :aggregateId AND e.aggregateType = :aggregateType AND e.processed = true
-			""")
-	Optional<Integer> findMaxProcessedVersion(@Param("aggregateId") String aggregateId, @Param("aggregateType") String aggregateType);
-
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("""
 			    UPDATE LoanEventEntity e
@@ -41,13 +34,6 @@ public interface LoanEventJpaRepository extends BaseEventJpaRepository<LoanEvent
 			""")
 	void markProcessed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
 	
-	@Query("""
-		    select e
-			    from LoanEventEntity e
-			    where e.aggregateId = :aggregateId and e.aggregateType = :aggregateType and e.eventVersion = :eventVersion and e.processed = false
-		""")
-	Optional<LoanEventEntity> findNextEventToProcess(@Param("aggregateId") String aggregateId,  @Param("aggregateType") String aggregateType, 
-			@Param("eventVersion") int eventVersion);
 	
 	@Query("""
 		    SELECT e
@@ -55,19 +41,5 @@ public interface LoanEventJpaRepository extends BaseEventJpaRepository<LoanEvent
 		    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
 		""")
      List<LoanEventEntity> findAllOrderByAggregateAndVersion();
-	
-	@Query("""
-		    UPDATE LoanEventEntity e
-		    SET e.failed = true
-		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
-		""")
-    void markFailed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
-	
-	@Query("""
-		    UPDATE LoanEventEntity e
-		    SET e.retryCount = e.retryCount +1
-		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
-		""")
-	void incrementRetry(String eventId, String aggregateType);
 
 }

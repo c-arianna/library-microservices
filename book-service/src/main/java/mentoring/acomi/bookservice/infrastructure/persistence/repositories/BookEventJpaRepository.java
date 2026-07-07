@@ -26,14 +26,6 @@ public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEvent
 
 	Optional<BookEventEntity> getByEventTypeAndAggregateId(String eventType, String aggregateId);
 
-	@Query("""
-			    SELECT MAX(e.eventVersion)
-			    FROM BookEventEntity e
-			    WHERE e.aggregateId = :aggregateId AND e.aggregateType = :aggregateType AND e.processed = true
-			""")
-	Optional<Integer> findMaxProcessedVersion(@Param("aggregateId") String aggregateId,
-			@Param("aggregateType") String aggregateType);
-
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("""
 			    UPDATE BookEventEntity e
@@ -43,32 +35,10 @@ public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEvent
 	void markProcessed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
 
 	@Query("""
-			    select e
-				    from BookEventEntity e
-				    where e.aggregateId = :aggregateId and e.aggregateType = :aggregateType and e.eventVersion = :eventVersion and e.processed = false
-			""")
-	Optional<BookEventEntity> findNextEventToProcess(@Param("aggregateId") String aggregateId,
-			@Param("aggregateType") String aggregateType, @Param("eventVersion") int eventVersion);
-
-	@Query("""
 			    SELECT e
 			    FROM BookEventEntity e
 			    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
 			""")
 	List<BookEventEntity> findAllOrderByAggregateAndVersion();
-	
-	@Query("""
-		    UPDATE BookEventEntity e
-		    SET e.failed = true
-		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
-		""")
-    void markFailed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
-	
-	@Query("""
-		    UPDATE BookEventEntity e
-		    SET e.retryCount = e.retryCount +1
-		    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
-		""")
-	void incrementRetry(String eventId, String aggregateType);
 
 }
