@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -98,6 +100,9 @@ class LoanRabbitIntegrationTest {
 	@Autowired
 	private UserViewQueryRepository userViewQueryRepository;
 
+	@Autowired
+	private RabbitListenerEndpointRegistry registry;
+	
 	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
 
@@ -107,6 +112,11 @@ class LoanRabbitIntegrationTest {
 	public void setupUser() {
 		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UserStatus.ACTIVE), Instant.now());
 		setAuthenticatedUser(USER_ID, "READER");
+	}
+	
+	@AfterEach
+	void stopListeners() {
+	    registry.stop();
 	}
 
 	@Test

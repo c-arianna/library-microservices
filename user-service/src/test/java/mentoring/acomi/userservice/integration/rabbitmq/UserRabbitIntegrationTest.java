@@ -17,6 +17,7 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -106,6 +107,9 @@ class UserRabbitIntegrationTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	@Autowired
+	private RabbitListenerEndpointRegistry registry;
+	
 	private static final String ADMIN_ROLE = "ADMIN";
 	
 	private static final String TOKEN_VALUE = "test-token";
@@ -113,6 +117,7 @@ class UserRabbitIntegrationTest {
 	@AfterEach
 	void clearSecurityContext() {
 		SecurityContextHolder.clearContext();
+		registry.stop();
 	}
 
 	@Test

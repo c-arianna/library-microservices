@@ -6,7 +6,9 @@ import java.time.Duration;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -46,6 +48,9 @@ public class BookEventsReplayTest {
 	}
 
 	@Autowired
+	private RabbitListenerEndpointRegistry registry;
+	
+	@Autowired
 	private BookService bookService;
 
 	@Autowired
@@ -59,6 +64,11 @@ public class BookEventsReplayTest {
 
 	private static final String ISBN = "9788804336327";
 
+	@AfterEach
+	void stopListeners() {
+	    registry.stop();
+	}
+	
 	@Test
 	void shouldRebuildProjectionsFromEventsReplay() {
 

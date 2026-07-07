@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -42,7 +44,6 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventE
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 
-
 @SpringBootTest
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -52,6 +53,9 @@ class BookRabbitIntegrationTest {
 	@Container
 	private static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
 
+	@Autowired
+	private RabbitListenerEndpointRegistry registry;
+	
 	@DynamicPropertySource
 	static void rabbitProps(DynamicPropertyRegistry registry) {
 		registry.add("spring.rabbitmq.host", rabbit::getHost);
@@ -93,7 +97,12 @@ class BookRabbitIntegrationTest {
 		});
 
 	}
-
+	
+	@AfterEach
+	void stopListeners() {
+	    registry.stop();
+	}
+	
 	@Test
 	void shouldConsumeLoanRequestedAndReserveBook() {
 

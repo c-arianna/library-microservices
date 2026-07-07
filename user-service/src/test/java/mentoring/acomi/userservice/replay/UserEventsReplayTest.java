@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -85,6 +87,15 @@ public class UserEventsReplayTest {
 	@Autowired
 	private UserReplayService replayService;
 
+	@Autowired
+	private RabbitListenerEndpointRegistry registry;
+	
+	@AfterEach
+	void clearSecurityContext() {
+		SecurityContextHolder.clearContext();
+		registry.stop();
+	}
+	
 	@Test
 	void shouldRebuildProjectionsFromEventsReplay() {
 
