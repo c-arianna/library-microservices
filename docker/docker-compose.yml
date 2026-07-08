@@ -1,5 +1,19 @@
 services:
 
+  zipkin:
+    profiles: ["dev"]
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+
+  zipkin-gherkin:
+    profiles: ["gherkin"]
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9412:9411"
+      
   postgres-keycloak:
     image: postgres:15
     container_name: postgres-keycloak
@@ -217,6 +231,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
       mysql-book:
@@ -224,6 +239,8 @@ services:
       rabbitmq:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin:
         condition: service_started
       
   loan-service:
@@ -238,6 +255,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
       mysql-loan:
@@ -245,6 +263,8 @@ services:
       rabbitmq:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin:
         condition: service_started
 
   user-service:
@@ -264,6 +284,7 @@ services:
       KEYCLOAK_ADMIN_CLIENT_SECRET: CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
       mysql-user:
@@ -271,6 +292,8 @@ services:
       rabbitmq:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin:
         condition: service_started
         
   notification-service:
@@ -282,11 +305,14 @@ services:
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin:
         condition: service_started
         
   book-service-gherkin:
@@ -301,6 +327,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
     depends_on:
@@ -309,6 +336,8 @@ services:
       rabbitmq-gherkin:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin-gherkin:
         condition: service_started
       
   loan-service-gherkin:
@@ -323,6 +352,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: libraryAppTest!
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
     depends_on:
@@ -331,6 +361,8 @@ services:
       rabbitmq-gherkin:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin-ghekin:
         condition: service_started
 
   user-service-gherkin:
@@ -350,6 +382,7 @@ services:
       KEYCLOAK_ADMIN_CLIENT_SECRET: CtxSOiaFcaGv8PjMnOVig7jEPUC2X6mm
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
     depends_on:
@@ -358,6 +391,8 @@ services:
       rabbitmq-gherkin:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin-ghekin:
         condition: service_started
         
   notification-service-gherkin:
@@ -369,12 +404,15 @@ services:
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
     depends_on:
       rabbitmq-gherkin:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin-gherkin:
         condition: service_started
         
   api-gateway:
@@ -390,6 +428,7 @@ services:
       LOAN_SERVICE_URL: http://loan-service:8080
       USER_SERVICE_URL: http://user-service:8080
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
       book-service:
@@ -399,6 +438,8 @@ services:
       user-service:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin:
         condition: service_started
 
   api-gateway-gherkin:
@@ -414,6 +455,7 @@ services:
       USER_SERVICE_URL: http://user-service-gherkin:8080
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
     depends_on:
@@ -424,6 +466,8 @@ services:
       user-service-gherkin:
         condition: service_started
       keycloak:
+        condition: service_started
+      zipkin-gherkin:
         condition: service_started
         
 volumes:

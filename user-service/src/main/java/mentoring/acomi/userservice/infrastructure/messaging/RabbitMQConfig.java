@@ -25,6 +25,8 @@ public class RabbitMQConfig {
 
         factory.setConcurrentConsumers(1);
         factory.setMaxConcurrentConsumers(1);
+        
+        factory.setObservationEnabled(true);
 
         factory.setPrefetchCount(1);
 		
