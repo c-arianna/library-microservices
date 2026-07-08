@@ -24,15 +24,10 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
-import org.testcontainers.junit.jupiter.Container;
 
-import dasniko.testcontainers.keycloak.KeycloakContainer;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.messaging.EventDispatcher;
@@ -42,21 +37,16 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class UserApiIntegrationTest {
+class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	private static final String USER_EMAIL = "test%s@gmail.com";
 
-	@SuppressWarnings("resource")
-	@Container
-	static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.3")
-			.withRealmImportFile("keycloak/realm-export-test.json");
-
 	@Autowired
 	private UserViewRepository userViewRepository;
-	
+
 	@LocalServerPort
 	int port;
 
@@ -84,24 +74,10 @@ class UserApiIntegrationTest {
 
 	@MockitoBean
 	private EventDispatcher eventDispatcher;
-	
+
 	@MockitoBean
 	private JwtDecoder jwtDecoder;
 
-	@DynamicPropertySource
-	static void keycloakProps(DynamicPropertyRegistry registry) {
-
-		keycloak.start();
-		
-		registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri",
-				() -> keycloak.getAuthServerUrl() + "/realms/library-microservices/protocol/openid-connect/certs");
-		registry.add("keycloak.base-url", keycloak::getAuthServerUrl);
-		registry.add("keycloak.realm", () -> "library-microservices");
-		registry.add("keycloak.admin-realm", () -> "library-microservices");
-		registry.add("keycloak.admin-client-id", () -> "user-service-admin");
-		registry.add("keycloak.admin-client-secret", () -> "test-secret");
-	}
-	
 	@BeforeEach
 	public void setup() {
 		this.client = RestClient.builder().baseUrl(String.format("http://localhost:%d", port)).build();
@@ -118,8 +94,7 @@ class UserApiIntegrationTest {
 	void shouldCreateUser() {
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", "test@gmail.com", "12345678");
 		ResponseEntity<UserResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
-				.body(request).retrieve()
-				.toEntity(UserResponse.class);
+				.body(request).retrieve().toEntity(UserResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -230,16 +205,15 @@ class UserApiIntegrationTest {
 		String email = String.format("test.%s@gmail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
 		ResponseEntity<UserResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
-				.body(request).retrieve()
-				.toEntity(UserResponse.class);
+				.body(request).retrieve().toEntity(UserResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
 		UserResponse user = response.getBody();
-		
-		userViewRepository.add(new UserView(user.userId(), user.email(), "Arianna",  "Comi", user.userIdentityProviderId(), UserStatus.ACTIVE, user.role()),
-				Instant.now());
-		
+
+		userViewRepository.add(new UserView(user.userId(), user.email(), "Arianna", "Comi",
+				user.userIdentityProviderId(), UserStatus.ACTIVE, user.role()), Instant.now());
+
 		return user;
 	}
 
@@ -250,10 +224,11 @@ class UserApiIntegrationTest {
 
 		when(jwtDecoder.decode(TOKEN_VALUE)).thenReturn(jwt);
 	}
-	
+
 	private void createUser(String userId, UserRole role) {
 		String identityProvider = UUID.randomUUID().toString();
-		userViewRepository.add(new UserView(userId, String.format(USER_EMAIL, userId), "Test", "Test", identityProvider, UserStatus.ACTIVE, role), Instant.now());
+		userViewRepository.add(new UserView(userId, String.format(USER_EMAIL, userId), "Test", "Test", identityProvider,
+				UserStatus.ACTIVE, role), Instant.now());
 	}
 
 }

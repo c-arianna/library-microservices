@@ -21,3 +21,9 @@ keycloak:
   realm: library-microservices
   admin-client-id: user-service-admin
   admin-client-secret: test-secret
+
+management:
+  tracing:
+    export:
+      zipkin:
+        enabled: false

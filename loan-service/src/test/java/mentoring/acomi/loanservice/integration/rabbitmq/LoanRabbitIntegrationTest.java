@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.RabbitMQContainer;
@@ -61,7 +60,6 @@ import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 
 @SpringBootTest
 @Testcontainers
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
 class LoanRabbitIntegrationTest {
 
@@ -99,9 +97,6 @@ class LoanRabbitIntegrationTest {
 	
 	@Autowired
 	private UserViewQueryRepository userViewQueryRepository;
-
-	@Autowired
-	private RabbitListenerEndpointRegistry registry;
 	
 	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
@@ -114,11 +109,11 @@ class LoanRabbitIntegrationTest {
 		setAuthenticatedUser(USER_ID, "READER");
 	}
 	
-	@AfterEach
-	void stopListeners() {
+	@AfterAll
+	static void stopListeners(@Autowired RabbitListenerEndpointRegistry registry) {
 	    registry.stop();
 	}
-
+	
 	@Test
 	void shouldConsumeBookReservedAndReserveLoan() {
 
@@ -126,8 +121,9 @@ class LoanRabbitIntegrationTest {
 		publishBookReserved(loanId);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var loan = loanViewRepository.findById(loanId).orElseThrow();
-			Assertions.assertEquals(LoanStatus.RESERVED, loan.status());
+			var loan = loanViewRepository.findById(loanId);
+			Assertions.assertTrue(loan.isPresent());
+			Assertions.assertEquals(LoanStatus.RESERVED, loan.get().status());
 		});
 
 		var events = loanEventRepository.loadStream(loanId);
@@ -141,8 +137,9 @@ class LoanRabbitIntegrationTest {
 		publishBookReservationRejected(loanId, "BOOK_NOT_AVAILABLE");
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var loan = loanViewRepository.findById(loanId).orElseThrow();
-			Assertions.assertEquals(LoanStatus.FAILED, loan.status());
+			var loan = loanViewRepository.findById(loanId);
+			Assertions.assertTrue(loan.isPresent());
+			Assertions.assertEquals(LoanStatus.FAILED, loan.get().status());
 		});
 
 		var events = loanEventRepository.loadStream(loanId);
@@ -156,15 +153,17 @@ class LoanRabbitIntegrationTest {
 		publishBookReserved(loanId);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var loan = loanViewRepository.findById(loanId).orElseThrow();
-			Assertions.assertEquals(LoanStatus.RESERVED, loan.status());
+			var loan = loanViewRepository.findById(loanId);
+			Assertions.assertTrue(loan.isPresent());
+			Assertions.assertEquals(LoanStatus.RESERVED, loan.get().status());
 		});
 
 		publishBookBorrowed(loanId);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var loan = loanViewRepository.findById(loanId).orElseThrow();
-			Assertions.assertEquals(LoanStatus.CONFIRMED, loan.status());
+			var loan = loanViewRepository.findById(loanId);
+			Assertions.assertTrue(loan.isPresent());
+			Assertions.assertEquals(LoanStatus.CONFIRMED, loan.get().status());
 		});
 
 		var events = loanEventRepository.loadStream(loanId);
@@ -178,8 +177,9 @@ class LoanRabbitIntegrationTest {
 		publishBookBorrowRejected(loanId, "RESERVATION_MISSING");
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var loan = loanViewRepository.findById(loanId).orElseThrow();
-			Assertions.assertEquals(LoanStatus.FAILED, loan.status());
+			var loan = loanViewRepository.findById(loanId);
+			Assertions.assertTrue(loan.isPresent());
+			Assertions.assertEquals(LoanStatus.FAILED, loan.get().status());
 		});
 
 		var events = loanEventRepository.loadStream(loanId);
@@ -229,7 +229,7 @@ class LoanRabbitIntegrationTest {
 		publishUserSubscribed(userId);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			userViewQueryRepository.findById(userId).orElseThrow();
+			Assertions.assertTrue(userViewQueryRepository.findById(userId).isPresent());
 		});
 		
 		
@@ -375,7 +375,7 @@ class LoanRabbitIntegrationTest {
 	private String waitForMessageBody(String queueName) {
 		final String[] holder = new String[1];
 
-		await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100)).until(() -> {
+		await().atMost(Duration.ofSeconds(3)).pollInterval(Duration.ofMillis(100)).until(() -> {
 			holder[0] = receiveMessageBody(queueName);
 			return holder[0] != null;
 		});

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -34,7 +34,6 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import dasniko.testcontainers.keycloak.KeycloakContainer;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
@@ -47,22 +46,17 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
+import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @Testcontainers
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
-class UserRabbitIntegrationTest {
+class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Container
 	static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
-
-	@SuppressWarnings("resource")
-	@Container
-	static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.3")
-			.withRealmImportFile("keycloak/realm-export-test.json");
 	
 	@DynamicPropertySource
 	static void rabbitProps(DynamicPropertyRegistry registry) {
@@ -70,20 +64,6 @@ class UserRabbitIntegrationTest {
 		registry.add("spring.rabbitmq.port", rabbit::getAmqpPort);
 		registry.add("spring.rabbitmq.username", rabbit::getAdminUsername);
 		registry.add("spring.rabbitmq.password", rabbit::getAdminPassword);
-	}
-
-	@DynamicPropertySource
-	static void keycloakProps(DynamicPropertyRegistry registry) {
-
-		keycloak.start();
-		
-		registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri",
-				() -> keycloak.getAuthServerUrl() + "/realms/library-microservices/protocol/openid-connect/certs");
-		registry.add("keycloak.base-url", keycloak::getAuthServerUrl);
-		registry.add("keycloak.realm", () -> "library-microservices");
-		registry.add("keycloak.admin-realm", () -> "library-microservices");
-		registry.add("keycloak.admin-client-id", () -> "user-service-admin");
-		registry.add("keycloak.admin-client-secret", () -> "test-secret");
 	}
 	
 	@Autowired
@@ -106,10 +86,7 @@ class UserRabbitIntegrationTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
-	
-	@Autowired
-	private RabbitListenerEndpointRegistry registry;
-	
+		
 	private static final String ADMIN_ROLE = "ADMIN";
 	
 	private static final String TOKEN_VALUE = "test-token";
@@ -117,7 +94,11 @@ class UserRabbitIntegrationTest {
 	@AfterEach
 	void clearSecurityContext() {
 		SecurityContextHolder.clearContext();
-		registry.stop();
+	}
+	
+	@AfterAll
+	static void stopListeners(@Autowired RabbitListenerEndpointRegistry registry) {
+	    registry.stop();
 	}
 
 	@Test
@@ -129,8 +110,9 @@ class UserRabbitIntegrationTest {
 		UserSubscribedResponse user = subscribeUser();
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			Assertions.assertEquals(UserStatus.ACTIVE, userView.status());
+			var userView = userViewRepository.findById(user.userId());
+			Assertions.assertTrue(userView.isPresent());
+			Assertions.assertEquals(UserStatus.ACTIVE, userView.get().status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
@@ -166,8 +148,9 @@ class UserRabbitIntegrationTest {
 		userService.suspend(new SuspendRequest(user.userId(), "policy violation"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			Assertions.assertEquals(UserStatus.SUSPENDED, userView.status());
+			var userView = userViewRepository.findById(user.userId());
+			Assertions.assertTrue(userView.isPresent());
+			Assertions.assertEquals(UserStatus.SUSPENDED, userView.get().status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
@@ -204,15 +187,17 @@ class UserRabbitIntegrationTest {
 		userService.suspend(new SuspendRequest(user.userId(), "temporary suspension"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			Assertions.assertEquals(UserStatus.SUSPENDED, userView.status());
+			var userView = userViewRepository.findById(user.userId());
+			Assertions.assertTrue(userView.isPresent());
+			Assertions.assertEquals(UserStatus.SUSPENDED, userView.get().status());
 		});
 
 		userService.unsuspend(new SuspendRequest(user.userId(), "reactivation"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			Assertions.assertEquals(UserStatus.ACTIVE, userView.status());
+			var userView = userViewRepository.findById(user.userId());
+			Assertions.assertTrue(userView.isPresent());
+			Assertions.assertEquals(UserStatus.ACTIVE, userView.get().status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
@@ -249,8 +234,9 @@ class UserRabbitIntegrationTest {
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var userView = userViewRepository.findById(user.userId()).orElseThrow();
-			Assertions.assertEquals(UserStatus.DISABLE, userView.status());
+			var userView = userViewRepository.findById(user.userId());
+			Assertions.assertTrue(userView.isPresent());
+			Assertions.assertEquals(UserStatus.DISABLE, userView.get().status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
@@ -315,8 +301,8 @@ class UserRabbitIntegrationTest {
 		
 		UserSubscribedResponse response = userService.subscribe(request, "ROLE_READER");
 		
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			userViewRepository.findById(response.userId()).orElseThrow();
+		await().atMost(Duration.ofSeconds(7)).untilAsserted(() -> {
+			    Assertions.assertTrue(userViewRepository.findById(response.userId()).isPresent());
 		});
 
 		return response;
@@ -326,7 +312,7 @@ class UserRabbitIntegrationTest {
         final String[] holder = new String[1];
 
         await()
-            .atMost(Duration.ofSeconds(10))
+            .atMost(Duration.ofSeconds(3))
             .pollInterval(Duration.ofMillis(100))
             .until(() -> {
                 holder[0] = receiveMessageBody(queueName);

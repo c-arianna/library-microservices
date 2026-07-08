@@ -94,7 +94,7 @@ public class LoanEventsReplayTest {
 		String loanId = createLoan();
 		
 		await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {
-			loanRepository.findById(loanId).orElseThrow();
+			Assertions.assertThat(loanRepository.findById(loanId).isPresent()).isTrue();
 		});
 		
 		List<LoanViewEntity> expectedLoans = viewRepository.findAll();

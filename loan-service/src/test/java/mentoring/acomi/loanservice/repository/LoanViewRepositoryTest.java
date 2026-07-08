@@ -69,9 +69,9 @@ public class LoanViewRepositoryTest {
 		
 		entityManager.clear();
 		
-		LoanView loanView = queryRepository.findById(loanId).orElseThrow();;
-		
-		Assertions.assertEquals(LoanStatus.CONFIRMED, loanView.status());
+		Optional<LoanView> loanView = queryRepository.findById(loanId);;
+		Assertions.assertTrue(loanView.isPresent());
+		Assertions.assertEquals(LoanStatus.CONFIRMED, loanView.get().status());
 		
 	}
 

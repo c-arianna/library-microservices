@@ -77,8 +77,9 @@ public class BookEventsReplayTest {
 		bookService.removeBookCopies(new RemoveBookCopiesRequest(1, ""), ISBN);
 
 		await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {
-			var book = bookViewRepository.findById(ISBN).orElseThrow();
-			Assertions.assertThat(2).isEqualTo(book.availableCopies());
+			var book = bookViewRepository.findById(ISBN);
+			Assertions.assertThat(book.isPresent()).isTrue();
+			Assertions.assertThat(2).isEqualTo(book.get().availableCopies());
 		});
 
 		List<BookViewEntity> expectedBooks = viewRepository.findAll();

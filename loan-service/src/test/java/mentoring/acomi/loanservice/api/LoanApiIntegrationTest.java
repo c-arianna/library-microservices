@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
@@ -40,7 +40,6 @@ import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class LoanApiIntegrationTest {
 
 	private static final String ADMIN_1 = "admin-1";
@@ -80,6 +79,12 @@ public class LoanApiIntegrationTest {
 		createUser(USER_2);
 		createUser(LIBRARIAN_1);
 		createUser(ADMIN_1);
+	}
+	
+	@AfterEach
+	void clearDb() {
+		loanViewRepository.deleteAll();
+		userViewRepository.deleteAll();
 	}
 
 	@Test

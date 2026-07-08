@@ -7,9 +7,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
@@ -19,19 +21,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
 import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
+import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
+import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class BookApiIntegrationTest {
+public class BookApiIntegrationTest {
 
 	private static final String TOKEN_VALUE = "test-token";
 
@@ -57,12 +59,24 @@ class BookApiIntegrationTest {
 	
 	@MockitoBean
 	private JwtDecoder jwtDecoder;
+	
+	@Autowired
+	private BookViewRepository repository;
+	
+	@Autowired
+	private BookEventRepository bookEventRepository;
 
 	@BeforeEach
 	public void setup() {
 		this.client = RestClient.builder().baseUrl(String.format("http://localhost:%d", port)).build();
 	}
 
+	@AfterEach
+	void clearDb() {
+		repository.deleteAll();
+		bookEventRepository.deleteAll();
+	}
+	
 	@Test
 	public void readerGetBooks() {
 		ResponseEntity<String> response = getWithRole("/", READER_ROLE);

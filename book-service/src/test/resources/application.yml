@@ -20,3 +20,6 @@ management:
     enabled: true
     sampling:
       probability: 1.0
+    export:
+      zipkin:
+        enabled: false

@@ -79,9 +79,10 @@ public class BookViewRepositoryTest {
 
 		entityManager.clear();
 		
-		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
-		Assertions.assertEquals(1, found.reservedCopies());
-		Assertions.assertEquals(4, found.availableCopies());
+		Optional<BookView> found = queryRepository.findById(BOOK_ISBN);
+		Assertions.assertTrue(found.isPresent());
+		Assertions.assertEquals(1, found.get().reservedCopies());
+		Assertions.assertEquals(4, found.get().availableCopies());
 
 	}
 
@@ -94,10 +95,11 @@ public class BookViewRepositoryTest {
 
 		entityManager.clear();
 		
-		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
-		Assertions.assertEquals(1, found.borrowedCopies());
-		Assertions.assertEquals(0, found.reservedCopies());
-		Assertions.assertEquals(4, found.availableCopies());
+		Optional<BookView> found = queryRepository.findById(BOOK_ISBN);
+		Assertions.assertTrue(found.isPresent());
+		Assertions.assertEquals(1, found.get().borrowedCopies());
+		Assertions.assertEquals(0, found.get().reservedCopies());
+		Assertions.assertEquals(4, found.get().availableCopies());
 
 	}
 
@@ -110,9 +112,10 @@ public class BookViewRepositoryTest {
 
 		entityManager.clear();
 		
-		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
-		Assertions.assertEquals(0, found.reservedCopies());
-		Assertions.assertEquals(5, found.availableCopies());
+		Optional<BookView> found = queryRepository.findById(BOOK_ISBN);
+		Assertions.assertTrue(found.isPresent());
+		Assertions.assertEquals(0, found.get().reservedCopies());
+		Assertions.assertEquals(5, found.get().availableCopies());
 
 	}
 
@@ -125,9 +128,10 @@ public class BookViewRepositoryTest {
 
 		entityManager.clear();
 		
-		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
-		Assertions.assertEquals(0, found.borrowedCopies());
-		Assertions.assertEquals(4, found.availableCopies());
+		Optional<BookView> found = queryRepository.findById(BOOK_ISBN);
+		Assertions.assertTrue(found.isPresent());
+		Assertions.assertEquals(0, found.get().borrowedCopies());
+		Assertions.assertEquals(4, found.get().availableCopies());
 
 	}
 
@@ -140,9 +144,10 @@ public class BookViewRepositoryTest {
 
 		entityManager.clear();
 		
-		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
-		Assertions.assertEquals(8, found.totalCopies());
-		Assertions.assertEquals(6, found.availableCopies());
+		Optional<BookView> found = queryRepository.findById(BOOK_ISBN);
+		Assertions.assertTrue(found.isPresent());
+		Assertions.assertEquals(8, found.get().totalCopies());
+		Assertions.assertEquals(6, found.get().availableCopies());
 
 	}
 
@@ -155,9 +160,9 @@ public class BookViewRepositoryTest {
 
 		entityManager.clear();
 		
-		BookView found = queryRepository.findById(BOOK_ISBN).orElseThrow();
-		Assertions.assertEquals(2, found.totalCopies());
-		Assertions.assertEquals(0, found.availableCopies());
+		Optional<BookView> found = queryRepository.findById(BOOK_ISBN);
+		Assertions.assertEquals(2, found.get().totalCopies());
+		Assertions.assertEquals(0, found.get().availableCopies());
 
 	}
 

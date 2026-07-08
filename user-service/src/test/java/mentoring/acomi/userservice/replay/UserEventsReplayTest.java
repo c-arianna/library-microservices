@@ -26,7 +26,6 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import dasniko.testcontainers.keycloak.KeycloakContainer;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.services.UserService;
 import mentoring.acomi.userservice.config.RabbitMQConfigTest;
@@ -38,20 +37,16 @@ import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.messaging.replay.UserReplayService;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserViewJpaRepository;
+import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("H2")
 @Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
-public class UserEventsReplayTest {
+public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 	@Container
 	static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
-
-	@SuppressWarnings("resource")
-	@Container
-	static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.3")
-			.withRealmImportFile("keycloak/realm-export-test.json");
 	
 	@DynamicPropertySource
 	static void rabbitProps(DynamicPropertyRegistry registry) {
@@ -59,20 +54,6 @@ public class UserEventsReplayTest {
 		registry.add("spring.rabbitmq.port", rabbit::getAmqpPort);
 		registry.add("spring.rabbitmq.username", rabbit::getAdminUsername);
 		registry.add("spring.rabbitmq.password", rabbit::getAdminPassword);
-	}
-
-	@DynamicPropertySource
-	static void keycloakProps(DynamicPropertyRegistry registry) {
-
-		keycloak.start();
-		
-		registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri",
-				() -> keycloak.getAuthServerUrl() + "/realms/library-microservices/protocol/openid-connect/certs");
-		registry.add("keycloak.base-url", keycloak::getAuthServerUrl);
-		registry.add("keycloak.realm", () -> "library-microservices");
-		registry.add("keycloak.admin-realm", () -> "library-microservices");
-		registry.add("keycloak.admin-client-id", () -> "user-service-admin");
-		registry.add("keycloak.admin-client-secret", () -> "test-secret");
 	}
 	
 	@Autowired
@@ -105,7 +86,7 @@ public class UserEventsReplayTest {
 		UserSubscribedResponse user = userService.subscribe(request, "ROLE_READER");
 		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			userViewRepository.findById(user.userId()).orElseThrow();
+		    Assertions.assertThat(userViewRepository.findById(user.userId()).isPresent()).isTrue();
 		});
 		
 		setAuthenticatedUser(user.email(), "ADMIN");

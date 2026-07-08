@@ -9,13 +9,13 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.amqp.core.AmqpAdmin;
@@ -46,16 +46,12 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology
 
 @SpringBootTest
 @Testcontainers
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
 class BookRabbitIntegrationTest {
 
 	@Container
 	private static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
 
-	@Autowired
-	private RabbitListenerEndpointRegistry registry;
-	
 	@DynamicPropertySource
 	static void rabbitProps(DynamicPropertyRegistry registry) {
 		registry.add("spring.rabbitmq.host", rabbit::getHost);
@@ -92,14 +88,20 @@ class BookRabbitIntegrationTest {
 		bookService.addBookCopies(new AddBookCopiesRequest(3), ISBN);
 
 		await().atMost(Duration.ofSeconds(100)).untilAsserted(() -> {
-			var book = viewRepository.findById(ISBN).orElseThrow();
-			Assertions.assertEquals(3, book.availableCopies());
+			var book = viewRepository.findById(ISBN);
+			Assertions.assertTrue(book.isPresent());
+			Assertions.assertEquals(3, book.get().availableCopies());
 		});
 
 	}
 	
 	@AfterEach
 	void stopListeners() {
+	    eventRepository.deleteAll();
+	}
+	
+	@AfterAll
+	static void stopListeners(@Autowired RabbitListenerEndpointRegistry registry) {
 	    registry.stop();
 	}
 	
@@ -109,8 +111,9 @@ class BookRabbitIntegrationTest {
 		publishLoanRequestedEvent();
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var book = viewRepository.findById(ISBN).orElseThrow();
-			Assertions.assertEquals(1, book.reservedCopies());
+			var book = viewRepository.findById(ISBN);
+			Assertions.assertTrue(book.isPresent());
+			Assertions.assertEquals(1, book.get().reservedCopies());
 		});
 
 		var events = eventRepository.loadStream(ISBN);
@@ -126,8 +129,9 @@ class BookRabbitIntegrationTest {
 		publishLoanConfirmedRequestEvent();
 
 		await().untilAsserted(() -> {
-			var book = viewRepository.findById(ISBN).orElseThrow();
-			Assertions.assertEquals(1, book.borrowedCopies());
+			var book = viewRepository.findById(ISBN);
+			Assertions.assertTrue(book.isPresent());
+			Assertions.assertEquals(1, book.get().borrowedCopies());
 		});
 
 		var events = eventRepository.loadStream(ISBN);
@@ -163,8 +167,9 @@ class BookRabbitIntegrationTest {
 		publishLoanRequestedEvent();
 
 		await().atMost(Duration.ofSeconds(10000)).untilAsserted(() -> {
-			var book = viewRepository.findById(ISBN).orElseThrow();
-			Assertions.assertEquals(1, book.reservedCopies());
+			var book = viewRepository.findById(ISBN);
+			Assertions.assertTrue(book.isPresent());
+			Assertions.assertEquals(1, book.get().reservedCopies());
 		});
 
 		String body = waitForMessageBody(tmpQueue);
@@ -206,8 +211,9 @@ class BookRabbitIntegrationTest {
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE, type.getRoutingKey(), event);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-			var book = viewRepository.findById(ISBN).orElseThrow();
-			Assertions.assertEquals(1, book.reservedCopies());
+			var book = viewRepository.findById(ISBN);
+			Assertions.assertTrue(book.isPresent());
+			Assertions.assertEquals(1, book.get().reservedCopies());
 		});
 
 		var events = eventRepository.loadStream(ISBN);
@@ -263,7 +269,7 @@ class BookRabbitIntegrationTest {
 	private String waitForMessageBody(String queueName) {
 		final String[] holder = new String[1];
 
-		await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100)).until(() -> {
+		await().atMost(Duration.ofSeconds(3)).pollInterval(Duration.ofMillis(100)).until(() -> {
 			holder[0] = receiveMessageBody(queueName);
 			return holder[0] != null;
 		});
