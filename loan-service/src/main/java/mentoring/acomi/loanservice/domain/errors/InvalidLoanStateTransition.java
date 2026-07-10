@@ -4,7 +4,7 @@ public class InvalidLoanStateTransition extends DomainError {
 
 	private static final long serialVersionUID = 9103344839514959276L;
 	
-	private static final String code = "INVALID_STATE_TRANSATION";
+	private static final String code = "INVALID_STATE_TRANSITION";
 	
 	public InvalidLoanStateTransition(String message) {
 		super(code, message);

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.never;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -20,22 +19,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.NotificationListener;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.notificationservice.infrastructure.messaging.dto.BookUpdatedNotificationPayload;
+import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationListenerTest {
 
 	@Mock
-	private EventHandler handler;
+	private NotificationHandler handler;
 
 	private NotificationListener listener;
 
 	@BeforeEach
 	void setUp() {
 
-		when(handler.eventType()).thenReturn(IntegrationEventTypes.BOOK_REGISTERED);
+		when(handler.eventType()).thenReturn(NotificationEventType.BOOK_UPDATED);
 
 		listener = new NotificationListener(List.of(handler));
 	}
@@ -43,7 +43,7 @@ public class NotificationListenerTest {
 	@Test
 	void shouldInvokeHandler() {
 
-		IntegrationEventEnvelope<?> event = createBookRegisteredEvent();
+		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
 
 		when(handler.accepts(event)).thenReturn(true);
 
@@ -55,7 +55,7 @@ public class NotificationListenerTest {
 	@Test
 	void shouldIgnoreUnknownEvent() {
 
-		IntegrationEventEnvelope<?> event = createBookBorrowedEvent();
+		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
 
 		listener.onEvent(event);
 
@@ -65,7 +65,7 @@ public class NotificationListenerTest {
 	@Test
 	void shouldIgnoreUnsupportedSchemaVersion() {
 
-		IntegrationEventEnvelope<?> event = createBookRegisteredEvent();
+		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
 
 		when(handler.accepts(event)).thenReturn(false);
 
@@ -77,7 +77,7 @@ public class NotificationListenerTest {
 	@Test
 	void shouldDiscardNotificationHandlingException() {
 
-		IntegrationEventEnvelope<?> event = createBookRegisteredEvent();
+		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
 
 		when(handler.accepts(event)).thenReturn(true);
 
@@ -89,7 +89,7 @@ public class NotificationListenerTest {
 	@Test
 	void shouldRethrowUnexpectedException() {
 
-		IntegrationEventEnvelope<?> event = createBookRegisteredEvent();
+		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
 
 		when(handler.accepts(event)).thenReturn(true);
 
@@ -98,21 +98,13 @@ public class NotificationListenerTest {
 		Assertions.assertThrows(RuntimeException.class, () -> listener.onEvent(event));
 	}
 
-	private IntegrationEventEnvelope<?> createBookRegisteredEvent() {
-
-		Map<String, String> payload = Map.of("isbn", "9788804336327", "author", "Italo Calvino", "title",
-				"Il barono rampante", "description", "");
-
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_REGISTERED,
-				"book-service", "9788804336327", "BOOK", 0, Instant.now(), 1, payload);
-
+	private NotificationEventEnvelope<BookUpdatedNotificationPayload> buildBookUpdatedEvent() {
+		return new NotificationEventEnvelope<BookUpdatedNotificationPayload>(UUID.randomUUID().toString(), 
+				NotificationEventType.BOOK_UPDATED, "book-service", Instant.now(), 1, getPayload());
 	}
 
-	private IntegrationEventEnvelope<?> createBookBorrowedEvent() {
-
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_BORROWED,
-				"book-service", "9788804336327", "BOOK", 0, Instant.now(), 1, Map.of());
-
+	private BookUpdatedNotificationPayload getPayload() {
+		return new BookUpdatedNotificationPayload("9788804336327", "Italo Calvino", "Il barone rampante", "", true, 5, 2, 1);
 	}
 
 }

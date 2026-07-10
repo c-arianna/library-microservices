@@ -1,5 +1,5 @@
 package mentoring.acomi.notificationservice.infrastructure.messaging.dto;
 
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
 
-public record EventNotification(IntegrationEventTypes eventType, EventNotificationPayload payload ) {}
+public record EventNotification(NotificationEventType eventType, EventNotificationPayload payload ) {}

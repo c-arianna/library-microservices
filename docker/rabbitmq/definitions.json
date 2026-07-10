@@ -39,6 +39,12 @@
             "type": "fanout",
             "durable": true,
 			"autoDelete": false
+        }, {
+            "name": "notifications.exchange",
+            "vhost": "/",
+            "type": "topic",
+            "durable": true,
+			"autoDelete": false
         }
     ],
     "queues": [
@@ -300,11 +306,11 @@
             "routing_key": "replay.user"
         },
         {
-            "source": "events.exchange",
+            "source": "notifications.exchange",
             "vhost": "/",
             "destination": "notification.queue",
             "destination_type": "queue",
-            "routing_key": "book.registered"
+            "routing_key": "notifications.book.updated"
         },
         {
             "source": "book-service.dlx",

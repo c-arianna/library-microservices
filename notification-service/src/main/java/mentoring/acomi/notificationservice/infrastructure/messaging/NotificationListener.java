@@ -2,7 +2,6 @@ package mentoring.acomi.notificationservice.infrastructure.messaging;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -11,58 +10,47 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
 
 @Component
 public class NotificationListener {
 	
 	private final Logger logger = LogManager.getLogger(NotificationListener.class);
 	
-	private final Map<IntegrationEventTypes, List<EventHandler>> handlers;
+	private final Map<NotificationEventType, List<NotificationHandler>> handlers;
 	
-	public NotificationListener(List<EventHandler> handlers) {
-		this.handlers = handlers.stream().collect(Collectors.groupingBy(EventHandler::eventType));
+	public NotificationListener(List<NotificationHandler> handlers) {
+		this.handlers = handlers.stream().collect(Collectors.groupingBy(NotificationHandler::eventType));
 	}
 	
 	@RabbitListener(queues = MessagingTopology.NOTIFICATION_QUEUE)
-	public void onEvent(IntegrationEventEnvelope<?> eventEnvelope) {
-		IntegrationEventTypes eventType = eventEnvelope.eventType();
+	public void onEvent(NotificationEventEnvelope<?> notificationEvent) {
+		NotificationEventType eventType = notificationEvent.eventType();
 		
-		logger.info("Processing event {} ({})", eventEnvelope.eventId(), eventType);
+		logger.info("Processing event {} ({})", notificationEvent.eventId(), eventType);
 		
-		List<EventHandler> eventHandlers = handlers.get(eventEnvelope.eventType());
+		List<NotificationHandler> eventHandlers = handlers.get(notificationEvent.eventType());
 		
 		if (eventHandlers  == null) {
-			 logger.warn("No handler found for event {} ({})", eventEnvelope.eventId(), eventType);
+			 logger.warn("No handler found for event {} ({})", notificationEvent.eventId(), eventType);
 			 return;
 		}
 		
 		try {
-			getHandler(eventEnvelope)
-			.ifPresentOrElse(h -> h.handleEvent(eventEnvelope), () -> logger.warn("No handler found for event {} with schemaVersion {}",
-	                eventEnvelope.eventType(), eventEnvelope.schemaVersion()
+			eventHandlers.stream().filter(h -> h.accepts(notificationEvent)).findFirst()
+			.ifPresentOrElse(h -> h.handleEvent(notificationEvent), () -> logger.warn("No handler found for event {} with schemaVersion {}",
+	                notificationEvent.eventType(), notificationEvent.schemaVersion()
 	            )
 	        );
 		} catch (NotificationHandlingException ex) {
-		    logger.warn("Notification discarded: Notification discarded for event {}: {}", eventEnvelope.eventId(), ex.getMessage());
+		    logger.warn("Notification discarded: Notification discarded for event {}: {}", notificationEvent.eventId(), ex.getMessage());
 		} catch (Exception ex) {
 		    logger.error("Unexpected notification error", ex);
 		    throw ex;
 		}
 	}
 	
-	private Optional<EventHandler> getHandler(IntegrationEventEnvelope<?> event) {
-
-	    List<EventHandler> eventHandlers = handlers.get(event.eventType());
-
-	    if (eventHandlers == null) {
-	        return Optional.empty();
-	    }
-	    
-	    return eventHandlers.stream().filter(h -> h.accepts(event)).findFirst();
-	}
-
 }

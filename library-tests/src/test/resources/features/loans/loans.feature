@@ -153,7 +153,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       Then la risposta ha status code 422
       And la risposta contiene il campo "message"
       And la risposta contiene i seguenti campi:
-      | code    | "INVALID_STATE_TRANSATION"   |
+      | code    | "INVALID_STATE_TRANSITION"   |
       | type    | "AGGREGATE_INVARIANT_FAILED" |
       
   Rule: Annullo di una richiesta di prestito
@@ -176,7 +176,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       Then la risposta ha status code 422
       And la risposta contiene il campo "message"
       And la risposta contiene i seguenti campi:
-      | code    | "INVALID_STATE_TRANSATION"   |
+      | code    | "INVALID_STATE_TRANSITION"   |
       | type    | "AGGREGATE_INVARIANT_FAILED" |
             
     Scenario: Annullo di una richiesta di prestito inesistente
@@ -208,7 +208,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       Then la risposta ha status code 422
       And la risposta contiene il campo "message"
       And la risposta contiene i seguenti campi:
-      | code    | "INVALID_STATE_TRANSATION"   |
+      | code    | "INVALID_STATE_TRANSITION"   |
       | type    | "AGGREGATE_INVARIANT_FAILED" |
       
     Scenario: Conferma restituzione di un libro prestato, con richiesta di prestito non esistente
