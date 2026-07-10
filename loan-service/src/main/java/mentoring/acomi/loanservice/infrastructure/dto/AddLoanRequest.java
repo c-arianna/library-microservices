@@ -10,7 +10,6 @@ public record AddLoanRequest(
 		@NotBlank
 		String isbn, 
 		
-		@NotBlank
 		String userId, 
 		
 		@NotNull

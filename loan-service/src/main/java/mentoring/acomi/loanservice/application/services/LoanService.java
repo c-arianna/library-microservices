@@ -59,7 +59,7 @@ public class LoanService {
 	public LoanResponse addLoan(AddLoanRequest request) {
 
 		String loanId = UUID.randomUUID().toString();
-		String userId = request.userId();
+		String userId = resolveUserId(request);
 
 		validateLoanRequest(loanId, userId);
 
@@ -110,21 +110,6 @@ public class LoanService {
 
 		if (loanEventRepository.exists(loanId, AggregateType.LOAN.name())) {
 			throw new ApplicationConflict("LOAN_ALREADY_EXISTS", String.format("Loan ID: %s", loanId));
-		}
-
-		UserInfo userInfo = getUserInfo();
-
-		String email = userInfo.email();
-
-		if (userInfo.isReader()) {
-
-			UserView user = userViewRepository.findByEmail(email)
-					.orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
-
-			String loggedUserId = user.id();
-			if (!loggedUserId.equals(userId)) {
-				throw new InvalidUser(String.format("User ID request: %s, User ID logged: %s", userId, loggedUserId));
-			}
 		}
 
 		UserView user = userViewRepository.findById(userId)
@@ -252,6 +237,23 @@ public class LoanService {
 		}
 
 		return new LoanDto(loanView.id(), loanView.isbn(), loanView.userId(), loanView.status(), loanView.start(), loanView.end());
+	}
+	
+	private String resolveUserId(AddLoanRequest request) {
+
+	    UserInfo userInfo = getUserInfo();
+
+	    if (userInfo.isReader()) {
+	        String email = userInfo.email();
+			UserView user = userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+	        return user.id();
+	    }
+
+	    if (request.userId() == null || request.userId().isBlank()) {
+	        throw new InvalidUser("User ID is required");
+	    }
+
+	    return request.userId();
 	}
 
 }
