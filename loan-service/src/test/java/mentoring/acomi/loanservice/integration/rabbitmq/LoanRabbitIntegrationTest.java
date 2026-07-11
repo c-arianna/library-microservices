@@ -105,7 +105,7 @@ class LoanRabbitIntegrationTest {
 
 	@BeforeEach
 	public void setupUser() {
-		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UserStatus.ACTIVE), Instant.now());
+		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UUID.randomUUID().toString(), UserStatus.ACTIVE), Instant.now());
 		setAuthenticatedUser(USER_ID, "READER");
 	}
 	

@@ -1,6 +1,8 @@
 package mentoring.acomi.notificationservice.infrastructure.websocket;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,6 +11,8 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -51,9 +55,11 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 	
 	            Jwt jwt = jwtDecoder.decode(token);
 	            
+	            Collection<GrantedAuthority> authorities = getAutorities(jwt);
+	            
 	            logger.info("WebSocket authenticated user {}", jwt.getSubject());
 	            
-	            Authentication authentication = new UsernamePasswordAuthenticationToken(jwt.getSubject(), null, List.of());
+	            Authentication authentication = new UsernamePasswordAuthenticationToken(jwt.getSubject(), null, authorities);
 	
 	            accessor.setUser(authentication);
             
@@ -72,4 +78,30 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
         
         return message;
     }
+
+	private Collection<GrantedAuthority> getAutorities(Jwt jwt) {
+		Collection<GrantedAuthority> authorities = new ArrayList<>();
+		
+		Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+
+		if (realmAccess != null) {
+			Object roles = realmAccess.get("roles");
+			if (roles instanceof Collection<?> roleCollection) {
+				for (Object role : roleCollection) {
+					String authority = role.toString();
+					if (authority.startsWith("ROLE_")) {
+						authorities.add(new SimpleGrantedAuthority(authority));
+					} else {
+						authorities.add(new SimpleGrantedAuthority(String.join("_", "ROLE", authority)));
+					}
+				}
+			}
+		}
+		
+		logger.info(
+			    "Authorities: {}",
+			    authorities
+			);
+		return authorities;
+	}
 }

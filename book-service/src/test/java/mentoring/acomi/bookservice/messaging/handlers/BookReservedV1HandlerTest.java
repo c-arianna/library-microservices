@@ -23,6 +23,7 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.bookservice.application.projection.BookProjection;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReservedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.notifications.BookNotificationService;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
@@ -41,12 +42,15 @@ public class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private EventPayloadMapper mapper;
 	
+	@Mock
+	private BookNotificationService notificationService;
+	
 	private BookReservedV1Handler handler;
 	
 	@BeforeEach
 	void setUp() {
 		mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
-		handler = new BookReservedV1Handler(projection, mapper);
+		handler = new BookReservedV1Handler(projection, mapper, notificationService);
 	}
 	
 	@Test

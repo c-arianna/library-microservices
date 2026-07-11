@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
+import mentoring.acomi.loanservice.infrastructure.messaging.notifications.LoanNotificationService;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
@@ -14,10 +15,12 @@ public class LoanReturnedV1Handler implements EventHandler {
 
 	private final LoanProjection projection;
 	private final EventPayloadMapper mapper;
+	private final LoanNotificationService notificationService;
 	
-	public LoanReturnedV1Handler(LoanProjection projection, EventPayloadMapper mapper) {
+	public LoanReturnedV1Handler(LoanProjection projection, EventPayloadMapper mapper, LoanNotificationService notificationService) {
 		this.projection = projection;
 		this.mapper = mapper;
+		this.notificationService = notificationService;
 	}
 
 	@Override
@@ -34,6 +37,7 @@ public class LoanReturnedV1Handler implements EventHandler {
 	public void handleEvent(IntegrationEventEnvelope<?> event) {
 		LoanIntegrationPayload payload = mapper.mapAndValidate(event.payload(), LoanIntegrationPayload.class);
 		projection.returnLoan(payload.loanId(), event.occurredAt());
+		notificationService.publishLoanUpdated(payload.loanId(), event.schemaVersion());
 	}
 
 }

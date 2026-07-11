@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -243,7 +244,7 @@ public class LoanApiIntegrationTest {
 	}
 
 	private void createUser(String userId) {
-		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), UserStatus.ACTIVE), Instant.now());
+		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), UUID.randomUUID().toString(), UserStatus.ACTIVE), Instant.now());
 	}
 	
 	private void generateToken(String role, String userId) {

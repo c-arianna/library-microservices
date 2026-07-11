@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -88,7 +89,7 @@ public class LoanEventsReplayTest {
 	@Test
 	void shouldRebuildProjectionsFromEventsReplay() {
 		
-		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UserStatus.ACTIVE), Instant.now());
+		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UUID.randomUUID().toString(), UserStatus.ACTIVE), Instant.now());
 		setAuthenticatedUser(USER_ID, "READER");
 		
 		String loanId = createLoan();

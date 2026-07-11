@@ -19,7 +19,7 @@ private final UserViewRepository repository;
 	
 	@Transactional
 	public void handleSubscribeUser(UserSubscribedIntegrationPayload payload, Instant occurreAt) {
-		UserView user = new UserView(payload.userId(), payload.email(), payload.status());
+		UserView user = new UserView(payload.userId(), payload.email(), payload.userIdentityProviderId(), payload.status());
 		repository.add(user, occurreAt);
 	}
 

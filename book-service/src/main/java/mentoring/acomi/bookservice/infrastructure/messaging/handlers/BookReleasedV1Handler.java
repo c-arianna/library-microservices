@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.bookservice.application.projection.BookProjection;
+import mentoring.acomi.bookservice.infrastructure.messaging.notifications.BookNotificationService;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
@@ -14,10 +15,12 @@ public class BookReleasedV1Handler implements EventHandler {
 	
 	private final BookProjection projection;
 	private final EventPayloadMapper mapper;
-
-	public BookReleasedV1Handler(BookProjection projection, EventPayloadMapper mapper) {
+	private final BookNotificationService notificationService;
+	
+	public BookReleasedV1Handler(BookProjection projection, EventPayloadMapper mapper, BookNotificationService notificationService) {
 		this.projection = projection;
 		this.mapper = mapper;
+		this.notificationService = notificationService;
 	}
 	
 	@Override
@@ -34,6 +37,7 @@ public class BookReleasedV1Handler implements EventHandler {
 	public void handleEvent(IntegrationEventEnvelope<?> event) {
 		BookLoanIntegrationPayload payload = mapper.mapAndValidate(event.payload(), BookLoanIntegrationPayload.class);
 		projection.release(payload, event.occurredAt());
+		notificationService.publishBookUpdated(payload.isbn(), event.schemaVersion());
 	}
 
 }

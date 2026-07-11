@@ -23,6 +23,7 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReservedV1Handler;
+import mentoring.acomi.loanservice.infrastructure.messaging.notifications.LoanNotificationService;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
@@ -41,12 +42,15 @@ public class LoanReservedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private EventPayloadMapper mapper;
 
+	@Mock
+	private LoanNotificationService notificationService;
+	
 	private LoanReservedV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
         mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
-		handler = new LoanReservedV1Handler(projection, mapper);
+		handler = new LoanReservedV1Handler(projection, mapper, notificationService);
 	}
 
 	@Test
