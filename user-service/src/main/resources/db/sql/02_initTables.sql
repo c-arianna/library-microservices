@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS user_view(
 	lastname varchar(50) not null,
 	user_identity_provider_id varchar(100) not null,
 	role ENUM('READER', 'LIBRARIAN', 'ADMIN') not null default 'READER',
-	status ENUM('ACTIVE', 'SUSPENDED', 'DISABLE') not null default 'ACTIVE',
+	status ENUM('ACTIVE', 'SUSPENDED', 'DISABLED') not null default 'ACTIVE',
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp,
     unique key uq_email (email),

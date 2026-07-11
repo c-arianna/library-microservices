@@ -54,7 +54,7 @@ public class UserReplayEventMapper {
 			}
 			case UserUnsubscribed -> {
 				UserUnsubscribedPayload payload = mapper.convertValue(eventPayload, UserUnsubscribedPayload.class);
-				yield new UserIntegrationPayload(payload.userId(), UserStatus.DISABLE);
+				yield new UserIntegrationPayload(payload.userId(), UserStatus.DISABLED);
 			}
 			case UserUnsuspended -> {
 				UserPayload payload = mapper.convertValue(eventPayload, UserPayload.class);

@@ -67,7 +67,7 @@ public class UserAggregate {
 	}
 
 	private void applyUserUnsubscribe(UserUnsubscribeEvent event) {
-		status = UserStatus.DISABLE;
+		status = UserStatus.DISABLED;
 	}
 
 	private void applyUserSuspended(UserSuspendEvent event) {

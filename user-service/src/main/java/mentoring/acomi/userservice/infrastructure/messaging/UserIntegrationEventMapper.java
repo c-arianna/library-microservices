@@ -49,7 +49,7 @@ public class UserIntegrationEventMapper {
 	}
 
 	private IntegrationEventEnvelope<?> getUserUnsubscribedIntegrationEvent(UserUnsubscribeEvent e) {
-		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.DISABLE);
+		UserIntegrationPayload payload = new UserIntegrationPayload(e.payload().userId(), UserStatus.DISABLED);
 		return envelope(e, IntegrationEventTypes.USER_UNSUBSCRIBED, UserIntegrationPublisherEventVersions.USER_UNSUBSCRIBED, payload);
 	}
 

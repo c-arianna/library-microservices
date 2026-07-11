@@ -25,7 +25,7 @@ public abstract class AbstractUserProjection {
 	
 	@Transactional
 	public void unsubscribeUser(UserIntegrationPayload payload, Instant occurredAt) {
-		repository.updateStatus(payload.userId(), UserStatus.DISABLE, occurredAt);
+		repository.updateStatus(payload.userId(), UserStatus.DISABLED, occurredAt);
 	}
 	
 	@Transactional

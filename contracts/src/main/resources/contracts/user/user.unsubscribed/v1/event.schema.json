@@ -23,7 +23,7 @@
 							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
 						},
 						"status": {
-							"const": "DISABLE"
+							"const": "DISABLED"
 						}
 					},
 					"required": [

@@ -89,7 +89,7 @@ public class UserService {
 		
 		UserAggregate aggregate = loadUser(loggedUserId);
 		aggregate.unsubscribe(request.reason());
-		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.DISABLE);
+		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.DISABLED);
 	}
 
 	@Transactional

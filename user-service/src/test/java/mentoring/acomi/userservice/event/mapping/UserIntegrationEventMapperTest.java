@@ -60,7 +60,7 @@ public class UserIntegrationEventMapperTest {
 		UserUnsubscribedPayload payload = domainEvent.payload();
 		
 		Assertions.assertEquals(payload.userId(), integrationPayload.userId());
-		Assertions.assertEquals(UserStatus.DISABLE, integrationPayload.status());
+		Assertions.assertEquals(UserStatus.DISABLED, integrationPayload.status());
 		
 	}
 	

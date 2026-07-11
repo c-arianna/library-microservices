@@ -63,7 +63,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	@Test
 	void shouldRejectPayloadWithBlankUserId() {
 		
-		IntegrationEventEnvelope<UserIntegrationPayload> event = getUserUnsubscribedEvent("", UserStatus.DISABLE, 1);
+		IntegrationEventEnvelope<UserIntegrationPayload> event = getUserUnsubscribedEvent("", UserStatus.DISABLED, 1);
 		
 		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
 
@@ -102,7 +102,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventEnvelope<UserIntegrationPayload> validEvent() {
-		return getUserUnsubscribedEvent(UUID.randomUUID().toString(), UserStatus.DISABLE, 1);
+		return getUserUnsubscribedEvent(UUID.randomUUID().toString(), UserStatus.DISABLED, 1);
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getUserUnsubscribedEvent(UUID.randomUUID().toString(), UserStatus.DISABLE, schemaVersion);
+		return getUserUnsubscribedEvent(UUID.randomUUID().toString(), UserStatus.DISABLED, schemaVersion);
 	}
 	
 	private IntegrationEventEnvelope<UserIntegrationPayload> getUserUnsubscribedEvent(String userId, UserStatus status, int schemaVersion) {

@@ -236,7 +236,7 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId());
 			Assertions.assertTrue(userView.isPresent());
-			Assertions.assertEquals(UserStatus.DISABLE, userView.get().status());
+			Assertions.assertEquals(UserStatus.DISABLED, userView.get().status());
 		});
 
 		var events = userEventRepository.loadStream(user.userId());
@@ -257,7 +257,7 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 		Assertions.assertNotNull(payload);
 
 		Assertions.assertEquals(user.userId(), payload.get("userId").asString());
-		Assertions.assertEquals("DISABLE", payload.get("status").asString());
+		Assertions.assertEquals("DISABLED", payload.get("status").asString());
 		
 	}
 		
