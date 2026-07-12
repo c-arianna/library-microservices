@@ -28,7 +28,6 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         """
         {
           "isbn": "9788804336327",
-          "userId": "${USER_ID}",
           "startDate": "2026-02-23"
         }
         """
@@ -71,7 +70,6 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         """
         {
           "isbn": "9788804336327",
-          "userId": "${USER_ID}",
           "startDate": "2026-02-23"
         }
         """

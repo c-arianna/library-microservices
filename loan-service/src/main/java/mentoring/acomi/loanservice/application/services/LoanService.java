@@ -241,15 +241,24 @@ public class LoanService {
 	
 	private String resolveUserId(AddLoanRequest request) {
 
+		String requestUserId = request.userId();
+		
 	    UserInfo userInfo = getUserInfo();
 
 	    if (userInfo.isReader()) {
 	        String email = userInfo.email();
 			UserView user = userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+			
+			String loggedUserId = user.id();
+			
+			if(requestUserId!=null && !requestUserId.equalsIgnoreCase(loggedUserId)) {
+				throw new InvalidUser(String.format("User ID request: %s, User ID logged: %s", requestUserId, user.id()));
+			}
+			
 	        return user.id();
 	    }
 
-	    if (request.userId() == null || request.userId().isBlank()) {
+	    if (requestUserId == null || requestUserId.isBlank()) {
 	        throw new InvalidUser("User ID is required");
 	    }
 
