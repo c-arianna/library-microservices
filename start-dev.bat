@@ -7,6 +7,6 @@ cd docker
 
 echo === START DEV ENV ===
 
-docker compose --profile dev up
+docker compose -p dev --profile dev up
 
 echo === DONE ===
