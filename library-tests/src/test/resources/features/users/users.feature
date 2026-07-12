@@ -72,7 +72,7 @@ L'amministratore della bibloteca può
         }
         """
 	  Then la risposta ha status code 200
-	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "DISABLE"
+	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "DISABLED"
 	        
   Rule: Sospensione di un utente
     
@@ -172,23 +172,10 @@ L'amministratore della bibloteca può
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
       And l'utente ha stato "ACTIVE"
       And l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678" è autenticato
-      When l'utente visualizza il profilo di "mario.rossi@gmail.com"
+      When l'utente visualizza il suo profilo
       Then la risposta ha status code 200
       And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE"
-    
-     Scenario: Un utente READER non può visualizzare il profilo di altri utenti
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
-      And l'utente ha stato "ACTIVE"
-      Given esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678"
-      And l'utente ha stato "ACTIVE"
-      And l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678" è autenticato
-      When l'utente visualizza il profilo di "mario.verdi@gmail.com"
-      Then la risposta ha status code 404
-      And la risposta contiene il campo "message"
-      And la risposta contiene i seguenti campi:
-      | code    | "USER_NOT_FOUND"     |
-      | type    | "RESOURCE_NOT_FOUND" |
-      
+     
     Scenario: L'amministratore può vedere il profilo di tutti gli utenti
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
       And l'utente ha stato "ACTIVE"

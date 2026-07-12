@@ -26,6 +26,7 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.services.UserService;
 import mentoring.acomi.userservice.config.RabbitMQConfigTest;
@@ -97,6 +98,11 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
 
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+	        UserViewEntity userView = viewRepository.findById(user.userId()).orElseThrow();
+	        Assertions.assertThat(userView.getStatus()).isEqualTo(UserStatus.DISABLED);
+	    });
+		
 		List<UserViewEntity> expectedUsers = viewRepository.findAll();
 
 		Assertions.assertThat(!expectedUsers.isEmpty());

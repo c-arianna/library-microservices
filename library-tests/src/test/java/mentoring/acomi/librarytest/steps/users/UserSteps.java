@@ -171,7 +171,7 @@ public class UserSteps {
 	}
 
 	@When("l'utente visualizza il profilo di {string}")
-	public void userGetUserProfile(String email) {
+	public void userGetUserDetail(String email) {
 		
 		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
 		
@@ -181,7 +181,16 @@ public class UserSteps {
 			throw new IllegalStateException("Missing field userId");
 		}
 		
-		getUserProfile(accessToken, userId);
+		getUserDetail(accessToken, userId);
+	
+	}
+	
+	@When("l'utente visualizza il suo profilo")
+	public void userGetUserProfile() {
+		
+		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
+				
+		getUserProfile(accessToken);
 	
 	}
 	
@@ -196,7 +205,7 @@ public class UserSteps {
 		        throw new IllegalStateException("Missing field userId");
 		}
 		
-		getUserProfile(accessToken, userId);
+		getUserDetail(accessToken, userId);
 		
 	}
 	
@@ -211,7 +220,7 @@ public class UserSteps {
 		        throw new IllegalStateException("Missing field userId");
 		}
 		
-		getUserProfile(accessToken, userId);
+		getUserDetail(accessToken, userId);
 		
 	}
 	
@@ -269,8 +278,20 @@ public class UserSteps {
 				.expectBody().returnResult();
 	}
 	
-	private void getUserProfile(String accessToken, String userId) {
+	private void getUserDetail(String accessToken, String userId) {
 		var result = client.get().uri("/users/%s".formatted(userId)).header("Authorization", "Bearer %s".formatted(accessToken))
+				.exchange().expectBody().returnResult();
+		
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		
+		if (result.getResponseBody() != null) {
+			String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+			context.put(CommonSteps.RESPONSE_BODY, response);
+		}
+	}
+	
+	private void getUserProfile(String accessToken) {
+		var result = client.get().uri("/users/profile").header("Authorization", "Bearer %s".formatted(accessToken))
 				.exchange().expectBody().returnResult();
 		
 		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());

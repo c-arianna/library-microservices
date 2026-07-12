@@ -35,6 +35,7 @@ import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
+import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
@@ -203,13 +204,7 @@ public class UserService {
 		return new UserCreationError(message);
 	}
 
-	public UserResponse getUserProfile(String userId) {
-		
-		UserView loggedUser = getLoggedUser();
-		
-		if (loggedUser.role() == UserRole.READER && !loggedUser.id().equalsIgnoreCase(userId)) {
-			throw new UserNotFound("Reader user ID %s cannot see user ID %s profile".formatted(loggedUser.id(), userId));
-		}
+	public UserDetail getUserDetail(String userId) {
 		
 		Optional<UserView> user = userViewRepository.findById(userId);
 		
@@ -219,8 +214,15 @@ public class UserService {
 	
 		UserView userView = user.get();
 		
-		return new UserResponse(userView.id(), userView.email(), userView.userIdentityProviderId(), userView.role(), userView.status());
+		return new UserDetail(userView.id(), userView.email(), userView.name(), userView.lastname(), userView.userIdentityProviderId(), 
+				 userView.status(), userView.role());
 	
+	}
+	
+	public UserDetail getUserProfile() {
+		UserView loggedUser = getLoggedUser();
+		return new UserDetail(loggedUser.id(), loggedUser.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.userIdentityProviderId(), 
+				loggedUser.status(), loggedUser.role());
 	}
 
 	public UsersResponse getUsers() {
