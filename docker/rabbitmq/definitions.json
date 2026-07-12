@@ -319,6 +319,13 @@
             "destination_type": "queue",
             "routing_key": "notifications.loan.updated"
         },
+		{
+            "source": "notifications.exchange",
+            "vhost": "/",
+            "destination": "notification.queue",
+            "destination_type": "queue",
+            "routing_key": "notifications.user.updated"
+        },
         {
             "source": "book-service.dlx",
             "vhost": "/",

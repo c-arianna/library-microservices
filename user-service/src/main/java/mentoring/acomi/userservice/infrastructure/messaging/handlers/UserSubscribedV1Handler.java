@@ -7,6 +7,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.userservice.application.projection.UserProjection;
+import mentoring.acomi.userservice.infrastructure.messaging.notifications.UserNotificationService;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
 
 @Component
@@ -14,10 +15,12 @@ public class UserSubscribedV1Handler implements EventHandler {
 
 	private final UserProjection projection;
 	private final EventPayloadMapper mapper;
+	private final UserNotificationService notificationService;
 	
-	public UserSubscribedV1Handler(UserProjection projection, EventPayloadMapper mapper) {
+	public UserSubscribedV1Handler(UserProjection projection, EventPayloadMapper mapper, UserNotificationService notificationService) {
 		this.projection = projection;
 		this.mapper = mapper;
+		this.notificationService = notificationService;
 	}
 
 	@Override
@@ -34,6 +37,7 @@ public class UserSubscribedV1Handler implements EventHandler {
 	public void handleEvent(IntegrationEventEnvelope<?> event) {
 		UserSubscribedIntegrationPayload payload = mapper.mapAndValidate(event.payload(), UserSubscribedIntegrationPayload.class);
 		projection.subscribeUser(payload, event.occurredAt());
+		notificationService.publishUserUpdated(payload.userId(), event.schemaVersion());
 	}
 	
 }

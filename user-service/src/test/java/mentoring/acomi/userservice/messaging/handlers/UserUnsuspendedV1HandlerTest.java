@@ -27,6 +27,7 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.projection.UserProjection;
 import mentoring.acomi.userservice.domain.events.AggregateType;
 import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserUnsuspendedV1Handler;
+import mentoring.acomi.userservice.infrastructure.messaging.notifications.UserNotificationService;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
 import tools.jackson.databind.ObjectMapper;
 
@@ -42,12 +43,15 @@ public class UserUnsuspendedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private EventPayloadMapper mapper;
 	
+	@Mock
+	private UserNotificationService notificationService;
+	
 	private UserUnsuspendedV1Handler handler;
 	
 	@BeforeEach
 	void setup() {
 		mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
-		handler = new UserUnsuspendedV1Handler(projection, mapper);
+		handler = new UserUnsuspendedV1Handler(projection, mapper, notificationService);
 	}
 
 	@Test

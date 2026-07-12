@@ -32,7 +32,7 @@ public class LoanNotificationPublisher {
         this.tracer = tracer;
     }
 
-    public void publishBookUpdated(LoanView loan, String identityProviderId, int schemaVersion) {
+    public void publishLoanUpdated(LoanView loan, String identityProviderId, int schemaVersion) {
 
     	Span span = tracer.currentSpan();
 

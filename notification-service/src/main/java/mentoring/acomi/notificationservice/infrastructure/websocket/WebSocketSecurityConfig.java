@@ -18,6 +18,7 @@ public class WebSocketSecurityConfig {
 
         return messages.simpSubscribeDestMatchers("/topic/books").authenticated()
                 	    .simpSubscribeDestMatchers("/topic/loans").hasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")
+                	    .simpSubscribeDestMatchers("/topic/users").hasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")
                         .simpSubscribeDestMatchers("/user/**").authenticated()
                         .simpTypeMatchers(SimpMessageType.CONNECT, SimpMessageType.DISCONNECT, SimpMessageType.UNSUBSCRIBE, 
                         		            SimpMessageType.HEARTBEAT).permitAll()
