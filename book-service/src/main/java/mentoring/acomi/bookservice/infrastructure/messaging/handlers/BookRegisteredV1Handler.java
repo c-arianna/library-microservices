@@ -6,21 +6,17 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.bookservice.application.projection.BookProjection;
 import mentoring.acomi.bookservice.infrastructure.messaging.notifications.BookNotificationService;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
-public class BookRegisteredV1Handler implements EventHandler {
+public class BookRegisteredV1Handler extends AbstractBookNotificationHandler<BookRegisteredIntegrationPayload> {
 
 	private final BookProjection projection;
-	private final EventPayloadMapper mapper;
-	private final BookNotificationService notificationService;
 
 	public BookRegisteredV1Handler(BookProjection projection, EventPayloadMapper mapper, BookNotificationService notificationService) {
+		super(mapper, notificationService);
 		this.projection = projection;
-		this.mapper = mapper;
-		this.notificationService = notificationService;
 	}
 
 	@Override
@@ -29,15 +25,23 @@ public class BookRegisteredV1Handler implements EventHandler {
 	}
 
 	@Override
-	public boolean accepts(IntegrationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == 1;
+	protected int supportedSchemaVersion() {
+		return 1;
 	}
 
 	@Override
-	public void handleEvent(IntegrationEventEnvelope<?> event) {
-		BookRegisteredIntegrationPayload payload = mapper.mapAndValidate(event.payload(), BookRegisteredIntegrationPayload.class);
-		projection.addBook(payload, event.occurredAt());
-		notificationService.publishBookUpdated(payload.isbn(), event.schemaVersion());
+	protected Class<BookRegisteredIntegrationPayload> payloadType() {
+		return BookRegisteredIntegrationPayload.class;
 	}
+
+	@Override
+	protected void updateProjection(BookRegisteredIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+		projection.addBook(payload, event.occurredAt());
+	}
+	
+	@Override
+    protected String isbn(BookRegisteredIntegrationPayload payload) {
+        return payload.isbn();
+    }
 
 }

@@ -2,117 +2,43 @@ package mentoring.acomi.loanservice.messaging.handler;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import mentoring.acomi.sharedcodelibrary.event.handlers.InvalidEventPayloadException;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReturnedV1Handler;
-import mentoring.acomi.loanservice.infrastructure.messaging.notifications.LoanNotificationService;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
-import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanReturnedV1HandlerTest extends AbstractEventHandlerTest {
+public class LoanReturnedV1HandlerTest extends AbstractLoanNotificationHandlerTest {
 
+	private static final String LOAN_ID = UUID.randomUUID().toString();
+	
 	@Mock
 	private LoanProjection projection;
-
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-	private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
-	
-	private EventPayloadMapper mapper;
-	
-	@Mock
-	private LoanNotificationService notificationService;
-	
 	private LoanReturnedV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
-        mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
 		handler = new LoanReturnedV1Handler(projection, mapper, notificationService);
 	}
 
-	@Test
-	void shouldHandleLoanReturnedEvent() {
-
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = validEvent();
-
-		handler.handleEvent(event);
-
-		verify(projection, times(1)).returnLoan(event.payload().loanId(), event.occurredAt());
-
-	}
-
-	@Test
-	void shouldRejectPayloadWithBlankLoanId() {
-
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = getLoanReturnedEvent("", "9788804336327", UUID.randomUUID().toString(), 1);
-
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("loanId"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );;
-
-	}
-	
-	@Test
-	void shouldRejectPayloadWithBlankIsbn() {
-
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = getLoanReturnedEvent(UUID.randomUUID().toString(), "", 
-				UUID.randomUUID().toString(), 1);
-
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("isbn"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-
-	}
-	
-	@Test
-	void shouldRejectPayloadWithBlankUserId() {
-
-		IntegrationEventEnvelope<LoanIntegrationPayload> event = getLoanReturnedEvent(UUID.randomUUID().toString(), "9788804336327", "", 1);
-
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("userId"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-
-	}
-	
 	@Override
 	protected EventHandler handler() {
 		return handler;
@@ -120,12 +46,12 @@ public class LoanReturnedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventTypes eventType() {
-		return handler.eventType();
+		return IntegrationEventTypes.LOAN_RETURNED;
 	}
 
 	@Override
 	protected IntegrationEventEnvelope<LoanIntegrationPayload> validEvent() {
-		return getLoanReturnedEvent(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), 1);
+		return getLoanReturnedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), 1);
 	}
 
 	@Override
@@ -136,9 +62,34 @@ public class LoanReturnedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getLoanReturnedEvent(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), schemaVersion);
+		return getLoanReturnedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), schemaVersion);
 	}
 
+	@Override
+	protected String expectedLoanId() {
+		return LOAN_ID;
+	}
+
+	@Test
+	void shouldHandleLoanReturnedEvent() {
+		IntegrationEventEnvelope<LoanIntegrationPayload> event = validEvent();
+		handler.handleEvent(event);
+		verify(projection, times(1)).returnLoan(event.payload().loanId(), event.occurredAt());
+	}
+
+	@TestFactory
+	Collection<DynamicTest> shouldRejectInvalidPayloads() {
+		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projection))).toList();
+	
+	}
+	
+	private List<InvalidPayloadScenario> invalidPayloads() {
+	    return List.of(new InvalidPayloadScenario("blank loanId", "loanId", getLoanReturnedEvent("", "9788804336327", UUID.randomUUID().toString(), 1)),
+	                   new InvalidPayloadScenario("blank isbn", "isbn", getLoanReturnedEvent(LOAN_ID, "", UUID.randomUUID().toString(), 1)),
+	                   new InvalidPayloadScenario("blank userId", "userId", getLoanReturnedEvent(LOAN_ID, "9788804336327","", 1)));
+	}
+		
 	private IntegrationEventEnvelope<LoanIntegrationPayload> getLoanReturnedEvent(String loanId, String isbn, String userId, int schemaVersion) {
 
 		String aggregateId = loanId == null || loanId.isBlank() ? UUID.randomUUID().toString() : loanId;

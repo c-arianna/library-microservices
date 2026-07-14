@@ -6,19 +6,18 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.reactor.LoanEventReactor;
 import mentoring.acomi.loanservice.application.reactor.command.CommandBookRejectedEvent;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
-public class BookReservationRejectedV1Handler implements EventHandler {
+public class BookReservationRejectedV1Handler extends AbstractEventHandler<BookReservationRejectedIntegrationPayload> {
 
 	private final LoanEventReactor reactor;
-	private final EventPayloadMapper mapper;
-
+	
 	public BookReservationRejectedV1Handler(LoanEventReactor reactor, EventPayloadMapper mapper) {
+		super(mapper);
 		this.reactor = reactor;
-		this.mapper = mapper;
 	}
 
 	@Override
@@ -27,15 +26,18 @@ public class BookReservationRejectedV1Handler implements EventHandler {
 	}
 
 	@Override
-	public boolean accepts(IntegrationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == 1;
+	protected int supportedSchemaVersion() {
+		return 1;
 	}
-
+	
 	@Override
-	public void handleEvent(IntegrationEventEnvelope<?> event) {
-		BookReservationRejectedIntegrationPayload payload = mapper.mapAndValidate(event.payload(), BookReservationRejectedIntegrationPayload.class);
+	protected Class<BookReservationRejectedIntegrationPayload> payloadType() {
+		return BookReservationRejectedIntegrationPayload.class;
+	}
+	
+	@Override
+	protected void process(BookReservationRejectedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		reactor.handleBookReservationRejected(new CommandBookRejectedEvent(payload.loanId(), payload.reason()));
-
 	}
 
 }

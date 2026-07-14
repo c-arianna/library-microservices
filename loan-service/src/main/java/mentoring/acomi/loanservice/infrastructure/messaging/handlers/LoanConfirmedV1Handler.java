@@ -6,21 +6,17 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.infrastructure.messaging.notifications.LoanNotificationService;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
-public class LoanConfirmedV1Handler implements EventHandler {
+public class LoanConfirmedV1Handler extends AbstractLoanNotificationHandler<LoanIntegrationPayload> {
 
 	private final LoanProjection projection;
-	private final EventPayloadMapper mapper;
-	private final LoanNotificationService notificationService;
-	
+		
 	public LoanConfirmedV1Handler(LoanProjection projection, EventPayloadMapper mapper, LoanNotificationService notificationService) {
+		super(mapper, notificationService);
 		this.projection = projection;
-		this.mapper = mapper;
-		this.notificationService = notificationService;
 	}
 
 	@Override
@@ -29,15 +25,23 @@ public class LoanConfirmedV1Handler implements EventHandler {
 	}
 
 	@Override
-	public boolean accepts(IntegrationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == 1;
+	protected int supportedSchemaVersion() {
+		return 1;
+	}
+	
+	@Override
+	protected Class<LoanIntegrationPayload> payloadType() {
+		return LoanIntegrationPayload.class;
 	}
 
 	@Override
-	public void handleEvent(IntegrationEventEnvelope<?> event) {
-		LoanIntegrationPayload payload = mapper.mapAndValidate(event.payload(), LoanIntegrationPayload.class);
+	protected void updateProjection(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projection.confirmLoan(payload.loanId(), event.occurredAt());
-		notificationService.publishLoanUpdated(payload.loanId(), event.schemaVersion());
+	}
+
+	@Override
+	protected String loanId(LoanIntegrationPayload payload) {
+		return payload.loanId();
 	}
 
 }

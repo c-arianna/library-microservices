@@ -6,19 +6,18 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.bookservice.application.reactor.BookEventReactor;
 import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
-public class LoanCanceledV1Handler implements EventHandler {
+public class LoanCanceledV1Handler extends AbstractEventHandler<LoanIntegrationPayload> {
 
 	private final BookEventReactor reactor;
-	private final EventPayloadMapper mapper;
-	
+
 	public LoanCanceledV1Handler(BookEventReactor reactor, EventPayloadMapper mapper) {
+		super(mapper);
 		this.reactor = reactor;
-		this.mapper = mapper;
 	}
 
 	@Override
@@ -27,16 +26,19 @@ public class LoanCanceledV1Handler implements EventHandler {
 	}
 
 	@Override
-	public boolean accepts(IntegrationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == 1;
+	protected int supportedSchemaVersion() {
+		return 1;
 	}
-
+	
 	@Override
-	public void handleEvent(IntegrationEventEnvelope<?> event) {		
-		LoanIntegrationPayload payload = mapper.mapAndValidate(event.payload(), LoanIntegrationPayload.class);
+	protected Class<LoanIntegrationPayload> payloadType() {
+		return LoanIntegrationPayload.class;
+	}
+	
+	@Override
+	protected void process(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		CommandLoanEvent command = new CommandLoanEvent(payload.loanId(), payload.isbn(), payload.userId());
 		reactor.handleLoanCanceled(command);
-		
 	}
 
 }

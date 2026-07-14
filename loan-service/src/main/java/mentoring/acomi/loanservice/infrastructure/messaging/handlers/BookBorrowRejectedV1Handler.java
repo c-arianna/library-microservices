@@ -6,19 +6,18 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.reactor.LoanEventReactor;
 import mentoring.acomi.loanservice.application.reactor.command.CommandBookRejectedEvent;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
-public class BookBorrowRejectedV1Handler implements EventHandler {
+public class BookBorrowRejectedV1Handler extends AbstractEventHandler<BookBorrowRejectedIntegrationPayload> {
 
 	private final LoanEventReactor reactor;
-	private final EventPayloadMapper mapper;
-
+	
 	public BookBorrowRejectedV1Handler(LoanEventReactor reactor, EventPayloadMapper mapper) {
+		super(mapper);
 		this.reactor = reactor;
-		this.mapper = mapper;
 	}
 		
 	@Override
@@ -27,13 +26,17 @@ public class BookBorrowRejectedV1Handler implements EventHandler {
 	}
 
 	@Override
-	public boolean accepts(IntegrationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == 1;
+	protected int supportedSchemaVersion() {
+		return 1;
 	}
-
+	
 	@Override
-	public void handleEvent(IntegrationEventEnvelope<?> event) {
-		BookBorrowRejectedIntegrationPayload payload = mapper.mapAndValidate(event.payload(), BookBorrowRejectedIntegrationPayload.class);
+	protected Class<BookBorrowRejectedIntegrationPayload> payloadType() {
+		return BookBorrowRejectedIntegrationPayload.class;
+	}
+	
+	@Override
+	protected void process(BookBorrowRejectedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		reactor.handleBookBorrowRejected(new CommandBookRejectedEvent(payload.loanId(), payload.reason()));
 	}
 	

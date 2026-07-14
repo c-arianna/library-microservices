@@ -3,7 +3,6 @@ package mentoring.acomi.userservice.infrastructure.messaging.handlers;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.userservice.application.projection.UserProjection;
@@ -11,16 +10,13 @@ import mentoring.acomi.userservice.infrastructure.messaging.notifications.UserNo
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
 
 @Component
-public class UserUnsubscribedV1Handler implements EventHandler {
+public class UserUnsubscribedV1Handler extends AbstractUserNotificationHandler<UserIntegrationPayload> {
 
 	private final UserProjection projection;
-	private final EventPayloadMapper mapper;
-	private final UserNotificationService notificationService;
 	
 	public UserUnsubscribedV1Handler(UserProjection projection, EventPayloadMapper mapper, UserNotificationService notificationService) {
+		super(mapper, notificationService);
 		this.projection = projection;
-		this.mapper = mapper;
-		this.notificationService = notificationService;
 	}
 
 	@Override
@@ -28,16 +24,25 @@ public class UserUnsubscribedV1Handler implements EventHandler {
 		return IntegrationEventTypes.USER_UNSUBSCRIBED;
 	}
 
+
 	@Override
-	public boolean accepts(IntegrationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == 1;
+	protected int supportedSchemaVersion() {
+		return 1;
 	}
 
 	@Override
-	public void handleEvent(IntegrationEventEnvelope<?> event) {
-		UserIntegrationPayload payload = mapper.mapAndValidate(event.payload(), UserIntegrationPayload.class);
-		projection.unsubscribeUser(payload, event.occurredAt());
-		notificationService.publishUserUpdated(payload.userId(), event.schemaVersion());
+	protected Class<UserIntegrationPayload> payloadType() {
+		return UserIntegrationPayload.class;
 	}
+
+	@Override
+	protected void updateProjection(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+		projection.unsubscribeUser(payload, event.occurredAt());
+	}
+	
+	@Override
+    protected String userId(UserIntegrationPayload payload) {
+        return payload.userId();
+    }
 	
 }

@@ -2,24 +2,21 @@ package mentoring.acomi.userservice.messaging.handlers;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.sharedcodelibrary.event.handlers.InvalidEventPayloadException;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
@@ -28,171 +25,24 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.projection.UserProjection;
 import mentoring.acomi.userservice.domain.events.AggregateType;
 import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserSubscribedV1Handler;
-import mentoring.acomi.userservice.infrastructure.messaging.notifications.UserNotificationService;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
-import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
-public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
+public class UserSubscribedV1HandlerTest extends AbstractUserNotificationHandlerTest {
 	
+    private static final String USER_ID = UUID.randomUUID().toString();
 	private static final String IDENTITY_PROVIDER = "user123456";
 	private static final String NAME = "Harry";
 	private static final String LASTNAME = "Potter";
 	private static final String EMAIL = "h.potter@gmail.com";
 
 	@Mock
-	private UserProjection projection;
-	
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-	private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
-	
-	private EventPayloadMapper mapper;
-	
-	@Mock
-	private UserNotificationService notificationService;
-	
+	private UserProjection projection;	
 	private UserSubscribedV1Handler handler;
 	
 	@BeforeEach
 	void setup() {
-		mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
 		handler = new UserSubscribedV1Handler(projection, mapper, notificationService);
-	}
-
-	@Test
-	void shouldHandleUserSubscribedEvent() {
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
-		verify(projection, times(1)).subscribeUser(event.payload(), event.occurredAt());
-	}
-	
-	@Test
-	void shouldRejectPayloadWithBlankUserId() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent("", EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER, 
-				UserStatus.ACTIVE, UserRole.READER, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("userId"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithoutEmail() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), null, 
-				NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("email"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithInvalidEmail() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), "test", 
-				NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("email"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithBlankName() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, "", 
-				LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("name"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithBlankLastname() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, "", 
-				IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("lastname"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithBlankIdentityProvider() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, 
-				NAME, LASTNAME, "", UserStatus.ACTIVE, UserRole.READER, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("userIdentityProviderId"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithoutStatus() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, 
-				LASTNAME, IDENTITY_PROVIDER, null, UserRole.READER, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("status"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithoutRole() {
-		
-		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, 
-				LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, null, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("role"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
 	}
 	
 	@Override
@@ -202,13 +52,12 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventTypes eventType() {
-		return handler.eventType();
+		return IntegrationEventTypes.USER_SUBSCRIBED;
 	}
 
 	@Override
 	protected IntegrationEventEnvelope<UserSubscribedIntegrationPayload> validEvent() {
-		return getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, 
-				UserRole.READER, 1);
+		return getUserSubscribedEvent(USER_ID, EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, 1);
 	}
 
 	@Override
@@ -219,10 +68,53 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, 
-				UserRole.READER, schemaVersion);
+		return getUserSubscribedEvent(USER_ID, EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, schemaVersion);
 	}
 
+	@Override
+	protected String expectedUserId() {
+		return USER_ID;
+	}
+
+	@Test
+	void shouldHandleUserSubscribedEvent() {
+		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = validEvent();
+		handler.handleEvent(event);
+		verify(projection, times(1)).subscribeUser(event.payload(), event.occurredAt());
+	}
+	
+	@TestFactory
+	Collection<DynamicTest> shouldRejectInvalidPayloads() {
+		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projection))).toList();
+	}
+	
+	private List<InvalidPayloadScenario> invalidPayloads() {
+	    return List.of(new InvalidPayloadScenario("blank userId", "userId", 
+	    		           getUserSubscribedEvent("", EMAIL, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1)),
+	                   new InvalidPayloadScenario("null email", "email", 
+	                	   getUserSubscribedEvent(UUID.randomUUID().toString(), null, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, 
+	                			   UserRole.READER, 1)),
+	                   new InvalidPayloadScenario("invalid email", "email", 
+	                	   getUserSubscribedEvent(UUID.randomUUID().toString(), "test1", NAME, LASTNAME, UUID.randomUUID().toString(), 
+	                			   UserStatus.ACTIVE, UserRole.READER, 1)),
+	                   new InvalidPayloadScenario("blank name", "name", 
+	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, "", LASTNAME, UUID.randomUUID().toString(), 
+								        UserStatus.ACTIVE, UserRole.READER, 1)),
+	                   new InvalidPayloadScenario("blank lastname", "lastname", 
+	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, "", UUID.randomUUID().toString(), 
+	                    		        UserStatus.ACTIVE, UserRole.READER, 1)),
+	                   new InvalidPayloadScenario("blank userIdentityProviderId", "userIdentityProviderId", 
+	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, "", UserStatus.ACTIVE, UserRole.READER, 1)),
+	                   new InvalidPayloadScenario("null status", "status", 
+	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, 
+	                    		  		UUID.randomUUID().toString(), null, UserRole.READER, 1)),
+	                   new InvalidPayloadScenario("null role", "role", 
+	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, UUID.randomUUID().toString(),
+	                    		        UserStatus.ACTIVE, null, 1)));
+	                   
+	}
+								
 	private IntegrationEventEnvelope<UserSubscribedIntegrationPayload> getUserSubscribedEvent(String userId, String email, String name, 
 			String lastname, String userIdentityProviderId, UserStatus status, UserRole role, int schemaVersion){
 		

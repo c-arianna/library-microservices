@@ -2,24 +2,21 @@ package mentoring.acomi.loanservice.messaging.handler;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import mentoring.acomi.sharedcodelibrary.event.handlers.InvalidEventPayloadException;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.UserProjection;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserUnsubscribedV1Handler;
@@ -28,66 +25,17 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
-import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Mock
 	private UserProjection projection;
-
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-	private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
-	
-	private EventPayloadMapper mapper;
-
 	private UserUnsubscribedV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
-        mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
 		handler = new UserUnsubscribedV1Handler(projection, mapper);
-	}
-	
-	@Test
-	void shouldHandleUserSubscribedEvent() {
-	
-		IntegrationEventEnvelope<UserIntegrationPayload> event = validEvent();
-		
-		handler.handleEvent(event);
-
-		verify(projection, times(1)).handleUpdateUserStatus(event.payload(), event.occurredAt());
-	}
-	
-	@Test
-	void shouldRejectPayloadWithBlankUserId() {
-		
-		IntegrationEventEnvelope<UserIntegrationPayload> event = getUserUnsubscribedEvent("", UserStatus.DISABLED, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("userId"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
-	}
-	
-	@Test
-	void shouldRejectPayloadWithoutStatus() {
-		
-		IntegrationEventEnvelope<UserIntegrationPayload> event  = getUserUnsubscribedEvent(UUID.randomUUID().toString(), null, 1);
-		
-		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler.handleEvent(event));
-
-		Assertions.assertAll(
-	            () -> Assertions.assertEquals(
-	                    Set.of("status"),
-	                    exception.getInvalidFields()),
-	            () -> verifyNoInteractions(projection)
-	    );
 	}
 	
 	@Override
@@ -97,7 +45,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventTypes eventType() {
-		return handler.eventType();
+		return IntegrationEventTypes.USER_UNSUBSCRIBED;
 	}
 
 	@Override
@@ -116,6 +64,24 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		return getUserUnsubscribedEvent(UUID.randomUUID().toString(), UserStatus.DISABLED, schemaVersion);
 	}
 	
+	@Test
+	void shouldHandleUserUnsubscribedEvent() {
+		IntegrationEventEnvelope<UserIntegrationPayload> event = validEvent();
+		handler.handleEvent(event);
+		verify(projection, times(1)).handleUpdateUserStatus(event.payload(), event.occurredAt());
+	}
+	
+	@TestFactory
+	Collection<DynamicTest> shouldRejectInvalidPayloads() {
+		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projection))).toList();
+	}
+	
+	private List<InvalidPayloadScenario> invalidPayloads() {
+	    return List.of(new InvalidPayloadScenario("blank userId", "userId", getUserUnsubscribedEvent("", UserStatus.DISABLED, 1)),
+	                   new InvalidPayloadScenario("null status", "status", getUserUnsubscribedEvent(UUID.randomUUID().toString(), null, 1)));                  
+	}
+				
 	private IntegrationEventEnvelope<UserIntegrationPayload> getUserUnsubscribedEvent(String userId, UserStatus status, int schemaVersion) {
 
 		String aggregateId = userId == null || userId.isBlank() ? UUID.randomUUID().toString() : userId;

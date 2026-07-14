@@ -1,41 +1,62 @@
 package mentoring.acomi.loanservice.messaging.handler;
 
+import static org.mockito.Mockito.verifyNoInteractions;
+
+import java.util.Set;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcodelibrary.event.handlers.InvalidEventPayloadException;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import tools.jackson.databind.ObjectMapper;
 
 public abstract class AbstractEventHandlerTest {
 
-    protected abstract EventHandler handler();
+	protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    protected abstract IntegrationEventTypes eventType();
+	protected static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
-    protected abstract IntegrationEventEnvelope<?> validEvent();
+	protected final EventPayloadMapper mapper = new EventPayloadMapper(OBJECT_MAPPER, VALIDATOR);
 
-    protected abstract IntegrationEventEnvelope<?> differentEvent();
+	protected abstract EventHandler handler();
 
-    protected abstract IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion);
+	protected abstract IntegrationEventTypes eventType();
 
-    @Test
-    void shouldSupportVersion1() {
-        Assertions.assertTrue(handler().accepts(validEvent()));
-    }
+	protected abstract IntegrationEventEnvelope<?> validEvent();
 
-    @Test
-    void shouldNotSupportUnknownSchemaVersion() {
-        Assertions.assertFalse(handler().accepts(withSchemaVersion(999)));
-    }
+	protected abstract IntegrationEventEnvelope<?> differentEvent();
 
-    @Test
-    void shouldNotSupportDifferentEventType() {
-        Assertions.assertFalse(handler().accepts(differentEvent()));
-    }
+	protected abstract IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion);
 
-    @Test
-    void shouldReturnSupportedEventType() {
-        Assertions.assertEquals(eventType(), handler().eventType());
-    }
+	@Test
+	void shouldSupportVersion1() {
+		Assertions.assertTrue(handler().accepts(validEvent()));
+	}
+
+	@Test
+	void shouldNotSupportUnknownSchemaVersion() {
+		Assertions.assertFalse(handler().accepts(withSchemaVersion(999)));
+	}
+
+	@Test
+	void shouldNotSupportDifferentEventType() {
+		Assertions.assertFalse(handler().accepts(differentEvent()));
+	}
+
+	@Test
+	void shouldReturnSupportedEventType() {
+		Assertions.assertEquals(eventType(), handler().eventType());
+	}
+
+	protected void assertInvalidPayload(IntegrationEventEnvelope<?> event, String field, Object... mocks) {
+		InvalidEventPayloadException exception = Assertions.assertThrows(InvalidEventPayloadException.class, () -> handler().handleEvent(event));
+		Assertions.assertEquals(Set.of(field), exception.getInvalidFields());
+		verifyNoInteractions(mocks);
+	}
 }
