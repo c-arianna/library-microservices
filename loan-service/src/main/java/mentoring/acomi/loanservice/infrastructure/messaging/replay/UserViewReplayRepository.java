@@ -31,8 +31,8 @@ public class UserViewReplayRepository extends BaseReplayRepository implements Us
 
 	@Override
 	public void add(UserView user, Instant createdAt) {
-		jdbcTemplate.update("INSERT INTO %s(id, email, status, created_at, updated_at) VALUES (?,?,?,?,?)".formatted(TABLE_TMP), 
-				user.id(), user.email(), user.status().name(), createdAt, createdAt);
+		jdbcTemplate.update("INSERT INTO %s(id, email, status, user_identity_provider_id, created_at, updated_at) VALUES (?,?,?,?,?,?)".formatted(TABLE_TMP), 
+				user.id(), user.email(), user.status().name(), user.identityProviderId(), createdAt, createdAt);
 	}
 
 	@Override
