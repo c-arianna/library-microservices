@@ -212,6 +212,35 @@ L'amministratore della bibloteca può
         | email  | "mario.verdi@gmail.com" |
         | role   | "READER"                |
         | status | "SUSPENDED"             |
+  
+    Scenario: Consultazione elenco utenti, filtrato per mail non presente
+      Given l'utente "mario.rossi@gmail.com" non è registrato
+      When l'amministratore visualizza l'elenco degli utenti, con filtro di ricerca
+      | email | "mario.verdi@gmail.com" |
+      Then la risposta ha status code 200
+      And la risposta contiene il campo "users"
+      And eventualmente "users" contiene 1 elementi
+      And eventualmente "users" ha un elemento con i campi:
+        | email  | "admin@gmail.com" |
+        | role   | "ADMIN"           |
+        | status | "ACTIVE"          |
+    
+    Scenario: Consultazione elenco utenti, filtrato per stato presente
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      And l'utente ha stato "ACTIVE"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678"
+      And l'utente ha stato "ACTIVE"
+      And l'amministratore sospende l'utente
+	  And l'utente ha stato "SUSPENDED"
+	  When l'amministratore visualizza l'elenco degli utenti, con filtro di ricerca
+	  | status | "SUSPENDED" |
+	  Then la risposta ha status code 200
+	  And la risposta contiene il campo "users"
+	  And eventualmente "users" contiene 1 elementi
+      And eventualmente "users" ha un elemento con i campi:
+        | email  | "mario.verdi@gmail.com" |
+        | role   | "READER"                |
+        | status | "SUSPENDED"             |
         
     Scenario: Un utente READER non può visualizzare l'elenco degli utenti
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.UserFilter;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
 import mentoring.acomi.userservice.application.errors.InvalidUser;
 import mentoring.acomi.userservice.application.errors.InvalidUserData;
@@ -225,8 +226,8 @@ public class UserService {
 				loggedUser.status(), loggedUser.role());
 	}
 
-	public UsersResponse getUsers() {
-		List<UserView> users = userViewRepository.findAll();
+	public UsersResponse getUsers(UserFilter filter) {
+		List<UserView> users = userViewRepository.find(filter);
 		
 		if(users.isEmpty()) {
 			return new UsersResponse(List.of());

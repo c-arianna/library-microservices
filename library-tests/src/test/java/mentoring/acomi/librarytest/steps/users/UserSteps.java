@@ -1,6 +1,7 @@
 package mentoring.acomi.librarytest.steps.users;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.EntityExchangeResult;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.jayway.jsonpath.JsonPath;
 
@@ -234,6 +236,28 @@ public class UserSteps {
 	public void userGetUsers() {
 		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
 		getUsers(accessToken);		
+	}
+	
+	@When("l'amministratore visualizza l'elenco degli utenti, con filtro di ricerca")
+	public void findBooksFilter(Map<String, String> rawFilters) {
+
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+
+		Map<String, String> filters = new LinkedHashMap<>();
+		rawFilters.forEach((k, v) -> filters.put(k, Helper.normalize(v)));
+
+		UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/users");
+		filters.forEach(uri::queryParam);
+
+		context.put(CommonSteps.LAST_QUERY, (Supplier<EntityExchangeResult<byte[]>>) () -> client.get().uri(uri.build().toUri())
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult());
+
+		Supplier<EntityExchangeResult<byte[]>> query = context.getTyped(CommonSteps.LAST_QUERY);
+		var result = query.get();
+
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		context.put(CommonSteps.RESPONSE_BODY, new String(result.getResponseBody(), StandardCharsets.UTF_8));
+
 	}
 	
 	/*

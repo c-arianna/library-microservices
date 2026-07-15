@@ -5,9 +5,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.UserFilter;
 import mentoring.acomi.userservice.application.services.UserService;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
@@ -57,8 +60,11 @@ public class UserController {
 	
 	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@GetMapping("/")
-	public UsersResponse getUsers() {
-		return service.getUsers();
+	public UsersResponse getUsers(@RequestParam(required = false) String userId, 
+			@RequestParam(required = false) String mail, @RequestParam(required = false) String userIdentityProvider,
+		    @RequestParam(required = false) UserStatus status) {
+		UserFilter filter = new UserFilter(userId, mail, userIdentityProvider, status);
+		return service.getUsers(filter);
 	}
 	
 	@GetMapping("/profile")
