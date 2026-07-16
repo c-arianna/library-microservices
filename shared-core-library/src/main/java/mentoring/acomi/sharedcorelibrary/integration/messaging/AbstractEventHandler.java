@@ -11,18 +11,9 @@ public abstract class AbstractEventHandler<T> implements EventHandler {
 	}
 
 	@Override
-	public boolean accepts(IntegrationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == supportedSchemaVersion();
-	}
-
-	@Override
 	public final void handleEvent(IntegrationEventEnvelope<?> event) {
 		T payload = mapper.mapAndValidate(event.payload(), payloadType());
 		process(payload, event);
-	}
-
-	protected int supportedSchemaVersion() {
-		return 1;
 	}
 
 	protected abstract Class<T> payloadType();

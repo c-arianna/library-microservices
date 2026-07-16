@@ -3,12 +3,14 @@ package mentoring.acomi.userservice.infrastructure.messaging.handlers;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.userservice.application.projection.UserProjection;
 import mentoring.acomi.userservice.infrastructure.messaging.notifications.UserNotificationService;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
 
+@HandlerMetadata(eventType = IntegrationEventTypes.USER_UNSUSPENDED, supportedVersions = {1})
 @Component
 public class UserUnsuspendedV1Handler extends AbstractUserNotificationHandler<UserIntegrationPayload> {
 
@@ -17,16 +19,6 @@ public class UserUnsuspendedV1Handler extends AbstractUserNotificationHandler<Us
 	public UserUnsuspendedV1Handler(UserProjection projection, EventPayloadMapper mapper, UserNotificationService notificationService) {
 		super(mapper, notificationService);
 		this.projection = projection;
-	}
-
-	@Override
-	public IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.USER_UNSUSPENDED;
-	}
-
-	@Override
-	protected int supportedSchemaVersion() {
-		return 1;
 	}
 
 	@Override

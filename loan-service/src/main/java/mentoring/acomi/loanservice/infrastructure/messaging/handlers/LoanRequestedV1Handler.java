@@ -6,9 +6,11 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.infrastructure.messaging.notifications.LoanNotificationService;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
+@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_REQUESTED, supportedVersions = {1})
 @Component
 public class LoanRequestedV1Handler extends AbstractLoanNotificationHandler<LoanRequestedIntegrationPayload> {
 
@@ -17,11 +19,6 @@ public class LoanRequestedV1Handler extends AbstractLoanNotificationHandler<Loan
 	public LoanRequestedV1Handler(LoanProjection projection, EventPayloadMapper mapper, LoanNotificationService notificationService) {
 		super(mapper, notificationService);
 		this.projection = projection;
-	}
-
-	@Override
-	public IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.LOAN_REQUESTED;
 	}
 
 	@Override

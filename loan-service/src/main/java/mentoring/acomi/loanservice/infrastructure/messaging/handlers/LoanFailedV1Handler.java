@@ -6,9 +6,11 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.infrastructure.messaging.notifications.LoanNotificationService;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
+@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_FAILED, supportedVersions = {1})
 @Component
 public class LoanFailedV1Handler extends AbstractLoanNotificationHandler<LoanFailedIntegrationPayload> {
 
@@ -19,16 +21,6 @@ public class LoanFailedV1Handler extends AbstractLoanNotificationHandler<LoanFai
 		this.projection = projection;
 	}
 
-	@Override
-	public IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.LOAN_FAILED;
-	}
-	
-	@Override
-	protected int supportedSchemaVersion() {
-		return 1;
-	}
-	
 	@Override
 	protected Class<LoanFailedIntegrationPayload> payloadType() {
 		return LoanFailedIntegrationPayload.class;

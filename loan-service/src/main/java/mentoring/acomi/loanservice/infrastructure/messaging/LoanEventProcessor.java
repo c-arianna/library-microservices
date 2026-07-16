@@ -1,9 +1,5 @@
 package mentoring.acomi.loanservice.infrastructure.messaging;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,23 +11,23 @@ import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanIntegrationRepository;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandlerRegistry;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
 public class LoanEventProcessor {
 
-	private final Map<IntegrationEventTypes, List<EventHandler>> handlers;
 	private final LoanIntegrationRepository loanIntegrationRepository;
 	private final LoanEventRepository loanEventRepository;
-	
+	private final EventHandlerRegistry registry;
+
 	private final Logger logger = LogManager.getLogger(LoanEventProcessor.class);
 
-	public LoanEventProcessor(LoanIntegrationRepository loanIntegrationRepository, LoanEventRepository loanEventRepository,
-			List<EventHandler> handlers) {
+	public LoanEventProcessor(LoanIntegrationRepository loanIntegrationRepository, LoanEventRepository loanEventRepository, EventHandlerRegistry registry) {
 		this.loanIntegrationRepository = loanIntegrationRepository;
 		this.loanEventRepository = loanEventRepository;
-		this.handlers = handlers.stream().collect(Collectors.groupingBy(EventHandler::eventType));
+		this.registry = registry;
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -49,7 +45,7 @@ public class LoanEventProcessor {
 
 		handleEvent(event);
 		loanEventRepository.markProcessed(event.eventId(), event.aggregateType());
-	
+
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -61,37 +57,29 @@ public class LoanEventProcessor {
 
 		handleEvent(event);
 		loanEventRepository.markProcessed(event.eventId(), event.aggregateType());
-		
+
 	}
-	
+
 	private void handleEvent(IntegrationEventEnvelope<?> eventEnvelope) {
 
 		IntegrationEventTypes eventType = eventEnvelope.eventType();
 		String eventId = eventEnvelope.eventId();
-		
-		if(eventType == IntegrationEventTypes.LOAN_CONFIRM_REQUESTED) {
+
+		if (eventType == IntegrationEventTypes.LOAN_CONFIRM_REQUESTED) {
 			logger.info("No handle needed for process event {}", eventEnvelope.eventType());
 			return;
 		}
-		
+
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
 
-		List<EventHandler> eventHandlers = handlers.get(eventType);
-		
-		if (eventHandlers  == null) {
-			 throw new IllegalStateException("No handler defined for event %s".formatted(eventType));
-		}
-		
-		eventHandlers.stream().filter(h -> h.accepts(eventEnvelope)).findFirst()
-			.ifPresentOrElse(h -> h.handleEvent(eventEnvelope), 
-					() -> {  
-						throw new IllegalStateException("No handler found for event %s with schemaVersion %s".formatted(eventEnvelope.eventType(),
-								eventEnvelope.schemaVersion()));
-					}
-	            );
-		
-		
+		EventHandler handler = registry.find(eventEnvelope)
+				.orElseThrow(() -> new IllegalStateException("No handler found for %s version %d"
+						.formatted(eventEnvelope.eventType(), eventEnvelope.schemaVersion())));
+
+		handler.handleEvent(eventEnvelope);
+
 		logger.info("Event {} processed successfully", eventEnvelope.eventId());
+		
 	}
-	    
+
 }

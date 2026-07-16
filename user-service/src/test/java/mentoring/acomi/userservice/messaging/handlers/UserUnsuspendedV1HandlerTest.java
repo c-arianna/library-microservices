@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -46,24 +45,8 @@ public class UserUnsuspendedV1HandlerTest extends AbstractUserNotificationHandle
 	}
 
 	@Override
-	protected IntegrationEventTypes eventType() {
-		return handler.eventType();
-	}
-
-	@Override
 	protected IntegrationEventEnvelope<UserIntegrationPayload> validEvent() {
 		return getUserUnsuspendedEvent(USER_ID, UserStatus.ACTIVE, 1);
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> differentEvent() {
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.USER_SUBSCRIBED,
-				"user-service", UUID.randomUUID().toString(), AggregateType.USER.name(), 1, Instant.now(), 1, Map.of());
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getUserUnsuspendedEvent(USER_ID, UserStatus.ACTIVE, schemaVersion);
 	}
 
 	@Override
@@ -96,4 +79,5 @@ public class UserUnsuspendedV1HandlerTest extends AbstractUserNotificationHandle
 				"test-handler", aggregateId, AggregateType.USER.name(), 0, Instant.now(), schemaVersion, 
 				new UserIntegrationPayload(userId, status));
 	}
+	
 }

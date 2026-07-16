@@ -7,9 +7,11 @@ import mentoring.acomi.bookservice.application.reactor.BookEventReactor;
 import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
+@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_REQUESTED, supportedVersions = {1})
 @Component
 public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIntegrationPayload> {
 
@@ -18,16 +20,6 @@ public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIn
 	public LoanRequestedV1Handler(BookEventReactor reactor, EventPayloadMapper mapper) {
 		super(mapper);
 		this.reactor = reactor;
-	}
-	
-	@Override
-	public IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.LOAN_REQUESTED;
-	}
-
-	@Override
-	protected int supportedSchemaVersion() {
-		return 1;
 	}
 	
 	@Override

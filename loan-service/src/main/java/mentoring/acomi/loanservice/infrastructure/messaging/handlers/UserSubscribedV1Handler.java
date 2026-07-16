@@ -6,9 +6,11 @@ import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.UserProjection;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
+@HandlerMetadata(eventType = IntegrationEventTypes.USER_SUBSCRIBED, supportedVersions = {1})
 @Component
 public class UserSubscribedV1Handler extends AbstractEventHandler<UserSubscribedIntegrationPayload> {
 
@@ -17,16 +19,6 @@ public class UserSubscribedV1Handler extends AbstractEventHandler<UserSubscribed
 	public UserSubscribedV1Handler(UserProjection userProjection, EventPayloadMapper mapper) {
 		super(mapper);
 		this.userProjection = userProjection;
-	}
-
-	@Override
-	public IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.USER_SUBSCRIBED;
-	}
-
-	@Override
-	protected int supportedSchemaVersion() {
-		return 1;
 	}
 	
 	@Override

@@ -7,7 +7,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventE
 
 public abstract class AbstractLoanNotificationHandler<T> extends AbstractEventHandler<T> {
 	
-	private LoanNotificationService notificationService;
+	private final LoanNotificationService notificationService;
 
 	protected AbstractLoanNotificationHandler(EventPayloadMapper mapper, LoanNotificationService notificationService) {
 		super(mapper);

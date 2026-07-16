@@ -9,7 +9,7 @@ public abstract class AbstractReplayService<E> {
 
 	protected Logger logger = LogManager.getLogger(getClass());
 
-	public void rebuild() {
+	public final void rebuild() {
 
 		logger.info("Replay started");
 

@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -49,24 +48,8 @@ public class LoanRequestedV1HandlerTest extends AbstractLoanNotificationHandlerT
 	}
 
 	@Override
-	protected IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.LOAN_REQUESTED;
-	}
-
-	@Override
 	protected IntegrationEventEnvelope<LoanRequestedIntegrationPayload> validEvent() {
 		return getLoanRequestedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), start, end, 1);
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> differentEvent() {
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED,
-				"loan-service", "9788804336327", AggregateType.LOAN.name(), 1, Instant.now(), 1, Map.of());
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getLoanRequestedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), start, end, schemaVersion);
 	}
 	
 	@Override

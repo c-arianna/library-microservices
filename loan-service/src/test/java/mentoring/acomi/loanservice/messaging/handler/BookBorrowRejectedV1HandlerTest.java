@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -46,24 +45,8 @@ public class BookBorrowRejectedV1HandlerTest extends AbstractEventHandlerTest {
 	}
 
 	@Override
-	protected IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.BOOK_BORROW_REJECTED;
-	}
-
-	@Override
 	protected IntegrationEventEnvelope<BookBorrowRejectedIntegrationPayload> validEvent() {
 		return getBookBorrowRejectedEvent("9788804336327", UUID.randomUUID().toString(), UUID.randomUUID().toString(), RESERVATION_MISSING, 1);
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> differentEvent() {
-		 return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "book-service", 
-				 "9788804336327", AggregateType.BOOK.name(), 1, Instant.now(), 1, Map.of());
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getBookBorrowRejectedEvent("9788804336327", UUID.randomUUID().toString(), UUID.randomUUID().toString(), RESERVATION_MISSING, schemaVersion);
 	}
 	
     @Test

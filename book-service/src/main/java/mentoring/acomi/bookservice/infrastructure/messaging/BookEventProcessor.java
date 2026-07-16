@@ -1,9 +1,5 @@
 package mentoring.acomi.bookservice.infrastructure.messaging;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,24 +12,23 @@ import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookIntegrationRepository;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandlerRegistry;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @Component
 public class BookEventProcessor {
 
-	private final Map<IntegrationEventTypes, List<EventHandler>> handlers;
-	
 	private final BookIntegrationRepository bookIntegrationRepository;
 	private final BookEventRepository bookEventRepository;
+	private final EventHandlerRegistry registry;
 	
 	private final Logger logger = LogManager.getLogger(BookEventProcessor.class);
 	
-	public BookEventProcessor(BookIntegrationRepository bookIntegrationRepository, BookEventRepository bookEventRepository, 
-			List<EventHandler> handlers) {
+	public BookEventProcessor(BookIntegrationRepository bookIntegrationRepository, BookEventRepository bookEventRepository, EventHandlerRegistry registry) {
 		this.bookIntegrationRepository = bookIntegrationRepository;
 		this.bookEventRepository = bookEventRepository;
-		this.handlers = handlers.stream().collect(Collectors.groupingBy(EventHandler::eventType));
+		this.registry = registry;
 	}
 	
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -66,7 +61,7 @@ public class BookEventProcessor {
 		     
     private void handleEvent(IntegrationEventEnvelope<?> eventEnvelope) {
 
-		IntegrationEventTypes eventType = eventEnvelope.eventType();
+    	IntegrationEventTypes eventType = eventEnvelope.eventType();
 		String eventId = eventEnvelope.eventId();
 		
 		if(eventType == IntegrationEventTypes.BOOK_RESERVATION_REJECTED || eventType == IntegrationEventTypes.BOOK_BORROW_REJECTED) {
@@ -74,21 +69,14 @@ public class BookEventProcessor {
 		}
 		
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
-
-		List<EventHandler> eventHandlers = handlers.get(eventType);
+    	
+    	EventHandler handler = registry.find(eventEnvelope).orElseThrow(() -> new IllegalStateException("No handler found for %s version %d"
+    			                     .formatted(eventEnvelope.eventType(), eventEnvelope.schemaVersion())));
+    	   	
+    	handler.handleEvent(eventEnvelope);
 		
-		if (eventHandlers  == null) {
-			 logger.warn("No handler found for event {} ({})", eventId, eventType);
-			 return;
-		}
-		
-		eventHandlers.stream().filter(h -> h.accepts(eventEnvelope)).findFirst()
-			.ifPresentOrElse(h -> h.handleEvent(eventEnvelope), () -> logger.warn("No handler found for event {} with schemaVersion {}",
-	                eventEnvelope.eventType(), eventEnvelope.schemaVersion()
-	            )
-	        );
-		
-		logger.info("Event {} processed successfully", eventEnvelope.eventId());
-	}
+    	logger.info("Event {} processed successfully", eventEnvelope.eventId());
+    	
+    }
 	
 }

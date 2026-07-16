@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -45,24 +44,8 @@ public class LoanFailedV1HandlerTest extends AbstractLoanNotificationHandlerTest
 	}
 
 	@Override
-	protected IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.LOAN_FAILED;
-	}
-
-	@Override
 	protected IntegrationEventEnvelope<LoanFailedIntegrationPayload> validEvent() {
 		return getLoanFailedEvent(LOAN_ID, "FAILED", 1);
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> differentEvent() {
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.LOAN_REQUESTED,
-				"loan-service", "9788804336327", AggregateType.LOAN.name(), 1, Instant.now(), 1, Map.of());
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getLoanFailedEvent(LOAN_ID, "FAILED", schemaVersion);
 	}
 
 	@Override

@@ -4,7 +4,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.times;
@@ -44,26 +43,9 @@ class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
     }
 
     @Override
-    protected IntegrationEventTypes eventType() {
-        return IntegrationEventTypes.BOOK_RESERVED;
-    }
-
-    @Override
     protected IntegrationEventEnvelope<BookLoanIntegrationPayload> validEvent() {
         return getBookReservedEvent("9788804336327", UUID.randomUUID().toString(), UUID.randomUUID().toString(), 1);
     }
-
-    @Override
-    protected IntegrationEventEnvelope<?> differentEvent() {
-        return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_BORROWED,
-                "book-service", "9788804336327", AggregateType.BOOK.name(), 1, Instant.now(), 1, Map.of());
-    }
-
-    @Override
-    protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-        return getBookReservedEvent("9788804336327", UUID.randomUUID().toString(), UUID.randomUUID().toString(), schemaVersion);
-    }
-    
     
     @Test
     void shouldHandleBookReservedEvent() {

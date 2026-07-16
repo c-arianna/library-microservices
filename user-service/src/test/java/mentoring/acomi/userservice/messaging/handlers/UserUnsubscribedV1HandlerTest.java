@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -44,28 +43,12 @@ public class UserUnsubscribedV1HandlerTest extends AbstractUserNotificationHandl
 	protected EventHandler handler() {
 		return handler;
 	}
-
-	@Override
-	protected IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.USER_UNSUBSCRIBED;
-	}
-
+	
 	@Override
 	protected IntegrationEventEnvelope<UserIntegrationPayload> validEvent() {
 		return getUserUnsubscribedEvent(USER_ID, UserStatus.DISABLED, 1);
 	}
 
-	@Override
-	protected IntegrationEventEnvelope<?> differentEvent() {
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.USER_SUSPENDED,
-				"user-service", UUID.randomUUID().toString(), AggregateType.USER.name(), 1, Instant.now(), 1, Map.of());
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getUserUnsubscribedEvent(USER_ID, UserStatus.DISABLED, schemaVersion);
-	}
-	
 	@Override
 	protected String expectedUserId() {
 		return USER_ID;

@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,11 +42,6 @@ public class BookRegisteredV1HandlerTest extends AbstractBookNotificationHandler
 	}
 
 	@Override
-	protected IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.BOOK_REGISTERED;
-	}
-	
-	@Override
     protected String expectedIsbn() {
         return "9788804336327";
     }
@@ -55,17 +49,6 @@ public class BookRegisteredV1HandlerTest extends AbstractBookNotificationHandler
 	@Override
 	protected IntegrationEventEnvelope<BookRegisteredIntegrationPayload> validEvent() {
 		return getBookRegisteredEvent("9788804336327", "Italo Calvino", "Il barone rampante", "Appartiene a una trilogia", 1);
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> differentEvent() {
-		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED,
-				"loan-service", "9788804336327", AggregateType.LOAN.name(), 1, Instant.now(), 1, Map.of());
-	}
-
-	@Override
-	protected IntegrationEventEnvelope<?> withSchemaVersion(int schemaVersion) {
-		return getBookRegisteredEvent("9788804336327", "Italo Calvino", "Il barone rampante", "Appartiene a una trilogia", schemaVersion);
 	}
 	
 	@Test

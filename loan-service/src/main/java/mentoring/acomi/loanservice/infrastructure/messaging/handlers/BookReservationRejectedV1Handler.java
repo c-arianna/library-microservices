@@ -7,9 +7,11 @@ import mentoring.acomi.loanservice.application.reactor.LoanEventReactor;
 import mentoring.acomi.loanservice.application.reactor.command.CommandBookRejectedEvent;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
+@HandlerMetadata(eventType = IntegrationEventTypes.BOOK_RESERVATION_REJECTED, supportedVersions = {1})
 @Component
 public class BookReservationRejectedV1Handler extends AbstractEventHandler<BookReservationRejectedIntegrationPayload> {
 
@@ -20,16 +22,6 @@ public class BookReservationRejectedV1Handler extends AbstractEventHandler<BookR
 		this.reactor = reactor;
 	}
 
-	@Override
-	public IntegrationEventTypes eventType() {
-		return IntegrationEventTypes.BOOK_RESERVATION_REJECTED;
-	}
-
-	@Override
-	protected int supportedSchemaVersion() {
-		return 1;
-	}
-	
 	@Override
 	protected Class<BookReservationRejectedIntegrationPayload> payloadType() {
 		return BookReservationRejectedIntegrationPayload.class;
