@@ -1,5 +1,7 @@
 package mentoring.acomi.sharedcorelibrary.integration.messaging;
 
+import java.util.Optional;
+
 public interface EventHandler {
-    void handleEvent(IntegrationEventEnvelope<?> event);
+	Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> event);
 }

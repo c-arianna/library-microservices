@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.BookReservationRejectedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
@@ -52,8 +55,10 @@ public class BookReservationRejectedV1HandlerTest extends AbstractEventHandlerTe
     @Test
     void shouldHandleBookReservationRejectedEvent() {
         IntegrationEventEnvelope<BookReservationRejectedIntegrationPayload> event = validEvent();
-        handler.handleEvent(event);
+        Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 
+        Assertions.assertTrue(notification.isEmpty());
+        
         CommandBookRejectedEvent command = new CommandBookRejectedEvent(event.payload().loanId(), event.payload().reason());
         verify(reactor, times(1)).handleBookReservationRejected(command);
     }

@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
@@ -27,9 +30,8 @@ import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserSubscri
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
 
 @ExtendWith(MockitoExtension.class)
-public class UserSubscribedV1HandlerTest extends AbstractUserNotificationHandlerTest {
+public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	
-    private static final String USER_ID = UUID.randomUUID().toString();
 	private static final String IDENTITY_PROVIDER = "user123456";
 	private static final String NAME = "Harry";
 	private static final String LASTNAME = "Potter";
@@ -41,7 +43,7 @@ public class UserSubscribedV1HandlerTest extends AbstractUserNotificationHandler
 	
 	@BeforeEach
 	void setup() {
-		handler = new UserSubscribedV1Handler(projection, mapper, notificationService);
+		handler = new UserSubscribedV1Handler(projection, mapper);
 	}
 	
 	@Override
@@ -51,18 +53,14 @@ public class UserSubscribedV1HandlerTest extends AbstractUserNotificationHandler
 
 	@Override
 	protected IntegrationEventEnvelope<UserSubscribedIntegrationPayload> validEvent() {
-		return getUserSubscribedEvent(USER_ID, EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, 1);
-	}
-
-	@Override
-	protected String expectedUserId() {
-		return USER_ID;
+		return getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER, UserStatus.ACTIVE, UserRole.READER, 1);
 	}
 
 	@Test
 	void shouldHandleUserSubscribedEvent() {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).subscribeUser(event.payload(), event.occurredAt());
 	}
 	

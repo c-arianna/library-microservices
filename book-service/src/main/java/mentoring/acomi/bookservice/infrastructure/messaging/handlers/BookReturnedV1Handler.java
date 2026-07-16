@@ -1,23 +1,26 @@
 package mentoring.acomi.bookservice.infrastructure.messaging.handlers;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.bookservice.application.projection.BookProjection;
-import mentoring.acomi.bookservice.infrastructure.messaging.notifications.BookNotificationService;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
 @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_RETURNED, supportedVersions = {1})
 @Component
-public class BookReturnedV1Handler extends AbstractBookNotificationHandler<BookLoanIntegrationPayload> {
+public class BookReturnedV1Handler extends AbstractEventHandler<BookLoanIntegrationPayload> {
 
 	private final BookProjection projection;
 	
-	public BookReturnedV1Handler(BookProjection projection, EventPayloadMapper mapper, BookNotificationService notificationService) {
-		super(mapper, notificationService);
+	public BookReturnedV1Handler(BookProjection projection, EventPayloadMapper mapper) {
+		super(mapper);
 		this.projection = projection;
 	}
 	
@@ -27,13 +30,9 @@ public class BookReturnedV1Handler extends AbstractBookNotificationHandler<BookL
 	}
 
 	@Override
-	protected void updateProjection(BookLoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+	protected Optional<ProjectionUpdateNotification> process(BookLoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projection.returnBorrowed(payload, event.occurredAt());
+		return Optional.of(new ProjectionUpdateNotification(payload.isbn(), event.schemaVersion()));
 	}
-	
-	@Override
-    protected String isbn(BookLoanIntegrationPayload payload) {
-        return payload.isbn();
-    }
 
 }

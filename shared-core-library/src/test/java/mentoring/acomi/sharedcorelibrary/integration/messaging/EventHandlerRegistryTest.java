@@ -71,7 +71,9 @@ public class EventHandlerRegistryTest {
     static class BookBorrowedV1Handler implements EventHandler {
 
         @Override
-        public void handleEvent(IntegrationEventEnvelope<?> event) {}
+        public Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> event) {
+        	return Optional.empty();
+        }
     }
 
     @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1}
@@ -79,13 +81,17 @@ public class EventHandlerRegistryTest {
     static class DuplicateBookBorrowedV1Handler implements EventHandler {
 
         @Override
-        public void handleEvent(IntegrationEventEnvelope<?> event) {}
+        public Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> event) {
+        	return Optional.empty();
+        }
     }
 
     static class MissingAnnotationHandler implements EventHandler {
 
         @Override
-        public void handleEvent(IntegrationEventEnvelope<?> event) {}
+        public Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> event) {
+        	return Optional.empty();
+        }
     }
 
 }

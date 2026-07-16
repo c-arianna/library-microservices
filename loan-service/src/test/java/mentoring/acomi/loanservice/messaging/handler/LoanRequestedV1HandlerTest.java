@@ -7,8 +7,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -22,14 +24,13 @@ import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanRequestedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanRequestedV1HandlerTest extends AbstractLoanNotificationHandlerTest {
+public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 
-	private static final String LOAN_ID = UUID.randomUUID().toString();
-	
 	@Mock
 	private LoanProjection projection;
 	private LoanRequestedV1Handler handler;
@@ -39,7 +40,7 @@ public class LoanRequestedV1HandlerTest extends AbstractLoanNotificationHandlerT
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanRequestedV1Handler(projection, mapper, notificationService);
+		handler = new LoanRequestedV1Handler(projection, mapper);
 	}
 
 	@Override
@@ -49,18 +50,14 @@ public class LoanRequestedV1HandlerTest extends AbstractLoanNotificationHandlerT
 
 	@Override
 	protected IntegrationEventEnvelope<LoanRequestedIntegrationPayload> validEvent() {
-		return getLoanRequestedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), start, end, 1);
+		return getLoanRequestedEvent(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), start, end, 1);
 	}
-	
-	@Override
-    protected String expectedLoanId() {
-        return LOAN_ID;
-    }
 	
 	@Test
 	void shouldHandleLoanRequestedEvent() {
 		IntegrationEventEnvelope<LoanRequestedIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).loanInsert(event.payload(), event.occurredAt());
 	}
 
@@ -74,12 +71,14 @@ public class LoanRequestedV1HandlerTest extends AbstractLoanNotificationHandlerT
 	private List<InvalidPayloadScenario> invalidPayloads() {
 	    return List.of(new InvalidPayloadScenario("blank loanId", "loanId", 
 	    		           getLoanRequestedEvent("", "9788804336327", UUID.randomUUID().toString(), start, end, 1)),
-	                   new InvalidPayloadScenario("blank isbn", "isbn", getLoanRequestedEvent(LOAN_ID, "", UUID.randomUUID().toString(), start, end, 1)),
-	                   new InvalidPayloadScenario("blank userId", "userId", getLoanRequestedEvent(LOAN_ID, "9788804336327", "", start, end, 1)),
+	                   new InvalidPayloadScenario("blank isbn", "isbn", getLoanRequestedEvent(UUID.randomUUID().toString(), "", 
+	                		   UUID.randomUUID().toString(), start, end, 1)),
+	                   new InvalidPayloadScenario("blank userId", "userId", getLoanRequestedEvent(UUID.randomUUID().toString(), "9788804336327", 
+	                		   "", start, end, 1)),
 	                   new InvalidPayloadScenario("null start date", "start", 
-	                	   getLoanRequestedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), null, end, 1)),
+	                	   getLoanRequestedEvent(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), null, end, 1)),
 	                   new InvalidPayloadScenario("null end date", "end", 
-	                	   getLoanRequestedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), start, null, 1)));
+	                	   getLoanRequestedEvent(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), start, null, 1)));
 	}
 	
 	private IntegrationEventEnvelope<LoanRequestedIntegrationPayload> getLoanRequestedEvent(String loanId, String isbn,

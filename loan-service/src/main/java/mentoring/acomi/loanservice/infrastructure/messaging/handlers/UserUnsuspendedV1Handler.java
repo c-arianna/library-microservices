@@ -1,5 +1,7 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
@@ -9,6 +11,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHand
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
 @HandlerMetadata(eventType = IntegrationEventTypes.USER_UNSUSPENDED, supportedVersions = {1})
 @Component
@@ -27,8 +30,9 @@ public class UserUnsuspendedV1Handler extends AbstractEventHandler<UserIntegrati
 	}
 	
 	@Override
-	protected void process(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+	protected Optional<ProjectionUpdateNotification> process(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		userProjection.handleUpdateUserStatus(payload, event.occurredAt());
+		return Optional.empty();
 	}
 
 }

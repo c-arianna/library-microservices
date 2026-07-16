@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -21,13 +23,12 @@ import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReservedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanReservedV1HandlerTest extends AbstractLoanNotificationHandlerTest {
-
-	private static final String LOAN_ID = UUID.randomUUID().toString();
+public class LoanReservedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	@Mock
 	private LoanProjection projection;
@@ -35,7 +36,7 @@ public class LoanReservedV1HandlerTest extends AbstractLoanNotificationHandlerTe
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanReservedV1Handler(projection, mapper, notificationService);
+		handler = new LoanReservedV1Handler(projection, mapper);
 	}
 	
 	@Override
@@ -45,18 +46,14 @@ public class LoanReservedV1HandlerTest extends AbstractLoanNotificationHandlerTe
 
 	@Override
 	protected IntegrationEventEnvelope<LoanIntegrationPayload> validEvent() {
-		return getLoanReservedEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), 1);
+		return getLoanReservedEvent(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), 1);
 	}
-
-	@Override
-    protected String expectedLoanId() {
-        return LOAN_ID;
-    }
 	
 	@Test
 	void shouldHandleLoanReservedEvent() {
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).reserveLoan(event.payload().loanId(), event.occurredAt());
 	}
 
@@ -69,8 +66,9 @@ public class LoanReservedV1HandlerTest extends AbstractLoanNotificationHandlerTe
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {
 	    return List.of(new InvalidPayloadScenario("blank loanId", "loanId", getLoanReservedEvent("", "9788804336327", UUID.randomUUID().toString(), 1)),
-	                   new InvalidPayloadScenario("blank isbn", "isbn", getLoanReservedEvent(LOAN_ID, "", UUID.randomUUID().toString(), 1)),
-	                   new InvalidPayloadScenario("blank userId", "userId", getLoanReservedEvent(LOAN_ID, "9788804336327", "", 1)));
+	                   new InvalidPayloadScenario("blank isbn", "isbn", getLoanReservedEvent(UUID.randomUUID().toString(), "", 
+	                		   UUID.randomUUID().toString(), 1)),
+	                   new InvalidPayloadScenario("blank userId", "userId", getLoanReservedEvent(UUID.randomUUID().toString(), "9788804336327", "", 1)));
 	}
 		
 	private IntegrationEventEnvelope<LoanIntegrationPayload> getLoanReservedEvent(String loanId, String isbn, String userId, int schemaVersion) {

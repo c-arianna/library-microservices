@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -21,11 +23,12 @@ import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookCopiesUpdatedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookCopiesUpdatedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @ExtendWith(MockitoExtension.class)
-public class BookCopiesUpdatedV1HandlerTest extends AbstractBookNotificationHandlerTest {
+public class BookCopiesUpdatedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Mock 
 	private BookProjection projection;	
@@ -33,18 +36,13 @@ public class BookCopiesUpdatedV1HandlerTest extends AbstractBookNotificationHand
 	
 	@BeforeEach
 	void setUp() {
-		handler = new BookCopiesUpdatedV1Handler(projection, mapper, notificationService);
+		handler = new BookCopiesUpdatedV1Handler(projection, mapper);
 	}
 	
 	@Override
 	protected EventHandler handler() {
 		return handler;
 	}
-
-	@Override
-    protected String expectedIsbn() {
-        return "9788804336327";
-    }
 	
 	@Override
 	protected IntegrationEventEnvelope<BookCopiesUpdatedIntegrationPayload> validEvent() {
@@ -54,7 +52,8 @@ public class BookCopiesUpdatedV1HandlerTest extends AbstractBookNotificationHand
 	@Test
 	void shouldHandleBookCopiesUpdatedEvent() {
 		IntegrationEventEnvelope<BookCopiesUpdatedIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).updateCopies(event.payload(), event.occurredAt());
 	}
 	

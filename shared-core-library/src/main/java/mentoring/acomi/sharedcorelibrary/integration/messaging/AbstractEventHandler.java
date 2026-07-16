@@ -1,5 +1,7 @@
 package mentoring.acomi.sharedcorelibrary.integration.messaging;
 
+import java.util.Optional;
+
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 
 public abstract class AbstractEventHandler<T> implements EventHandler {
@@ -11,13 +13,13 @@ public abstract class AbstractEventHandler<T> implements EventHandler {
 	}
 
 	@Override
-	public final void handleEvent(IntegrationEventEnvelope<?> event) {
+	public final Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> event) {
 		T payload = mapper.mapAndValidate(event.payload(), payloadType());
-		process(payload, event);
+		return process(payload, event);
 	}
 
 	protected abstract Class<T> payloadType();
 
-	protected abstract void process(T payload, IntegrationEventEnvelope<?> event);
+	protected abstract Optional<ProjectionUpdateNotification> process(T payload, IntegrationEventEnvelope<?> event);
 	
 }

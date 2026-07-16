@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -21,13 +23,12 @@ import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanFailedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanFailedV1HandlerTest extends AbstractLoanNotificationHandlerTest {
-
-	private static final String LOAN_ID = UUID.randomUUID().toString();
+public class LoanFailedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	@Mock
 	private LoanProjection projection;	
@@ -35,7 +36,7 @@ public class LoanFailedV1HandlerTest extends AbstractLoanNotificationHandlerTest
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanFailedV1Handler(projection, mapper, notificationService);
+		handler = new LoanFailedV1Handler(projection, mapper);
 	}
 
 	@Override
@@ -45,18 +46,14 @@ public class LoanFailedV1HandlerTest extends AbstractLoanNotificationHandlerTest
 
 	@Override
 	protected IntegrationEventEnvelope<LoanFailedIntegrationPayload> validEvent() {
-		return getLoanFailedEvent(LOAN_ID, "FAILED", 1);
+		return getLoanFailedEvent(UUID.randomUUID().toString(), "FAILED", 1);
 	}
-
-	@Override
-    protected String expectedLoanId() {
-        return LOAN_ID;
-    }
 	
 	@Test
 	void shouldHandleLoanFailedEvent() {
 		IntegrationEventEnvelope<LoanFailedIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).failLoan(event.payload().loanId(), event.occurredAt());
 	}
 

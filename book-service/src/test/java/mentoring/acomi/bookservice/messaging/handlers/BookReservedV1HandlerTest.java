@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -21,11 +23,12 @@ import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReservedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookLoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @ExtendWith(MockitoExtension.class)
-public class BookReservedV1HandlerTest extends AbstractBookNotificationHandlerTest {
+public class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Mock 
 	private BookProjection projection;
@@ -34,7 +37,7 @@ public class BookReservedV1HandlerTest extends AbstractBookNotificationHandlerTe
 	
 	@BeforeEach
 	void setUp() {
-		handler = new BookReservedV1Handler(projection, mapper, notificationService);
+		handler = new BookReservedV1Handler(projection, mapper);
 	}
 	
 	@Override
@@ -43,11 +46,6 @@ public class BookReservedV1HandlerTest extends AbstractBookNotificationHandlerTe
 	}
 
 	@Override
-	protected String expectedIsbn() {
-		return "9788804336327";
-	}
-	
-	@Override
 	protected IntegrationEventEnvelope<BookLoanIntegrationPayload> validEvent() {
 		return getBookReservedEvent("9788804336327", UUID.randomUUID().toString(),  UUID.randomUUID().toString(), 1);
 	}
@@ -55,9 +53,9 @@ public class BookReservedV1HandlerTest extends AbstractBookNotificationHandlerTe
 	@Test
 	void shouldHandleBookReservedEvent() {
 		IntegrationEventEnvelope<BookLoanIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).reserve(event.payload(), event.occurredAt());
-		
 	}
 	
 	@TestFactory

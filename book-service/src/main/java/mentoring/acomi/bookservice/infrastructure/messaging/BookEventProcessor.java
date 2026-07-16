@@ -1,5 +1,7 @@
 package mentoring.acomi.bookservice.infrastructure.messaging;
 
+import java.util.Optional;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -9,12 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
+import mentoring.acomi.bookservice.infrastructure.messaging.notifications.BookNotificationService;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookIntegrationRepository;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandlerRegistry;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
 @Component
 public class BookEventProcessor {
@@ -22,13 +26,16 @@ public class BookEventProcessor {
 	private final BookIntegrationRepository bookIntegrationRepository;
 	private final BookEventRepository bookEventRepository;
 	private final EventHandlerRegistry registry;
+	private final BookNotificationService notificationService;
 	
 	private final Logger logger = LogManager.getLogger(BookEventProcessor.class);
 	
-	public BookEventProcessor(BookIntegrationRepository bookIntegrationRepository, BookEventRepository bookEventRepository, EventHandlerRegistry registry) {
+	public BookEventProcessor(BookIntegrationRepository bookIntegrationRepository, BookEventRepository bookEventRepository, EventHandlerRegistry registry,
+			BookNotificationService notificationService) {
 		this.bookIntegrationRepository = bookIntegrationRepository;
 		this.bookEventRepository = bookEventRepository;
 		this.registry = registry;
+		this.notificationService = notificationService;
 	}
 	
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -55,17 +62,23 @@ public class BookEventProcessor {
 			return;
 		}
 		
-		handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handleEvent(event);
+		
+		if(notification.isPresent()) {
+			notificationService.publishBookUpdated(notification.get().aggregateId(), notification.get().schemaVersion());
+		}
+		
 		bookEventRepository.markProcessed(event.eventId(), event.aggregateType());	
 	}
 		     
-    private void handleEvent(IntegrationEventEnvelope<?> eventEnvelope) {
+    private Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> eventEnvelope) {
 
     	IntegrationEventTypes eventType = eventEnvelope.eventType();
 		String eventId = eventEnvelope.eventId();
 		
 		if(eventType == IntegrationEventTypes.BOOK_RESERVATION_REJECTED || eventType == IntegrationEventTypes.BOOK_BORROW_REJECTED) {
 			logger.info("No handle needed for process event {}", eventEnvelope.eventType());
+			return Optional.empty();
 		}
 		
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
@@ -73,9 +86,11 @@ public class BookEventProcessor {
     	EventHandler handler = registry.find(eventEnvelope).orElseThrow(() -> new IllegalStateException("No handler found for %s version %d"
     			                     .formatted(eventEnvelope.eventType(), eventEnvelope.schemaVersion())));
     	   	
-    	handler.handleEvent(eventEnvelope);
+    	Optional<ProjectionUpdateNotification> notification = handler.handleEvent(eventEnvelope);
 		
     	logger.info("Event {} processed successfully", eventEnvelope.eventId());
+    	
+    	return notification;
     	
     }
 	

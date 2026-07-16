@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -21,21 +23,20 @@ import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanCanceledV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanCanceledV1HandlerTest extends AbstractLoanNotificationHandlerTest {
+public class LoanCanceledV1HandlerTest extends AbstractEventHandlerTest {
 
-	private static final String LOAN_ID = UUID.randomUUID().toString();
-	
 	@Mock
 	private LoanProjection projection;
 	private LoanCanceledV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanCanceledV1Handler(projection, mapper, notificationService);
+		handler = new LoanCanceledV1Handler(projection, mapper);
 	}
 
 	@Override
@@ -45,18 +46,14 @@ public class LoanCanceledV1HandlerTest extends AbstractLoanNotificationHandlerTe
 
 	@Override
 	protected IntegrationEventEnvelope<LoanIntegrationPayload> validEvent() {
-		return getLoanCanceledEvent(LOAN_ID, "9788804336327", UUID.randomUUID().toString(), 1);
+		return getLoanCanceledEvent(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), 1);
 	}
-	
-	@Override
-    protected String expectedLoanId() {
-        return LOAN_ID;
-    }
-	
+		
 	@Test
 	void shouldHandleLoanCanceledEvent() {
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).cancelLoan(event.payload().loanId(), event.occurredAt());
 	}
 
@@ -69,15 +66,16 @@ public class LoanCanceledV1HandlerTest extends AbstractLoanNotificationHandlerTe
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {
 	    return List.of(new InvalidPayloadScenario("blank loanId", "loanId", getLoanCanceledEvent("", "9788804336327", UUID.randomUUID().toString(), 1)),
-	                   new InvalidPayloadScenario("blank isbn", "isbn", getLoanCanceledEvent(LOAN_ID, "", UUID.randomUUID().toString(), 1)),
-	                   new InvalidPayloadScenario("blank userId", "userId", getLoanCanceledEvent(LOAN_ID, "9788804336327", "", 1)));
+	                   new InvalidPayloadScenario("blank isbn", "isbn", getLoanCanceledEvent(UUID.randomUUID().toString(), "", 
+	                		   UUID.randomUUID().toString(), 1)),
+	                   new InvalidPayloadScenario("blank userId", "userId", getLoanCanceledEvent(UUID.randomUUID().toString(), "9788804336327", "", 1)));
 	}
 			
 	private IntegrationEventEnvelope<LoanIntegrationPayload> getLoanCanceledEvent(String loanId, String isbn, String userId, int schemaVersion) {
 
-		String aggregateId = loanId == null || loanId.isBlank() ? LOAN_ID : loanId;
+		String aggregateId = loanId == null || loanId.isBlank() ? UUID.randomUUID().toString() : loanId;
 		
-		return new IntegrationEventEnvelope<>(LOAN_ID, IntegrationEventTypes.LOAN_CANCELED,
+		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.LOAN_CANCELED,
 				"test-handler", aggregateId, AggregateType.LOAN.name(), 0, Instant.now(), schemaVersion, 
 				new LoanIntegrationPayload(loanId, isbn, userId));
 	}

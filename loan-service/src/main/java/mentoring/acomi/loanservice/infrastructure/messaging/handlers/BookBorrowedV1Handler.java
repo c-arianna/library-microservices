@@ -1,5 +1,7 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
@@ -10,6 +12,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHand
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
 @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1})
 @Component
@@ -28,8 +31,9 @@ public class BookBorrowedV1Handler extends AbstractEventHandler<BookLoanIntegrat
 	}
 	
 	@Override
-	protected void process(BookLoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+	protected Optional<ProjectionUpdateNotification> process(BookLoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		reactor.handleBookBorrowed(new CommandBookEvent(payload.loanId()));
+		return Optional.empty();
 	}
 
 }

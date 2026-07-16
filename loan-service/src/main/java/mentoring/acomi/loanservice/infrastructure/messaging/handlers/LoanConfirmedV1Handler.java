@@ -1,23 +1,26 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
-import mentoring.acomi.loanservice.infrastructure.messaging.notifications.LoanNotificationService;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
 @HandlerMetadata(eventType = IntegrationEventTypes.LOAN_CONFIRMED, supportedVersions = {1})
 @Component
-public class LoanConfirmedV1Handler extends AbstractLoanNotificationHandler<LoanIntegrationPayload> {
+public class LoanConfirmedV1Handler extends AbstractEventHandler<LoanIntegrationPayload> {
 
 	private final LoanProjection projection;
 		
-	public LoanConfirmedV1Handler(LoanProjection projection, EventPayloadMapper mapper, LoanNotificationService notificationService) {
-		super(mapper, notificationService);
+	public LoanConfirmedV1Handler(LoanProjection projection, EventPayloadMapper mapper) {
+		super(mapper);
 		this.projection = projection;
 	}
 	
@@ -27,13 +30,9 @@ public class LoanConfirmedV1Handler extends AbstractLoanNotificationHandler<Loan
 	}
 
 	@Override
-	protected void updateProjection(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+	protected Optional<ProjectionUpdateNotification> process(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projection.confirmLoan(payload.loanId(), event.occurredAt());
-	}
-
-	@Override
-	protected String loanId(LoanIntegrationPayload payload) {
-		return payload.loanId();
+		return Optional.of(new ProjectionUpdateNotification(payload.loanId(), event.schemaVersion()));
 	}
 
 }

@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
@@ -26,9 +29,7 @@ import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserUnsubsc
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
 
 @ExtendWith(MockitoExtension.class)
-public class UserUnsubscribedV1HandlerTest extends AbstractUserNotificationHandlerTest {
-	
-	private static final String USER_ID = UUID.randomUUID().toString();
+public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	@Mock
 	private UserProjection projection;
@@ -36,7 +37,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractUserNotificationHandl
 	
 	@BeforeEach
 	void setup() {
-		handler = new UserUnsubscribedV1Handler(projection, mapper, notificationService);
+		handler = new UserUnsubscribedV1Handler(projection, mapper);
 	}
 	
 	@Override
@@ -46,18 +47,14 @@ public class UserUnsubscribedV1HandlerTest extends AbstractUserNotificationHandl
 	
 	@Override
 	protected IntegrationEventEnvelope<UserIntegrationPayload> validEvent() {
-		return getUserUnsubscribedEvent(USER_ID, UserStatus.DISABLED, 1);
-	}
-
-	@Override
-	protected String expectedUserId() {
-		return USER_ID;
+		return getUserUnsubscribedEvent(UUID.randomUUID().toString(), UserStatus.DISABLED, 1);
 	}
 	
 	@Test
 	void shouldHandleUserUnsubscribedEvent() {
 		IntegrationEventEnvelope<UserIntegrationPayload> event = validEvent();
-		handler.handleEvent(event);
+		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+		Assertions.assertTrue(notification.isPresent());
 		verify(projection, times(1)).unsubscribeUser(event.payload(), event.occurredAt());
 	}
 	
@@ -69,7 +66,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractUserNotificationHandl
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {
 	    return List.of(new InvalidPayloadScenario("blank userId", "userId", getUserUnsubscribedEvent("", UserStatus.DISABLED, 1)),
-	    		       new InvalidPayloadScenario("null sfatus", "status", getUserUnsubscribedEvent(USER_ID, null,  1)));
+	    		       new InvalidPayloadScenario("null sfatus", "status", getUserUnsubscribedEvent(UUID.randomUUID().toString(), null,  1)));
 	}
 				
 	private IntegrationEventEnvelope<UserIntegrationPayload> getUserUnsubscribedEvent(String userId, UserStatus status, int schemaVersion){

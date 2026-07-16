@@ -1,5 +1,7 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
@@ -10,6 +12,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHand
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
 @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_RESERVATION_REJECTED, supportedVersions = {1})
 @Component
@@ -28,8 +31,9 @@ public class BookReservationRejectedV1Handler extends AbstractEventHandler<BookR
 	}
 	
 	@Override
-	protected void process(BookReservationRejectedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+	protected Optional<ProjectionUpdateNotification> process(BookReservationRejectedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		reactor.handleBookReservationRejected(new CommandBookRejectedEvent(payload.loanId(), payload.reason()));
+		return Optional.empty();
 	}
 
 }
