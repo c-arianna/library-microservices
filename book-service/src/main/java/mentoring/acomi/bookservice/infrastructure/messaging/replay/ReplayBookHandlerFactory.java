@@ -1,0 +1,39 @@
+package mentoring.acomi.bookservice.infrastructure.messaging.replay;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import mentoring.acomi.bookservice.application.projection.BookProjectionOperations;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookBorrowedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookCopiesUpdatedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRegisteredV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReleasedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReservedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReturnedV1Handler;
+import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
+
+@Component
+public class ReplayBookHandlerFactory {
+
+    private final BookProjectionOperations replayProjection;
+	private final EventPayloadMapper mapper;
+
+	public ReplayBookHandlerFactory(@Qualifier("replayBookProjection") BookProjectionOperations replayProjection, EventPayloadMapper mapper) {
+		this.replayProjection = replayProjection;
+		this.mapper = mapper;
+	}
+
+	public List<EventHandler> createHandlers() {
+
+		return List.of(new BookBorrowedV1Handler(replayProjection, mapper),
+				   	   new BookCopiesUpdatedV1Handler(replayProjection, mapper),
+				       new BookRegisteredV1Handler(replayProjection, mapper),
+				       new BookReleasedV1Handler(replayProjection, mapper),
+				       new BookReservedV1Handler(replayProjection, mapper),
+				       new BookReturnedV1Handler(replayProjection, mapper)
+		);
+	}
+}

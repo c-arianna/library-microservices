@@ -18,7 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.loanservice.application.projection.UserProjection;
+import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSubscribedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
@@ -37,12 +37,12 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	private static final String LASTNAME = "Test";
 	
 	@Mock
-	private UserProjection projection;
+	private UserProjectionOperations projectionOperations;
 	private UserSubscribedV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new UserSubscribedV1Handler(projection, mapper);
+		handler = new UserSubscribedV1Handler(projectionOperations, mapper);
 	}
 
 	@Override
@@ -61,13 +61,13 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isEmpty());
-		verify(projection, times(1)).handleSubscribeUser(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).handleSubscribeUser(event.payload(), event.occurredAt());
 	}
 
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
-				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projection))).toList();
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projectionOperations))).toList();
 	
 	}
 	

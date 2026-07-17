@@ -2,26 +2,28 @@ package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.loanservice.application.projection.UserProjection;
+import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.USER_SUSPENDED, supportedVersions = {1})
+@HandlerMetadata(eventType = IntegrationEventTypes.USER_SUSPENDED, supportedVersions = {1}, mode = HandlerMode.REPLAYABLE)
 @Component
 public class UserSuspendedV1Handler extends AbstractEventHandler<UserIntegrationPayload> {
 	
-	private final UserProjection userProjection;
+	private final UserProjectionOperations projectionOperations;
 
-	public UserSuspendedV1Handler(UserProjection userProjection, EventPayloadMapper mapper) {
+	public UserSuspendedV1Handler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
 		super(mapper);
-		this.userProjection = userProjection;
+		this.projectionOperations = projectionOperations;
 	}
 	
 	@Override
@@ -31,7 +33,7 @@ public class UserSuspendedV1Handler extends AbstractEventHandler<UserIntegration
 	
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		userProjection.handleUpdateUserStatus(payload, event.occurredAt());
+		projectionOperations.handleUpdateUserStatus(payload, event.occurredAt());
 		return Optional.empty();
 	}
 

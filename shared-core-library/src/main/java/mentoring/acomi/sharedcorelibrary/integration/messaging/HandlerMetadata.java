@@ -11,5 +11,6 @@ public @interface HandlerMetadata {
 	
 	IntegrationEventTypes eventType();
 	int[] supportedVersions() default {1};
-
+	HandlerMode mode();
+	
 }

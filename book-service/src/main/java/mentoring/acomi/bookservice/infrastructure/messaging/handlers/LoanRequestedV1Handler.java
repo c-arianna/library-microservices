@@ -10,11 +10,12 @@ import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_REQUESTED, supportedVersions = {1})
+@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_REQUESTED, supportedVersions = {1}, mode = HandlerMode.LIVE_ONLY)
 @Component
 public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIntegrationPayload> {
 

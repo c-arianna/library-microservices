@@ -67,7 +67,7 @@ public class EventHandlerRegistryTest {
                 1, Instant.now(), schemaVersion, Map.of());
     }
 
-    @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1})
+    @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1}, mode = HandlerMode.LIVE_ONLY)
     static class BookBorrowedV1Handler implements EventHandler {
 
         @Override
@@ -76,8 +76,7 @@ public class EventHandlerRegistryTest {
         }
     }
 
-    @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1}
-    )
+    @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1}, mode = HandlerMode.LIVE_ONLY)
     static class DuplicateBookBorrowedV1Handler implements EventHandler {
 
         @Override

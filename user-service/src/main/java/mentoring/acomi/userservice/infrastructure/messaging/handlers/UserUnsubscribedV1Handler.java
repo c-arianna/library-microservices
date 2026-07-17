@@ -2,26 +2,28 @@ package mentoring.acomi.userservice.infrastructure.messaging.handlers;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
-import mentoring.acomi.userservice.application.projection.UserProjection;
+import mentoring.acomi.userservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.USER_UNSUBSCRIBED, supportedVersions = {1})
+@HandlerMetadata(eventType = IntegrationEventTypes.USER_UNSUBSCRIBED, supportedVersions = {1}, mode = HandlerMode.REPLAYABLE)
 @Component
 public class UserUnsubscribedV1Handler extends AbstractEventHandler<UserIntegrationPayload> {
 
-	private final UserProjection projection;
+	private final UserProjectionOperations projectionOperations;
 	
-	public UserUnsubscribedV1Handler(UserProjection projection, EventPayloadMapper mapper) {
+	public UserUnsubscribedV1Handler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projection = projection;
+		this.projectionOperations = projectionOperations;
 	}
 
 	@Override
@@ -31,7 +33,7 @@ public class UserUnsubscribedV1Handler extends AbstractEventHandler<UserIntegrat
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projection.unsubscribeUser(payload, event.occurredAt());
+		projectionOperations.unsubscribeUser(payload, event.occurredAt());
 		return Optional.of(new ProjectionUpdateNotification(payload.userId(), event.schemaVersion()));
 	}
 	

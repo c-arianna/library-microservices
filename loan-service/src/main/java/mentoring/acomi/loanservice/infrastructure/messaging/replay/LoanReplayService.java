@@ -1,19 +1,11 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.replay;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
-import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
 import mentoring.acomi.sharedcorelibrary.eventstore.EventCategory;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
@@ -26,39 +18,16 @@ public class LoanReplayService extends AbstractReplayService<LoanEventEntity> {
 	private final LoanEventRepository loanEventRepository;
 	private final LoanViewReplayRepository loanViewReplayRepository;
 	private final UserViewReplayRepository userViewReplayRepository;
-	private final LoanProjectionReplay loanProjection;
-	private final UserProjectionReplay userProjection;
-    private final EventPayloadMapper payloadMapper;
-    private final LoanReplayEventMapper replayMapper;
-    
-    private final Map<IntegrationEventTypes, Consumer<IntegrationEventEnvelope<?>>> handlers;
-    
+	private final LoanReplayEventMapper replayMapper;
+	private final ReplayEventHandlerRegistry registry;
+
 	public LoanReplayService(LoanEventRepository loanEventRepository, LoanViewReplayRepository loanViewReplayRepository,
-			UserViewReplayRepository userViewReplayRepository, LoanProjectionReplay loanProjection,
-			UserProjectionReplay userProjection, EventPayloadMapper payloadMapper, LoanReplayEventMapper replayMapper) {
+			UserViewReplayRepository userViewReplayRepository, LoanReplayEventMapper replayMapper, ReplayEventHandlerRegistry registry) {
 		this.loanEventRepository = loanEventRepository;
 		this.loanViewReplayRepository = loanViewReplayRepository;
 		this.userViewReplayRepository = userViewReplayRepository;
-		this.loanProjection = loanProjection;
-		this.userProjection = userProjection;
-		this.payloadMapper = payloadMapper;
 		this.replayMapper = replayMapper;
-		
-		handlers = Map.ofEntries(
-				Map.entry(IntegrationEventTypes.LOAN_REQUESTED, this::handleLoanRequested),
-				Map.entry(IntegrationEventTypes.LOAN_CONFIRMED, this::handleLoanConfirmed),
-				Map.entry(IntegrationEventTypes.LOAN_CANCELED, this::handleLoanCanceled),
-				Map.entry(IntegrationEventTypes.LOAN_RETURNED, this::handleLoanReturned),
-				Map.entry(IntegrationEventTypes.LOAN_RESERVED, this::handleLoanReserved),
-				Map.entry(IntegrationEventTypes.LOAN_FAILED, this::handleLoanFailed),
-				Map.entry(IntegrationEventTypes.BOOK_RESERVED, this::handleEventReactor),
-				Map.entry(IntegrationEventTypes.BOOK_RESERVATION_REJECTED, this::handleEventReactor),
-				Map.entry(IntegrationEventTypes.BOOK_BORROWED, this::handleEventReactor),
-				Map.entry(IntegrationEventTypes.BOOK_BORROW_REJECTED, this::handleEventReactor),
-				Map.entry(IntegrationEventTypes.USER_SUBSCRIBED, this::handleUserSubscribed),
-				Map.entry(IntegrationEventTypes.USER_UNSUBSCRIBED, this::handleUserUnsubscribed),
-				Map.entry(IntegrationEventTypes.USER_SUSPENDED, this::handleUserSuspended),
-				Map.entry(IntegrationEventTypes.USER_UNSUSPENDED, this::handleUserUnsuspended));
+		this.registry = registry;
 	}
 
 	@Override
@@ -85,126 +54,31 @@ public class LoanReplayService extends AbstractReplayService<LoanEventEntity> {
 	}
 
 	@Override
-	protected void apply(LoanEventEntity event) {
-		applyToTempTable(event);
+	protected void apply(LoanEventEntity entity) {
+		IntegrationEventEnvelope<?> event = toEventEnvelope(entity);
+		registry.find(event).ifPresentOrElse(handler -> handler.handleEvent(event),
+				() -> logger.info("Replay not needed for {}", event.eventType()));
 	}
+	
+	private IntegrationEventEnvelope<?> toEventEnvelope(LoanEventEntity entity) {
 
-	private void applyToTempTable(LoanEventEntity event) {
+	    if (entity.getEventCategory().equalsIgnoreCase(EventCategory.CONSUMER.name())) {
+	    	IntegrationEventTypes eventType = IntegrationEventTypes.valueOf(entity.getEventType());
+	    	return new IntegrationEventEnvelope<>(entity.getEventId(), eventType, "",
+	    			entity.getAggregateId(), entity.getAggregateType(), entity.getEventVersion(), entity.getOccurredAt(),
+	    			entity.getSchemaVersion(), entity.getPayload());
+	    }
 
-		if (event.getSchemaVersion() != 1) {
-		    throw new IllegalStateException("Unsupported schema version %s".formatted(event.getSchemaVersion()));
-		}
-		
-		if (event.getEventCategory().equalsIgnoreCase(EventCategory.CONSUMER.name())) {
-			IntegrationEventTypes eventType = IntegrationEventTypes.valueOf(event.getEventType());
-			replayEvent(event, eventType);
-		} else {
-			replayProducerEvent(event);
-		}
+	    LoanEventType loanEventType = LoanEventType.valueOf(entity.getEventType());
 
-	}
-
-	private void replayProducerEvent(LoanEventEntity event) {
-		LoanEventType loanEventType = LoanEventType.valueOf(event.getEventType());
-		IntegrationEventEnvelope<?> eventEnvelope  = getIntegrationEnvelopeEvent(event, loanEventType);
-		replayEvent(eventEnvelope);
-	}
-
-	private void replayEvent(LoanEventEntity event, IntegrationEventTypes eventType) {
-		IntegrationEventEnvelope<?> eventEnvelope = new IntegrationEventEnvelope<>(event.getEventId(), eventType, "",
-				event.getAggregateId(), event.getAggregateType(), event.getEventVersion(), event.getOccurredAt(),
-				event.getSchemaVersion(), event.getPayload());
-		replayEvent(eventEnvelope);
-	}
-
-	private void replayEvent(IntegrationEventEnvelope<?> eventEnvelope) {
-
-		IntegrationEventTypes eventType = eventEnvelope.eventType();
-		String eventId = eventEnvelope.eventId();
-
-		if (eventType == IntegrationEventTypes.LOAN_CONFIRM_REQUESTED) {
-			logger.info("No replay needed for process event {}", eventEnvelope.eventType());
-			return;
-		}
-
-		Consumer<IntegrationEventEnvelope<?>> consumer = handlers.get(eventType);
-
-		if (consumer == null) {
-			logger.warn("No handler found for event {} ({})", eventId, eventType);
-			return;
-		}
-
-		consumer.accept(eventEnvelope);
-
+	    return getIntegrationEnvelopeEvent(entity, loanEventType);
 	}
 	
 	private IntegrationEventEnvelope<?> getIntegrationEnvelopeEvent(LoanEventEntity event, LoanEventType loanEventType) {
 		Object payload = replayMapper.toIntegrationPayload(loanEventType, event.getPayload());
 		IntegrationEventTypes eventType = replayMapper.toIntegrationEventType(loanEventType);
-		return new IntegrationEventEnvelope<>(event.getEventId(), eventType, "",
-				event.getAggregateId(), event.getAggregateType(), event.getEventVersion(), event.getOccurredAt(),
-				event.getSchemaVersion(), payload);
-	}
-	
-	private void handleLoanRequested(IntegrationEventEnvelope<?> event) {
-		LoanRequestedIntegrationPayload payload = payloadMapper.mapAndValidate(event.payload(), LoanRequestedIntegrationPayload.class);
-		loanProjection.loanInsert(payload, event.occurredAt());
-	}
-	
-	private void handleLoanConfirmed(IntegrationEventEnvelope<?> event) {
-		LoanIntegrationPayload payload = loadLoanPayload(event);
-		loanProjection.confirmLoan(payload.loanId(), event.occurredAt());
-	}
-
-	private void handleLoanCanceled(IntegrationEventEnvelope<?> event) {
-		LoanIntegrationPayload payload = loadLoanPayload(event);
-		loanProjection.cancelLoan(payload.loanId(), event.occurredAt());
-	}
-
-	private void handleLoanReturned(IntegrationEventEnvelope<?> event) {
-		LoanIntegrationPayload payload = loadLoanPayload(event);
-		loanProjection.returnLoan(payload.loanId(), event.occurredAt());
-	}
-
-	private void handleLoanReserved(IntegrationEventEnvelope<?> event) {
-		LoanIntegrationPayload payload = loadLoanPayload(event);
-		loanProjection.reserveLoan(payload.loanId(), event.occurredAt());
-	}
-
-	private void handleLoanFailed(IntegrationEventEnvelope<?> event) {
-		LoanFailedIntegrationPayload payload = payloadMapper.mapAndValidate(event.payload(), LoanFailedIntegrationPayload.class);
-		loanProjection.failLoan(payload.loanId(), event.occurredAt());
-	}
-	
-	private void handleEventReactor(IntegrationEventEnvelope<?> event) {
-		logger.info("Replay not needed for reactor event, {}", event.eventType());
-	}
-	
-	private void handleUserSubscribed(IntegrationEventEnvelope<?> event) {
-		UserSubscribedIntegrationPayload payload = payloadMapper.mapAndValidate(event.payload(), UserSubscribedIntegrationPayload.class);
-		userProjection.handleSubscribeUser(payload, event.occurredAt());
-	}
-
-	private void handleUserUnsubscribed(IntegrationEventEnvelope<?> event) {
-		UserIntegrationPayload payload = loadUserPayload(event);
-		userProjection.handleUpdateUserStatus(payload, event.occurredAt());
-	}
-
-	private void handleUserSuspended(IntegrationEventEnvelope<?> event) {
-		UserIntegrationPayload payload = loadUserPayload(event);
-		userProjection.handleUpdateUserStatus(payload, event.occurredAt());
-	}
-
-	private void handleUserUnsuspended(IntegrationEventEnvelope<?> event) {
-		UserIntegrationPayload payload = loadUserPayload(event);
-		userProjection.handleUpdateUserStatus(payload, event.occurredAt());
-	}
-
-	private UserIntegrationPayload loadUserPayload(IntegrationEventEnvelope<?> event) {
-		return payloadMapper.mapAndValidate(event.payload(), UserIntegrationPayload.class);
-	}
-	
-	private LoanIntegrationPayload loadLoanPayload(IntegrationEventEnvelope<?> event) {
-		return payloadMapper.mapAndValidate(event.payload(), LoanIntegrationPayload.class);
+		return new IntegrationEventEnvelope<>(event.getEventId(), eventType, "", event.getAggregateId(),
+				event.getAggregateType(), event.getEventVersion(), event.getOccurredAt(), event.getSchemaVersion(),
+				payload);
 	}
 }

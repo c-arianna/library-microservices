@@ -13,27 +13,38 @@ public abstract class AbstractReplayService<E> {
 
 		logger.info("Replay started");
 
+		long start = System.currentTimeMillis();
+		
+		createTempTable();
+		
 		try {
-
-			logger.info("Creating tmp table");
-			createTempTable();
 
 			List<E> events = loadEvents();
 			logger.info("Loaded {} events", events.size());
 
 			for (E event : events) {
-				apply(event);
+				try {
+					apply(event);
+				}catch (Exception e) {
+					logger.error("Failed processing replay event {}", event, e);
+					throw e;
+				}
 			}
 
 			logger.info("Swapping tables");
 			swapTables();
 
-			logger.info("Replay completed");
+			logger.info("Replay completed in {} ms", System.currentTimeMillis() - start);
 
 		} catch (Exception e) {
 			logger.error("Replay failed", e);
-			dropTempTable();
-			throw new RuntimeException("Replay failed", e);
+			try {
+				dropTempTable();
+			}catch(Exception ex) {
+				logger.error("Failed to drop temp table",ex);
+			}
+			
+			throw new ReplayException("Replay failed", e);
 		}
 	}
 

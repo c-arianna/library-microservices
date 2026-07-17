@@ -77,11 +77,6 @@ public class LoanEventProcessor {
 		IntegrationEventTypes eventType = eventEnvelope.eventType();
 		String eventId = eventEnvelope.eventId();
 
-		if (eventType == IntegrationEventTypes.LOAN_CONFIRM_REQUESTED) {
-			logger.info("No handle needed for process event {}", eventEnvelope.eventType());
-			return Optional.empty();
-		}
-
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
 
 		EventHandler handler = registry.find(eventEnvelope)

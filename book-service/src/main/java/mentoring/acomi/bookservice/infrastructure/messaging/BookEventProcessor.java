@@ -75,12 +75,7 @@ public class BookEventProcessor {
 
     	IntegrationEventTypes eventType = eventEnvelope.eventType();
 		String eventId = eventEnvelope.eventId();
-		
-		if(eventType == IntegrationEventTypes.BOOK_RESERVATION_REJECTED || eventType == IntegrationEventTypes.BOOK_BORROW_REJECTED) {
-			logger.info("No handle needed for process event {}", eventEnvelope.eventType());
-			return Optional.empty();
-		}
-		
+				
 		logger.info("Processing event {}, ID: {}", eventType, eventId);
     	
     	EventHandler handler = registry.find(eventEnvelope).orElseThrow(() -> new IllegalStateException("No handler found for %s version %d"

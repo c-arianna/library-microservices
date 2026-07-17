@@ -138,7 +138,7 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-params</artifactId>
@@ -148,6 +148,13 @@
 		<dependency>
 			<groupId>mentoring.acomi</groupId>
 			<artifactId>event-contracts</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.10.2</version>
 			<scope>test</scope>
 		</dependency>
 

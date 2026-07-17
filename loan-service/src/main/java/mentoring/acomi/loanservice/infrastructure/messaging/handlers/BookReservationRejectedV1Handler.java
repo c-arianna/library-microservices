@@ -10,11 +10,12 @@ import mentoring.acomi.loanservice.application.reactor.command.CommandBookReject
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.BOOK_RESERVATION_REJECTED, supportedVersions = {1})
+@HandlerMetadata(eventType = IntegrationEventTypes.BOOK_RESERVATION_REJECTED, supportedVersions = {1}, mode = HandlerMode.LIVE_ONLY)
 @Component
 public class BookReservationRejectedV1Handler extends AbstractEventHandler<BookReservationRejectedIntegrationPayload> {
 

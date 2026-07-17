@@ -24,7 +24,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventE
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
-import mentoring.acomi.userservice.application.projection.UserProjection;
+import mentoring.acomi.userservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.userservice.domain.events.AggregateType;
 import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserSubscribedV1Handler;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
@@ -38,12 +38,12 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	private static final String EMAIL = "h.potter@gmail.com";
 
 	@Mock
-	private UserProjection projection;	
+	private UserProjectionOperations projectionOperations;	
 	private UserSubscribedV1Handler handler;
 	
 	@BeforeEach
 	void setup() {
-		handler = new UserSubscribedV1Handler(projection, mapper);
+		handler = new UserSubscribedV1Handler(projectionOperations, mapper);
 	}
 	
 	@Override
@@ -61,13 +61,13 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projection, times(1)).subscribeUser(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).subscribeUser(event.payload(), event.occurredAt());
 	}
 	
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
-				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projection))).toList();
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projectionOperations))).toList();
 	}
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {

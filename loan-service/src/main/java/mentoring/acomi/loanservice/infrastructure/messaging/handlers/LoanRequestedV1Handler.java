@@ -2,26 +2,28 @@ package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.loanservice.application.projection.LoanProjection;
+import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_REQUESTED, supportedVersions = {1})
+@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_REQUESTED, supportedVersions = {1}, mode = HandlerMode.REPLAYABLE)
 @Component
 public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIntegrationPayload> {
 
-	private final LoanProjection projection;
+	private final LoanProjectionOperations projectionOperations;
 		
-	public LoanRequestedV1Handler(LoanProjection projection, EventPayloadMapper mapper) {
+	public LoanRequestedV1Handler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projection = projection;
+		this.projectionOperations = projectionOperations;
 	}
 
 	@Override
@@ -31,7 +33,7 @@ public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIn
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanRequestedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projection.loanInsert(payload, event.occurredAt());
+		projectionOperations.loanInsert(payload, event.occurredAt());
 		return Optional.of(new ProjectionUpdateNotification(payload.loanId(), event.schemaVersion()));
 	}
 
