@@ -1,12 +1,13 @@
 @echo off
+
 cd /d %~dp0
 
-call build.bat
+call build.bat || exit /b %ERRORLEVEL%
 
-cd docker
+cd docker | exit /b %ERRORLEVEL%
 
-echo === START DEV ENV ===
+docker compose -p dev --profile dev up -d || exit /b %ERRORLEVEL%
 
-docker compose -p dev --profile dev up
+docker compose -p dev logs -f
 
 echo === DONE ===
