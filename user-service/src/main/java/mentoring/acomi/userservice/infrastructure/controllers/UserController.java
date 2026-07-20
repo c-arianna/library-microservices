@@ -60,10 +60,9 @@ public class UserController {
 	
 	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@GetMapping("/")
-	public UsersResponse getUsers(@RequestParam(required = false) String userId, 
-			@RequestParam(required = false) String mail, @RequestParam(required = false) String userIdentityProvider,
-		    @RequestParam(required = false) UserStatus status) {
-		UserFilter filter = new UserFilter(userId, mail, userIdentityProvider, status);
+	public UsersResponse getUsers(@RequestParam(required = false) String mail, @RequestParam(required = false) String name,
+			@RequestParam(required = false) String lastname, @RequestParam(required = false) UserStatus status) {
+		UserFilter filter = new UserFilter(mail, name, lastname, status);
 		return service.getUsers(filter);
 	}
 	

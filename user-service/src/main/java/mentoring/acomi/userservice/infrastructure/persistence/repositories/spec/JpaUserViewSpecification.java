@@ -18,16 +18,16 @@ public class JpaUserViewSpecification {
 
 			List<Predicate> predicates = new ArrayList<>();
 
-			if (!ObjectUtils.isEmpty(filter.userId())) {
-				predicates.add(cb.equal(root.get("id"), filter.userId()));
-			}
-
 			if (!ObjectUtils.isEmpty(filter.email())) {
 				predicates.add(cb.equal(root.get("mail"), filter.email()));
 			}
 
-			if (!ObjectUtils.isEmpty(filter.userIdentityProviderId())) {
-				predicates.add(cb.equal(root.get("userIdentityProviderId"), filter.userIdentityProviderId()));
+			if (!ObjectUtils.isEmpty(filter.name())) {
+				predicates.add(cb.equal(root.get("name"), filter.name()));
+			}
+			
+			if (!ObjectUtils.isEmpty(filter.lastname())) {
+				predicates.add(cb.equal(root.get("lastname"), filter.lastname()));
 			}
 
 			if (!ObjectUtils.isEmpty(filter.status())) {

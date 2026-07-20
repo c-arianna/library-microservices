@@ -38,6 +38,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -115,7 +116,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Test
 	public void readerCanUnsubscribe() throws Exception {
-		UserResponse user = createUser();
+		UserSubscribedResponse user = createUser();
 		generateToken(READER_ROLE, user.email());
 		ResponseEntity<String> response = unsubscribeUser();
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -152,7 +153,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Test
 	void adminCanSuspendUser() throws Exception {
-		UserResponse user = createUser();
+		UserSubscribedResponse user = createUser();
 		generateToken(ADMIN_ROLE, String.format(USER_EMAIL, ADMIN_1));
 		ResponseEntity<String> response = suspendUser(user.userId());
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -174,7 +175,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Test
 	void adminCanUnsuspendUser() throws Exception {
-		UserResponse user = createUser();
+		UserSubscribedResponse user = createUser();
 		generateToken(ADMIN_ROLE, String.format(USER_EMAIL, ADMIN_1));
 		suspendUser(user.userId());
 		ResponseEntity<String> response = unsuspendUser(user.userId());
@@ -211,7 +212,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Test
 	void adminCanAccessUserDetail() throws Exception {
-		UserResponse user = createUser();
+		UserSubscribedResponse user = createUser();
 		generateToken(ADMIN_ROLE, String.format(USER_EMAIL, ADMIN_1));
 		ResponseEntity<String> response = getUserDetail(user.userId());
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -219,7 +220,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Test
 	void librarianCanAccessUserDetail() throws Exception {
-		UserResponse user = createUser();
+		UserSubscribedResponse user = createUser();
 		generateToken(LIBRARIAN_ROLE, String.format(USER_EMAIL, LIBRARIAN_1));
 		ResponseEntity<String> response = getUserDetail(user.userId());
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -227,7 +228,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Test
 	void shouldGetUserProfile() {
-		UserResponse user = createUser();
+		UserSubscribedResponse user = createUser();
 		generateToken(READER_ROLE, user.email());
 		ResponseEntity<UserDetail> response = getUserProfile();
 		
@@ -274,15 +275,15 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 		return ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders()).body(body);
 	}
 
-	private UserResponse createUser() {
+	private UserSubscribedResponse createUser() {
 		String email = String.format("test.%s@gmail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest(USER_NAME, USER_LASTNAME, email, "12345678");
-		ResponseEntity<UserResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
-				.body(request).retrieve().toEntity(UserResponse.class);
+		ResponseEntity<UserSubscribedResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
+				.body(request).retrieve().toEntity(UserSubscribedResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
-		UserResponse user = response.getBody();
+		UserSubscribedResponse user = response.getBody();
 
 		userViewRepository.add(new UserView(user.userId(), user.email(), USER_NAME, USER_LASTNAME,
 				user.userIdentityProviderId(), UserStatus.ACTIVE, user.role()), Instant.now());

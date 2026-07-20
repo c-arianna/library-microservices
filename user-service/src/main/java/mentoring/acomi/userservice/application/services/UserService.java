@@ -91,7 +91,8 @@ public class UserService {
 		
 		UserAggregate aggregate = loadUser(loggedUserId);
 		aggregate.unsubscribe(request.reason());
-		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.DISABLED);
+		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.userIdentityProviderId(),
+				aggregate.role(), UserStatus.DISABLED);
 	}
 
 	@Transactional
@@ -102,7 +103,8 @@ public class UserService {
 		UserView loggedUser = getLoggedUser();
 
 		aggregate.suspend(request.reason(), loggedUser.id());
-		return new UserResponse(request.userId(), aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.SUSPENDED);
+		return new UserResponse(request.userId(), aggregate.email(), loggedUser.name(), loggedUser.lastname(), 
+				loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.SUSPENDED);
 	}
 
 	@Transactional
@@ -112,7 +114,8 @@ public class UserService {
 		UserView loggedUser = getLoggedUser();
 
 		aggregate.unsuspend(request.reason(), loggedUser.id());
-		return new UserResponse(request.userId(), aggregate.email(), loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.ACTIVE);
+		return new UserResponse(request.userId(), aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.userIdentityProviderId(),
+				aggregate.role(), UserStatus.ACTIVE);
 	}
 
 	private UserView getLoggedUser() {
@@ -233,7 +236,8 @@ public class UserService {
 			return new UsersResponse(List.of());
 		}
 		
-		return new UsersResponse(users.stream().map(u -> new UserResponse(u.id(), u.email(), u.userIdentityProviderId(), u.role(), u.status())).toList());
+		return new UsersResponse(users.stream().map(u -> new UserResponse(u.id(), u.email(), u.name(), u.lastname(), u.userIdentityProviderId(),
+				u.role(), u.status())).toList());
 	}
 	
 }
