@@ -16,7 +16,6 @@ services:
       
   postgres-keycloak:
     image: postgres:15
-    container_name: postgres-keycloak
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
@@ -33,7 +32,6 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
-    container_name: keycloak
     command: 
       - start-dev
       - --http-enabled=true
