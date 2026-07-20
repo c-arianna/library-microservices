@@ -7,26 +7,38 @@ import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.application.view.BookView;
-import mentoring.acomi.sharedcorelibrary.replay.TempTableCreator;
-import mentoring.acomi.sharedjpalibrary.eventstore.replay.BaseReplayRepository;
+import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 
 @Repository("replayRepo")
-public class BookViewReplayRepository extends BaseReplayRepository implements BookViewRepository {
+public class BookViewReplayRepository implements BookViewRepository, ReplayProjection {
 
 	private static final String TABLE_MAIN = "book_view";
 	private static final String TABLE_TMP = "book_view_tmp";
 
-	private final TempTableCreator tableCreator;
+	private final JdbcTemplate jdbcTemplate;
+	private final ReplayTableManager replayTableManager;
 	
-	public BookViewReplayRepository(JdbcTemplate jdbcTemplate, TempTableCreator tableCreator) {
-		super(jdbcTemplate, TABLE_MAIN, TABLE_TMP);
-		this.tableCreator = tableCreator;
+	public BookViewReplayRepository(JdbcTemplate jdbcTemplate, ReplayTableManager replayTableManager) {
+		this.jdbcTemplate = jdbcTemplate;
+		this.replayTableManager = replayTableManager;
 	}
-
+		
+	@Override
 	public void createTempTable() {
-		tableCreator.createTempTable(TABLE_TMP, TABLE_MAIN);
+		replayTableManager.createTempTable(TABLE_MAIN, TABLE_TMP);
 	}
 
+	@Override
+	public void swapTables() {
+		replayTableManager.swapTables(TABLE_MAIN, TABLE_TMP);
+	}
+
+	@Override
+	public void dropTempTable() {
+		replayTableManager.dropTempTable(TABLE_TMP);
+	}
+	
 	@Override
 	public void addBook(BookView book, Instant createdAt) {
 		jdbcTemplate.update("INSERT INTO %s(isbn, author, title, description, created_at, updated_at) VALUES (?,?,?,?,?,?)".formatted(TABLE_TMP),

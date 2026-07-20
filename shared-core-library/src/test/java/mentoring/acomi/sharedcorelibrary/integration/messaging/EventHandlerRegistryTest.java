@@ -14,19 +14,19 @@ public class EventHandlerRegistryTest {
     @Test
     void shouldFindHandlerForSupportedVersion() {
 
-        EventHandlerRegistry registry = new EventHandlerRegistry(List.of(new BookBorrowedV1Handler()));
+        EventHandlerRegistry registry = new EventHandlerRegistry(List.of(new Handler1()));
 
         Optional<EventHandler> handler = registry.find(event(IntegrationEventTypes.BOOK_BORROWED, 1));
 
         Assertions.assertTrue(handler.isPresent());
-        Assertions.assertInstanceOf(BookBorrowedV1Handler.class, handler.get());
+        Assertions.assertInstanceOf(Handler1.class, handler.get());
         
     }
 
     @Test
     void shouldNotFindHandlerForUnsupportedVersion() {
 
-        EventHandlerRegistry registry = new EventHandlerRegistry(List.of(new BookBorrowedV1Handler()));
+        EventHandlerRegistry registry = new EventHandlerRegistry(List.of(new Handler1()));
 
         Optional<EventHandler> handler = registry.find(event(IntegrationEventTypes.BOOK_BORROWED, 999));
 
@@ -36,7 +36,7 @@ public class EventHandlerRegistryTest {
     @Test
     void shouldNotFindHandlerForDifferentEventType() {
 
-        EventHandlerRegistry registry = new EventHandlerRegistry(List.of(new BookBorrowedV1Handler()));
+        EventHandlerRegistry registry = new EventHandlerRegistry(List.of(new Handler1()));
 
         Optional<EventHandler> handler = registry.find(event(IntegrationEventTypes.BOOK_RETURNED, 1));
 
@@ -56,7 +56,7 @@ public class EventHandlerRegistryTest {
     void shouldFailWhenDuplicateHandlerExists() {
 
         IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class,
-                                  () -> new EventHandlerRegistry(List.of(new BookBorrowedV1Handler(), new DuplicateBookBorrowedV1Handler())));
+                                  () -> new EventHandlerRegistry(List.of(new Handler1(), new DuplicateHandler1())));
 
         Assertions.assertTrue(exception.getMessage().contains("Duplicate handler"));
     }
@@ -68,7 +68,7 @@ public class EventHandlerRegistryTest {
     }
 
     @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1}, mode = HandlerMode.LIVE_ONLY)
-    static class BookBorrowedV1Handler implements EventHandler {
+    static class Handler1 implements EventHandler {
 
         @Override
         public Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> event) {
@@ -77,7 +77,7 @@ public class EventHandlerRegistryTest {
     }
 
     @HandlerMetadata(eventType = IntegrationEventTypes.BOOK_BORROWED, supportedVersions = {1}, mode = HandlerMode.LIVE_ONLY)
-    static class DuplicateBookBorrowedV1Handler implements EventHandler {
+    static class DuplicateHandler1 implements EventHandler {
 
         @Override
         public Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> event) {

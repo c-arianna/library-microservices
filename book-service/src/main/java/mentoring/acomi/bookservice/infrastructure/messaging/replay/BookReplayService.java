@@ -1,80 +1,55 @@
 package mentoring.acomi.bookservice.infrastructure.messaging.replay;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
+import mentoring.acomi.sharedcodelibrary.eventstore.replay.AbstractReplayService;
+import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedcorelibrary.eventstore.EventCategory;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
-import mentoring.acomi.sharedcorelibrary.replay.AbstractReplayService;
+import mentoring.acomi.sharedcorelibrary.replay.ReplayEventHandlerRegistry;
 
 @Service
 public class BookReplayService extends AbstractReplayService<BookEventEntity> {
 
-	private final BookEventRepository bookEventRepository;
-	private final BookViewReplayRepository bookViewReplayRepository;
-	private final BookReplayEventMapper replayMapper;
-	private final ReplayEventHandlerRegistry registry;
-	
-	public BookReplayService(BookViewReplayRepository bookViewReplayRepository, BookEventRepository bookEventRepository, 
-			BookReplayEventMapper replayMapper, ReplayEventHandlerRegistry registry) {
-		this.bookEventRepository = bookEventRepository;
-		this.bookViewReplayRepository = bookViewReplayRepository;
-		this.replayMapper = replayMapper;
-		this.registry = registry;
-	}
+    private final BookEventRepository bookEventRepository;
+    private final BookReplayEventMapper replayMapper;
 
-	@Override
-	protected void createTempTable() {
-		bookViewReplayRepository.createTempTable();
-	}
+    public BookReplayService(BookEventRepository bookEventRepository, BookReplayEventMapper replayMapper, 
+    		ReplayEventHandlerRegistry registry, List<ReplayProjection> replayProjections) {
+        super(registry, replayProjections);
+        this.bookEventRepository = bookEventRepository;
+        this.replayMapper = replayMapper;
+    }
 
-	@Override
-	protected List<BookEventEntity> loadEvents() {
-		return bookEventRepository.findAllEvents();
-	}
-	
-	@Override
-	protected void apply(BookEventEntity entity) {
-	    IntegrationEventEnvelope<?> event = toEventEnvelope(entity);
-	    registry.find(event).ifPresentOrElse(handler -> handler.handleEvent(event), 
-  		      () -> logger.info("Replay not needed for {}", event.eventType()));
-	}
-	
-	private IntegrationEventEnvelope<?> toEventEnvelope(BookEventEntity entity) {
+    @Override
+    protected Stream<BookEventEntity> streamEvents() {
+        return bookEventRepository.findAllEvents().stream();
+    }
 
-	    if (entity.getEventCategory().equalsIgnoreCase(EventCategory.CONSUMER.name())) {
-	    	IntegrationEventTypes eventType = IntegrationEventTypes.valueOf(entity.getEventType());
-	        return new IntegrationEventEnvelope<>(entity.getEventId(), eventType, "",
-	        		entity.getAggregateId(), entity.getAggregateType(), entity.getEventVersion(), entity.getOccurredAt(),
-	        		entity.getSchemaVersion(), entity.getPayload());
-	    }
+    @Override
+    protected IntegrationEventEnvelope<?> toIntegrationEvent(BookEventEntity entity) {
 
-	    BookEventType bookEventType = BookEventType.valueOf(entity.getEventType());
+        if (EventCategory.CONSUMER.name().equalsIgnoreCase(entity.getEventCategory())) {
 
-	    return getIntegrationEnvelopeEvent(entity, bookEventType);
-	}
-	
-	@Override
-	protected void swapTables() {
-		bookViewReplayRepository.swapTables();
-	}
+            return new IntegrationEventEnvelope<>(entity.getEventId(), IntegrationEventTypes.valueOf(entity.getEventType()), "", 
+            		            entity.getAggregateId(), entity.getAggregateType(), entity.getEventVersion(), entity.getOccurredAt(),
+            		            entity.getSchemaVersion(), entity.getPayload());
+        }
 
-	@Override
-	protected void dropTempTable() {
-		bookViewReplayRepository.dropTempTable();
-	}
-			
-	private IntegrationEventEnvelope<?> getIntegrationEnvelopeEvent(BookEventEntity event, BookEventType bookEventType) {
-		Object payload = replayMapper.toIntegrationPayload(bookEventType, event.getPayload());
-		IntegrationEventTypes eventType = replayMapper.toIntegrationEventType(bookEventType);
-		return new IntegrationEventEnvelope<>(event.getEventId(), eventType, "",
-				event.getAggregateId(), event.getAggregateType(), event.getEventVersion(), event.getOccurredAt(),
-				event.getSchemaVersion(), payload);
-	}
-	
+        BookEventType bookEventType = BookEventType.valueOf(entity.getEventType());
+
+        Object payload = replayMapper.toIntegrationPayload(bookEventType, entity.getPayload());
+
+        IntegrationEventTypes integrationType = replayMapper.toIntegrationEventType(bookEventType);
+
+        return new IntegrationEventEnvelope<>(entity.getEventId(), integrationType, "", entity.getAggregateId(), entity.getAggregateType(),
+                				entity.getEventVersion(), entity.getOccurredAt(), entity.getSchemaVersion(), payload);
+    }
 }

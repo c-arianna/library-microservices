@@ -19,9 +19,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -40,14 +41,17 @@ import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEnt
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserViewJpaRepository;
 import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 
-@SpringBootTest
+@SpringBootTest(properties = { "spring.jpa.hibernate.ddl-auto=none", "spring.sql.init.mode=always"})
 @Testcontainers
-@ActiveProfiles("H2")
 @Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
+@Sql("/db/replay/replay-schema.sql")
 public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 	@Container
 	static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
+	
+	@Container
+	private static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4");
 	
 	@DynamicPropertySource
 	static void rabbitProps(DynamicPropertyRegistry registry) {
@@ -55,6 +59,11 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 		registry.add("spring.rabbitmq.port", rabbit::getAmqpPort);
 		registry.add("spring.rabbitmq.username", rabbit::getAdminUsername);
 		registry.add("spring.rabbitmq.password", rabbit::getAdminPassword);
+		
+		registry.add("spring.datasource.url", () -> mysql.getJdbcUrl()+ (mysql.getJdbcUrl().contains("?") ? "&" : "?") + "connectionTimeZone=UTC");
+		registry.add("spring.datasource.username", mysql::getUsername);
+		registry.add("spring.datasource.password", mysql::getPassword);
+		registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
 	}
 	
 	@Autowired

@@ -1,4 +1,4 @@
-package mentoring.acomi.userservice.application.config;
+package mentoring.acomi.userservice.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

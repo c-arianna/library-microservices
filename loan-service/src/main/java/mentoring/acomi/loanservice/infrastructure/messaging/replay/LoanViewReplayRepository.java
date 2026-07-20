@@ -8,30 +8,44 @@ import org.springframework.stereotype.Repository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.sharedcorelibrary.replay.TempTableCreator;
-import mentoring.acomi.sharedjpalibrary.eventstore.replay.BaseReplayRepository;
+import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 
 @Repository("replayRepo")
-public class LoanViewReplayRepository extends BaseReplayRepository implements LoanViewRepository{
-	
+public class LoanViewReplayRepository implements LoanViewRepository, ReplayProjection {
+
 	private static final String TABLE_MAIN = "loan_view";
 	private static final String TABLE_TMP = "loan_view_tmp";
-
-	private final TempTableCreator tableCreator;
 	
-	public LoanViewReplayRepository(JdbcTemplate jdbcTemplate, TempTableCreator creator) {
-		super(jdbcTemplate, TABLE_MAIN, TABLE_TMP);
-		this.tableCreator = creator;
+	private final JdbcTemplate jdbcTemplate;
+	private final ReplayTableManager replayTableManager;
+
+	public LoanViewReplayRepository(JdbcTemplate jdbcTemplate, ReplayTableManager replayTableManager) {
+		this.jdbcTemplate = jdbcTemplate;
+		this.replayTableManager = replayTableManager;
 	}
 
+	@Override
 	public void createTempTable() {
-		tableCreator.createTempTable(TABLE_TMP, TABLE_MAIN);
+		replayTableManager.createTempTable(TABLE_MAIN, TABLE_TMP);
+	}
+
+	@Override
+	public void swapTables() {
+		replayTableManager.swapTables(TABLE_MAIN, TABLE_TMP);
+	}
+
+	@Override
+	public void dropTempTable() {
+		replayTableManager.dropTempTable(TABLE_TMP);
 	}
 
 	@Override
 	public void insertRequest(LoanView loan, Instant createdAt) {
-		jdbcTemplate.update("INSERT INTO %s(id, isbn, user_id, start_date, end_date, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)".formatted(TABLE_TMP),
-				loan.id(), loan.isbn(), loan.userId(), loan.start(), loan.end(), loan.status().name(), createdAt, createdAt);
+		jdbcTemplate.update(
+				"INSERT INTO %s(id, isbn, user_id, start_date, end_date, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)"
+						.formatted(TABLE_TMP), loan.id(), loan.isbn(), loan.userId(), loan.start(), loan.end(), 
+						                       loan.status().name(), createdAt, createdAt);
 	}
 
 	@Override

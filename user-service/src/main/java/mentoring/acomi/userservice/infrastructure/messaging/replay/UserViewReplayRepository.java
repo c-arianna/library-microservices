@@ -5,29 +5,41 @@ import java.time.Instant;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
-import mentoring.acomi.sharedcorelibrary.replay.TempTableCreator;
-import mentoring.acomi.sharedjpalibrary.eventstore.replay.BaseReplayRepository;
+import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
 
 @Repository("replayRepo")
-public class UserViewReplayRepository extends BaseReplayRepository implements UserViewRepository {
+public class UserViewReplayRepository implements UserViewRepository, ReplayProjection {
 
 	private static final String TABLE_MAIN = "user_view";
 	private static final String TABLE_TMP = "user_view_tmp";
 
-	private final TempTableCreator tableCreator;
+	private final JdbcTemplate jdbcTemplate;
+	private final ReplayTableManager replayTableManager;
 	
-	public UserViewReplayRepository(JdbcTemplate jdbcTemplate, TempTableCreator tableCreator) {
-		super(jdbcTemplate, TABLE_MAIN, TABLE_TMP);
-		this.tableCreator = tableCreator;
+	public UserViewReplayRepository(JdbcTemplate jdbcTemplate, ReplayTableManager replayTableManager) {
+		this.jdbcTemplate = jdbcTemplate;
+		this.replayTableManager = replayTableManager;
 	}
-
+    
+    @Override
 	public void createTempTable() {
-		tableCreator.createTempTable(TABLE_TMP, TABLE_MAIN);
+    	replayTableManager.createTempTable(TABLE_MAIN, TABLE_TMP);
 	}
 
+    @Override
+	public void swapTables() {
+		replayTableManager.swapTables(TABLE_MAIN, TABLE_TMP);
+	}
+
+	@Override
+	public void dropTempTable() {
+		replayTableManager.dropTempTable(TABLE_TMP);
+	}
+	
 	@Override
 	public void add(UserView user, Instant createdAt) {
 		jdbcTemplate.update("INSERT INTO %s(id, email, name, lastname, user_identity_provider_id, role, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)"
