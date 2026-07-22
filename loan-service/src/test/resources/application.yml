@@ -1,19 +1,22 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:test-${random.uuid}
+    url: jdbc:h2:mem:test-${random.uuid};MODE=MySQL
     driver-class-name: org.h2.Driver
     username: admin
     password: admin
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     properties:
       hibernate.type.json_format_mapper: mentoring.acomi.loanservice.infrastructure.persistence.configuration.Jackson3HibernateJsonFormatMapper
 
   h2:
     console:
       enabled: true
+
+  flyway:
+    enabled: true
 
 management:
   tracing:
