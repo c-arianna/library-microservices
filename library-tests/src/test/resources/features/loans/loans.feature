@@ -18,6 +18,11 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
 
      """
     And l'amministratore aggiunge 1 copie del libro "9788804336327"
+    And l'amministratore aggiunge un libro con isbn "9788415723356", autore "Italo Calvino", titolo "Il visconte dimezzato" e descrizione
+     """
+
+     """
+    And l'amministratore aggiunge 1 copie del libro "9788415723356"
     And esiste l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678"
     
   Rule: Creazione di una richiesta di prestito
@@ -32,7 +37,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         }
         """
       Then la risposta ha status code 201
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED", numero tessera "${CARD_NUMBER}"
       
       Scenario: Creazione di una richiesta di prestito per un libro non presente
       Given il catalogo non contiene il libro con isbn "9788804776369"
@@ -46,7 +51,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         }
         """
       Then la risposta ha status code 201
-      And il prestito ha isbn "9788804776369", userId "${USER_ID}", stato "FAILED"
+      And il prestito ha isbn "9788804776369", userId "${USER_ID}", stato "FAILED", numero tessera "${CARD_NUMBER}"
           
     Scenario: Creazione di una richiesta di prestito con dati non validi
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
@@ -74,7 +79,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         }
         """
       Then la risposta ha status code 201
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "FAILED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "FAILED", numero tessera "${CARD_NUMBER}"
   
     Scenario: L'utente READER può creare prestiti solo per sè stesso
       Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
@@ -104,7 +109,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         }
         """
       Then la risposta ha status code 201
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED", numero tessera "${CARD_NUMBER}"
       
      Scenario: L'amministratore non può creare prestiti per un utente non presente
        Given l'utente con ID "123456" non esiste
@@ -130,7 +135,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito è in stato "RESERVED"
       When l'amministratore conferma la richiesta del prestito
       Then la risposta ha status code 204
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED", numero tessera "${CARD_NUMBER}"
       
     Scenario: Conferma di una richiesta di prestito non esistente
       Given il prestito con ID "100" non esiste
@@ -162,7 +167,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito è in stato "RESERVED"
       When l'amministratore annulla la richiesta del prestito
       Then la risposta ha status code 204
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CANCELED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CANCELED", numero tessera "${CARD_NUMBER}"
       
     Scenario: Annullo di una richiesta di prestito non in stato reserved
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
@@ -196,7 +201,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito è in stato "CONFIRMED"
       When l'amministratore esegue l'operazione di reso del prestito
       Then la risposta ha status code 204
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RETURNED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RETURNED", numero tessera "${CARD_NUMBER}"
       
     Scenario: Conferma restituzione di un libro prestato, con richiesta in stato non "confirmed"
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
@@ -238,9 +243,11 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And la risposta contiene il campo "loans"
       And eventualmente "loans" contiene 1 elementi
       And eventualmente "loans" ha un elemento con i campi:
-        | id     | ${LOAN_ID}      |
-        | isbn   | "9788804336327" |
-        | status | "CONFIRMED"     |
+        | id         | ${LOAN_ID}       |
+        | isbn       | "9788804336327"  |
+        | status  	 | "CONFIRMED"      |
+        | userId     | ${USER_ID}       |
+        | cardNumber | ${CARD_NUMBER}   | 
         
     Scenario: Consultazione elenco prestiti, filtrato per ISBN non presente
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
@@ -254,6 +261,8 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       
     Scenario: Consultazione elenco prestiti, filtrato per ISBN presente
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356" in attesa di conferma
+      And il prestito è in stato "RESERVED"
       And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'utente visualizza l'elenco dei prestiti, con filtro di ricerca
@@ -262,10 +271,31 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And la risposta contiene il campo "loans"
       And eventualmente "loans" contiene 1 elementi
       And eventualmente "loans" ha un elemento con i campi:
-        | id     | ${LOAN_ID}      |
-        | isbn   | "9788804336327" |
-        | userId | ${USER_ID}      |
-        
+        | id         | ${LOAN_ID}      |
+        | isbn       | "9788804336327" |
+        | status  	 | "RESERVED"      |
+        | userId     | ${USER_ID}      |
+            
+    Scenario: Consultazione elenco prestiti, filtrato per numero tessera
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And esiste l'utente con credenziali "mario.bianchi@mail.it", "MarioBianchi12345678"
+      And l'utente con credenziali "mario.bianchi@mail.it", "MarioBianchi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356" in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      When l'amministratore visualizza l'elenco dei prestiti, con filtro di ricerca
+      | cardNumber   | ${CARD_NUMBER}  |
+      Then la risposta ha status code 200
+      And la risposta contiene il campo "loans"
+      And eventualmente "loans" contiene 1 elementi
+      And eventualmente "loans" ha un elemento con i campi:
+        | id         | ${LOAN_ID}       |
+        | isbn       | "9788415723356"  |
+        | status  	 | "RESERVED"       |
+        | userId     | ${USER_ID}       |
+               
     Scenario: Consultazione elenco prestiti, un utente può vedere solo i suoi prestiti
       Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
       And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
@@ -285,7 +315,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito è in stato "RESERVED"
       When l'utente visualizza il dettaglio del prestito
       Then la risposta ha status code 200
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED", numero tessera "${CARD_NUMBER}"
       
      Scenario: Dettaglio di un prestito non presente nel catalogo
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
@@ -316,7 +346,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito è in stato "RESERVED"
       When l'amministratore visualizza il dettaglio del prestito
       Then la risposta ha status code 200
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED"
+      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED", numero tessera "${CARD_NUMBER}"
       
   Rule: Completamento del processo di prestito
   
@@ -325,5 +355,5 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'amministratore conferma la richiesta del prestito
-      Then il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED"
+      Then il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED", numero tessera "${CARD_NUMBER}"
       And il libro "9788804336327" ha totalCopies = 1, borrowedCopies = 1, reservedCopies = 0

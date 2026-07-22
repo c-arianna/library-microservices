@@ -27,7 +27,7 @@ L'amministratore della bibloteca può
         }
         """
       Then la risposta ha status code 200
-      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE"
+      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "-"
       
     Scenario: Registrazione di un utente con mail già registrata
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
@@ -72,7 +72,7 @@ L'amministratore della bibloteca può
         }
         """
 	  Then la risposta ha status code 200
-	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "DISABLED"
+	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "DISABLED", numero tessera "${CARD_NUMBER}"
 	        
   Rule: Sospensione di un utente
     
@@ -87,7 +87,7 @@ L'amministratore della bibloteca può
         }
         """
       Then la risposta ha status code 200
-	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "SUSPENDED"
+	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "SUSPENDED", numero tessera "${CARD_NUMBER}"
 	  
 	Scenario: Sospensione di un utente con dati non validi
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
@@ -134,7 +134,7 @@ L'amministratore della bibloteca può
         }
         """
      Then la risposta ha status code 200
-	 And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE"
+	 And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
 	 
 	Scenario: Riattivazione di un utente con dati non validi
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
@@ -174,14 +174,14 @@ L'amministratore della bibloteca può
       And l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678" è autenticato
       When l'utente visualizza il suo profilo
       Then la risposta ha status code 200
-      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE"
+      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
      
     Scenario: L'amministratore può vedere il profilo di tutti gli utenti
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
       And l'utente ha stato "ACTIVE"
       When l'amministratore visualizza il profilo di "mario.rossi@gmail.com"
       Then la risposta ha status code 200
-      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE"
+      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
       
      Scenario: Visualizzazione del profilo di un utente non registrato
       Given l'utente con ID "100" non esiste
@@ -241,6 +241,24 @@ L'amministratore della bibloteca può
         | email  | "mario.verdi@gmail.com" |
         | role   | "READER"                |
         | status | "SUSPENDED"             |
+        
+    Scenario: Consultazione elenco utenti, filtrato per numero tessera
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      And l'utente ha stato "ACTIVE"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678"
+      And l'utente ha stato "ACTIVE"
+      And l'amministratore sospende l'utente
+	  And l'utente ha stato "SUSPENDED"
+	  When l'amministratore visualizza l'elenco degli utenti, con filtro di ricerca
+	  | cardNumber | ${CARD_NUMBER} |
+	  Then la risposta ha status code 200
+	  And la risposta contiene il campo "users"
+	  And eventualmente "users" contiene 1 elementi
+      And eventualmente "users" ha un elemento con i campi:
+        | email      | "mario.verdi@gmail.com" |
+        | role       | "READER"                |
+        | status     | "SUSPENDED"             |
+        | cardNumber | ${CARD_NUMBER}          |
         
     Scenario: Un utente READER non può visualizzare l'elenco degli utenti
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"

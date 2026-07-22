@@ -237,11 +237,20 @@ public class LoanSteps {
 	
 	@When("l'utente visualizza l'elenco dei prestiti, con filtro di ricerca")
 	public void findLoansFilter(Map<String, String> rawFilters) {
-
 		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
+		findLoans(rawFilters, accessToken);
 
+	}
+	
+	@When("l'amministratore visualizza l'elenco dei prestiti, con filtro di ricerca")
+	public void findAdminLoansFilter(Map<String, String> rawFilters) {
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+		findLoans(rawFilters, accessToken);
+	}
+
+	private void findLoans(Map<String, String> rawFilters, String accessToken) {
 		Map<String, String> filters = new LinkedHashMap<>();
-		rawFilters.forEach((k, v) -> filters.put(k, Helper.normalize(v)));
+		rawFilters.forEach((k, v) -> filters.put(k, Helper.normalize(Helper.resolve(v, context))));
 
 		UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/loans");
 		filters.forEach(uri::queryParam);
@@ -254,7 +263,6 @@ public class LoanSteps {
 
 		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
 		context.put(CommonSteps.RESPONSE_BODY, new String(result.getResponseBody(), StandardCharsets.UTF_8));
-
 	}
 	
 	@When("l'utente visualizza il dettaglio del prestito")
@@ -273,8 +281,8 @@ public class LoanSteps {
 	 * ############################### THEN #####################################
 	 */
 
-	@Then("il prestito ha isbn {string}, userId {string}, stato {string}")
-	public void checkLoanView(String isbn, String userId, String status) {
+	@Then("il prestito ha isbn {string}, userId {string}, stato {string}, numero tessera {string}")
+	public void checkLoanView(String isbn, String userId, String status, String cardNumber) {
 
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 		String loanId = context.get(LOAN_ID, String.class);
@@ -290,12 +298,17 @@ public class LoanSteps {
 				String responseIsbn = json.read("$.isbn");
 				Assertions.assertEquals(isbn, responseIsbn);
 			}, () -> {
-				String responseUserId = json.read("$.userId");
+				String responseUserId = json.read("$.user.id");
 				String expectedUserId = Helper.resolve(userId, context);
 				Assertions.assertEquals(expectedUserId, responseUserId);
 			}, () -> {
 				String responseStatus = json.read("$.status");
 				Assertions.assertEquals(status, responseStatus);
+			}, () -> {
+				String responseCardNumber = json.read("$.user.cardNumber");
+				String expectedCardNumber = Helper.resolve(cardNumber, context);
+				Assertions.assertEquals(expectedCardNumber, responseCardNumber);
+			
 		}), 5000, 200);
 
 	}

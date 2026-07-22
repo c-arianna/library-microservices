@@ -37,6 +37,7 @@ public class CommonSteps {
 	public static final String LAST_QUERY = "LAST_QUERY";
 	
 	public static final String USER_ID = "USER_ID";
+	public static final String CARD_NUMBER = "CARD_NUMBER";
 	
 	
 	private RestTestClient client = RestTestClient.bindToServer().baseUrl(TestConfig.BASE_URL).build();;
@@ -138,8 +139,10 @@ public class CommonSteps {
 
 		String userId = bodyResponse.read("$.userId");
 		String userIdentityProviderId = bodyResponse.read("$.userIdentityProviderId");
-
+        String cardNumber = bodyResponse.read("$.cardNumber");
+        
 		context.put(USER_ID, userId);
+		context.put(CARD_NUMBER, cardNumber);
 		context.userProviderIdToDelete.add(userIdentityProviderId);
 		context.put(mail, userId);
 

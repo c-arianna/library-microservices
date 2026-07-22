@@ -189,11 +189,8 @@ public class UserSteps {
 	
 	@When("l'utente visualizza il suo profilo")
 	public void userGetUserProfile() {
-		
 		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
-				
 		getUserProfile(accessToken);
-	
 	}
 	
 	@When("l'amministratore visualizza il profilo di {string}")
@@ -244,7 +241,7 @@ public class UserSteps {
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 
 		Map<String, String> filters = new LinkedHashMap<>();
-		rawFilters.forEach((k, v) -> filters.put(k, Helper.normalize(v)));
+		rawFilters.forEach((k, v) -> filters.put(k, Helper.normalize(Helper.resolve(v, context))));
 
 		UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/users");
 		filters.forEach(uri::queryParam);
@@ -263,9 +260,8 @@ public class UserSteps {
 	/*
 	 * ############################### THEN #####################################
 	 */
-
-	@Then("l'utente ha email {string}, ruolo {string}, stato {string}")
-	public void checkUserView(String email, String role, String status) {
+	@Then("l'utente ha email {string}, ruolo {string}, stato {string}, numero tessera {string}")
+	public void checkUserView(String email, String role, String status, String cardNumber) {
 
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 		String userId = context.get(CommonSteps.USER_ID, String.class);
@@ -288,6 +284,15 @@ public class UserSteps {
 			() -> {
 				String responseStatus = json.read("$.status");
 				Assertions.assertEquals(status, responseStatus);
+			},
+			() -> {
+				String responseCardNumber = json.read("$.cardNumber");
+				if(cardNumber.equals("-")) {
+					Assertions.assertNotNull(responseCardNumber);
+				}else {
+				String expectedCardNumber = Helper.resolve(cardNumber, context);
+				Assertions.assertEquals(expectedCardNumber, responseCardNumber);
+				}
 		}), 5000, 200);
 
 	}
