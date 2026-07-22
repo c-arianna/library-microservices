@@ -13,28 +13,28 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventE
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 import mentoring.acomi.userservice.application.projection.UserProjectionOperations;
-import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
+import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.LibraryCardAssignedIntegrationPayload;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.USER_SUBSCRIBED, supportedVersions = {1}, mode = HandlerMode.REPLAYABLE)
+@HandlerMetadata(eventType = IntegrationEventTypes.LIBRARY_CARD_ASSIGNED, supportedVersions = {1}, mode = HandlerMode.REPLAYABLE)
 @Component
-public class UserSubscribedV1Handler extends AbstractEventHandler<UserSubscribedIntegrationPayload> {
-
+public class LibraryCardAssignedHandler extends AbstractEventHandler<LibraryCardAssignedIntegrationPayload> {
+	
 	private final UserProjectionOperations projectionOperations;
-		
-	public UserSubscribedV1Handler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	
+	public LibraryCardAssignedHandler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
 		super(mapper);
 		this.projectionOperations = projectionOperations;
 	}
 	
     @Override
-	protected Class<UserSubscribedIntegrationPayload> payloadType() {
-		return UserSubscribedIntegrationPayload.class;
+	protected Class<LibraryCardAssignedIntegrationPayload> payloadType() {
+		return LibraryCardAssignedIntegrationPayload.class;
 	}
 
 	@Override
-	protected Optional<ProjectionUpdateNotification> process(UserSubscribedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.subscribeUser(payload, event.occurredAt());
-		return Optional.of(new ProjectionUpdateNotification(payload.userId(), event.schemaVersion()));
+	protected Optional<ProjectionUpdateNotification> process(LibraryCardAssignedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+		projectionOperations.assignCardNumber(payload.userId(), payload.cardNumber(), event.occurredAt());
+		return Optional.empty();
 	}
 	
 }

@@ -43,8 +43,9 @@ public class UserViewReplayRepository implements UserViewRepository, ReplayProje
 	
 	@Override
 	public void add(UserView user, Instant createdAt) {
-		jdbcTemplate.update("INSERT INTO %s(id, email, status, user_identity_provider_id, created_at, updated_at) VALUES (?,?,?,?,?,?)".formatted(TABLE_TMP), 
-				user.id(), user.email(), user.status().name(), user.identityProviderId(), createdAt, createdAt);
+		jdbcTemplate.update("INSERT INTO %s(id, email, name, lastname, card_number, status, user_identity_provider_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)"
+				.formatted(TABLE_TMP), user.id(), user.email(), user.name(), user.lastname(), user.cardNumber(), user.status().name(), 
+				user.identityProviderId(), createdAt, createdAt);
 	}
 
 	@Override
@@ -55,6 +56,11 @@ public class UserViewReplayRepository implements UserViewRepository, ReplayProje
 	@Override
 	public void deleteAll() {
 		throw new UnsupportedOperationException("Not needed");
+	}
+	
+	@Override
+	public void updateCardNumber(String id, String cardNumber, Instant updatedAt) {
+		jdbcTemplate.update("UPDATE %s SET card_number = ?, updated_at = ? WHERE id = ?".formatted(TABLE_TMP), cardNumber, updatedAt, id);
 	}
 
 }

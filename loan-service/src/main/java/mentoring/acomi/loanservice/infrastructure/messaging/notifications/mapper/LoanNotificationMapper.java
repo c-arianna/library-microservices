@@ -8,7 +8,7 @@ import mentoring.acomi.loanservice.infrastructure.messaging.notifications.payloa
 @Component
 public class LoanNotificationMapper {
 
-	public LoanUpdatedNotificationPayload map(LoanView loan, String identityProviderId) {
-		return new LoanUpdatedNotificationPayload(loan.id(), loan.isbn(), loan.userId(), identityProviderId, loan.status(), loan.start(), loan.end());
+	public LoanUpdatedNotificationPayload map(LoanView loan, String identityProviderId, String cardNumber) {
+		return new LoanUpdatedNotificationPayload(loan.id(), loan.isbn(), loan.userId(), identityProviderId, cardNumber, loan.status(), loan.start(), loan.end());
     }
 }

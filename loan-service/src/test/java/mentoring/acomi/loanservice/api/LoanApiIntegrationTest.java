@@ -197,7 +197,10 @@ public class LoanApiIntegrationTest {
 
 		generateToken(ADMIN_ROLE, ADMIN_1);
 		
-		AddLoanRequest request = new AddLoanRequest("9788804336327", userId, LocalDate.now(), null);
+		LocalDate startDate = LocalDate.now();
+		LocalDate endDate = startDate.plusDays(30);
+		
+		AddLoanRequest request = new AddLoanRequest("9788804336327", userId, startDate, endDate);
 		ResponseEntity<LoanResponse> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON)
 				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).retrieve().toEntity(LoanResponse.class);
 
@@ -205,7 +208,7 @@ public class LoanApiIntegrationTest {
 
 		String loanId = response.getBody().loanId();
 		
-		loanViewRepository.insertRequest(new LoanView(loanId, "9788804336327", userId, LocalDate.now(), null, LoanStatus.PENDING), Instant.now());
+		loanViewRepository.insertRequest(new LoanView(loanId, "9788804336327", userId, startDate, endDate, LoanStatus.PENDING), Instant.now());
 		
 		return loanId;
 
@@ -244,12 +247,15 @@ public class LoanApiIntegrationTest {
 	}
 
 	private void createUser(String userId) {
-		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), UUID.randomUUID().toString(), UserStatus.ACTIVE), Instant.now());
+		userViewRepository.add(new UserView(userId, String.format("test%s@gmail.com", userId), "Harry", "Potter", "LIB-000001", 
+				UUID.randomUUID().toString(), UserStatus.ACTIVE), Instant.now());
 	}
 	
 	private void generateToken(String role, String userId) {
 		
-		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none").claim("email", String.format("test%s@gmail.com", userId))
+		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none")
+				.claim("sub", UUID.randomUUID().toString())
+				.claim("email", String.format("test%s@gmail.com", userId))
 				.claim("realm_access", Map.of("roles", List.of(role))).build();
 
 		when(jwtDecoder.decode(TOKEN_VALUE)).thenReturn(jwt);

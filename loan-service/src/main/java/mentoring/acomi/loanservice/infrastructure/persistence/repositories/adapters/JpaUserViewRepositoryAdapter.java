@@ -54,5 +54,10 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 	public void deleteAll() {
 		repository.deleteAll();		
 	}
+	
+	@Override
+	public void updateCardNumber(String userId, String cardNumber, Instant occurredAt) {
+		repository.updateCardNumber(userId, cardNumber, occurredAt);
+	}
 
 }

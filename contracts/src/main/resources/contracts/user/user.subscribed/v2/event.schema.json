@@ -1,0 +1,68 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "UserSubscribedEventV2",
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
+		},
+		{
+			"type": "object",
+			"properties": {
+				"eventType": {
+					"const": "USER_SUBSCRIBED"
+				},
+				"producer": {
+					"const": "user-service"
+				},
+				"aggregateType": {
+					"const": "USER"
+				},
+				"payload": {
+					"properties": {
+						"userId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"email": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"name": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"lastname": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"userIdentityProviderId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"cardNumber": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"status": {
+							"const": "ACTIVE"
+						},
+						"role": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						}
+					},
+					"required": [
+						"userId",
+						"email",
+						"name",
+						"lastname",
+						"userIdentityProviderId",
+						"cardNumber",
+						"status",
+						"role"
+					]
+				}
+			},
+			"required": [
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
+			]
+		}
+	],
+	"unevaluatedProperties": false
+}

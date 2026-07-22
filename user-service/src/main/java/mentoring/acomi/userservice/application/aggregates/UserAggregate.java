@@ -9,11 +9,13 @@ import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.domain.errors.UserNotExist;
 import mentoring.acomi.userservice.domain.events.UserEvent;
+import mentoring.acomi.userservice.domain.events.LibraryCardAssignedEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsubscribeEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsuspendedEvent;
 import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
+import mentoring.acomi.userservice.domain.events.payload.LibraryCardAssignedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserUnsubscribedPayload;
 import mentoring.acomi.userservice.domain.model.User;
@@ -27,6 +29,7 @@ public class UserAggregate {
 	private String email;
 	private UserStatus status;
 	private UserRole role;
+	private String cardNumber;
 
 	private int version = -1;
 	
@@ -54,6 +57,7 @@ public class UserAggregate {
 		case UserUnsubscribeEvent e -> applyUserUnsubscribe(e);
 		case UserSuspendEvent e -> applyUserSuspended(e);
 		case UserUnsuspendedEvent e -> applyUserUnsuspended(e);
+		case LibraryCardAssignedEvent e -> applyLibraryCardAssigned(e);
 		}
 		
 		version++;
@@ -78,11 +82,16 @@ public class UserAggregate {
 		status = UserStatus.ACTIVE;
 	}
 	
+	private void applyLibraryCardAssigned(LibraryCardAssignedEvent event) {
+	    cardNumber = event.payload().cardNumber();
+	}
+	
 	public void subscribe(User user) {
 
 		if (!isCreated) {
 			UserSubscribedPayload payload = new UserSubscribedPayload(user.getId(), user.getEmail().getValue(),
-					user.getName(), user.getLastname(), user.getUserIdentityProviderId(), user.getStatus(), user.getRole());
+					user.getName(), user.getLastname(), user.getUserIdentityProviderId(), user.getCardNumber().value(),
+					user.getStatus(), user.getRole());
 			UserSubscribedEvent event = new UserSubscribedEvent(id, getEventId(), nextVersion(), payload, Instant.now());
 			manageEvent(event);
 		}
@@ -121,6 +130,21 @@ public class UserAggregate {
 			manageEvent(event);
 		}
 		
+	}
+	
+	public void assignCardNumber(String cardNumber) {
+
+	    ensureCreated();
+
+	    if (this.cardNumber != null) {
+	        return;
+	    }
+
+	    LibraryCardAssignedPayload payload = new LibraryCardAssignedPayload(id, cardNumber);
+		LibraryCardAssignedEvent event = new LibraryCardAssignedEvent(id, getEventId(), nextVersion(), payload, 
+				Instant.now());
+
+	    manageEvent(event);
 	}
 	
 	private String getEventId() {

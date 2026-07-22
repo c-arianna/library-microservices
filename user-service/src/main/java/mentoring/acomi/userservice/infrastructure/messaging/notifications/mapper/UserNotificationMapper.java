@@ -9,7 +9,7 @@ import mentoring.acomi.userservice.infrastructure.messaging.notifications.payloa
 public class UserNotificationMapper {
 
 	public UserUpdatedNotificationPayload map(UserView user) {
-		return new UserUpdatedNotificationPayload(user.id(), user.email(), user.name(), user.lastname(), user.userIdentityProviderId(), user.status(),
-				user.role());
+		return new UserUpdatedNotificationPayload(user.id(), user.email(), user.name(), user.lastname(), user.userIdentityProviderId(),
+				user.cardNumber(), user.status(), user.role());
     }
 }

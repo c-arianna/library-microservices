@@ -23,6 +23,7 @@ import mentoring.acomi.userservice.application.errors.InvalidUser;
 import mentoring.acomi.userservice.application.errors.InvalidUserData;
 import mentoring.acomi.userservice.application.errors.UserCreationError;
 import mentoring.acomi.userservice.application.errors.UserNotFound;
+import mentoring.acomi.userservice.application.generator.CardNumberGenerator;
 import mentoring.acomi.userservice.application.messaging.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
@@ -32,6 +33,7 @@ import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserEventType;
+import mentoring.acomi.userservice.domain.model.CardNumber;
 import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
@@ -50,15 +52,17 @@ public class UserService {
 	private final UserEventRepository userEventRepository;
 	private final EventDispatcher eventDispatcher;
 	private final IdentityProviderService identityProviderService;
+	private final CardNumberGenerator cardNumberGenerator;
 	
 	private final Logger logger = LogManager.getLogger(UserService.class);
 
-	public UserService(UserViewQueryRepository userViewRepository, UserEventRepository userEventRepository,
-			EventDispatcher eventDispatcher, IdentityProviderService identityProviderService) {
+	public UserService(UserViewQueryRepository userViewRepository, UserEventRepository userEventRepository, 
+		 EventDispatcher eventDispatcher, IdentityProviderService identityProviderService, CardNumberGenerator cardNumberGenerator) {
 		this.userViewRepository = userViewRepository;
 		this.userEventRepository = userEventRepository;
 		this.eventDispatcher = eventDispatcher;
 		this.identityProviderService = identityProviderService;
+		this.cardNumberGenerator = cardNumberGenerator;
 	}
 
 	@Transactional
@@ -74,10 +78,12 @@ public class UserService {
 		ProviderUserCreated keycloakUser = createIdentityProviderUser(request, role);
 
 		UserAggregate aggregate = loadUser(userId);
-		User user = getUser(userId, request, keycloakUser.identityProviderId());
+		CardNumber cardNumber = cardNumberGenerator.generate();
+		User user = getUser(userId, request, keycloakUser.identityProviderId(), cardNumber.value());
 		aggregate.subscribe(user);
 
-		return new UserSubscribedResponse(user.getId(), user.getEmail().getValue(), user.getUserIdentityProviderId(),  user.getRole(), user.getStatus());
+		return new UserSubscribedResponse(user.getId(), user.getEmail().getValue(), user.getUserIdentityProviderId(),
+				user.getCardNumber().value(), user.getRole(), user.getStatus());
 
 	}
 
@@ -91,7 +97,7 @@ public class UserService {
 		
 		UserAggregate aggregate = loadUser(loggedUserId);
 		aggregate.unsubscribe(request.reason());
-		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.userIdentityProviderId(),
+		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.cardNumber(),
 				aggregate.role(), UserStatus.DISABLED);
 	}
 
@@ -104,7 +110,7 @@ public class UserService {
 
 		aggregate.suspend(request.reason(), loggedUser.id());
 		return new UserResponse(request.userId(), aggregate.email(), loggedUser.name(), loggedUser.lastname(), 
-				loggedUser.userIdentityProviderId(), aggregate.role(), UserStatus.SUSPENDED);
+				loggedUser.cardNumber(), aggregate.role(), UserStatus.SUSPENDED);
 	}
 
 	@Transactional
@@ -114,7 +120,7 @@ public class UserService {
 		UserView loggedUser = getLoggedUser();
 
 		aggregate.unsuspend(request.reason(), loggedUser.id());
-		return new UserResponse(request.userId(), aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.userIdentityProviderId(),
+		return new UserResponse(request.userId(), aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.cardNumber(),
 				aggregate.role(), UserStatus.ACTIVE);
 	}
 
@@ -136,8 +142,9 @@ public class UserService {
 
 	}
 
-	private User getUser(String userId, SubscribeRequest request, String identityProviderId) {
-		return User.create(userId, request.email(), request.name(), request.lastname(), identityProviderId, UserRole.READER);
+	private User getUser(String userId, SubscribeRequest request, String identityProviderId, String cardNumber) {
+		return User.create(userId, request.email(), request.name(), request.lastname(), identityProviderId, cardNumber, 
+				UserRole.READER);
 	}
 
 	private UserAggregate loadUser(String userId) {
@@ -168,6 +175,9 @@ public class UserService {
 			}
 			case UserUnsuspended ->{
 				yield UserIntegrationPublisherEventVersions.USER_UNSUSPENDED;
+			}
+			case LibraryCardAssigned -> {
+				yield UserIntegrationPublisherEventVersions.LIBRARY_CARD_ASSIGNED;
 			}
 		};
 	}
@@ -218,14 +228,14 @@ public class UserService {
 	
 		UserView userView = user.get();
 		
-		return new UserDetail(userView.id(), userView.email(), userView.name(), userView.lastname(), userView.userIdentityProviderId(), 
+		return new UserDetail(userView.id(), userView.email(), userView.name(), userView.lastname(), userView.cardNumber(), 
 				 userView.status(), userView.role());
 	
 	}
 	
 	public UserDetail getUserProfile() {
 		UserView loggedUser = getLoggedUser();
-		return new UserDetail(loggedUser.id(), loggedUser.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.userIdentityProviderId(), 
+		return new UserDetail(loggedUser.id(), loggedUser.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.cardNumber(), 
 				loggedUser.status(), loggedUser.role());
 	}
 
@@ -236,7 +246,7 @@ public class UserService {
 			return new UsersResponse(List.of());
 		}
 		
-		return new UsersResponse(users.stream().map(u -> new UserResponse(u.id(), u.email(), u.name(), u.lastname(), u.userIdentityProviderId(),
+		return new UsersResponse(users.stream().map(u -> new UserResponse(u.id(), u.email(), u.name(), u.lastname(), u.cardNumber(),
 				u.role(), u.status())).toList());
 	}
 	

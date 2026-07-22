@@ -10,7 +10,8 @@ public enum IntegrationEventTypes {
 	BOOK_RESERVATION_REJECTED("book.reservation.rejected"), BOOK_BORROW_REJECTED("book.borrow.rejected"),
 	LOAN_REQUESTED("loan.requested"), LOAN_CONFIRMED("loan.confirmed"), LOAN_CONFIRM_REQUESTED("loan.confirm.requested"), LOAN_CANCELED("loan.canceled"), 
 	LOAN_RETURNED("loan.returned"), LOAN_RESERVED("loan.reserved"), LOAN_FAILED("loan.failed"),
-	USER_SUBSCRIBED("user.subscribed"), USER_UNSUBSCRIBED("user.unsubscribed"), USER_SUSPENDED("user.suspended"), USER_UNSUSPENDED("user.unsuspended");
+	USER_SUBSCRIBED("user.subscribed"), USER_UNSUBSCRIBED("user.unsubscribed"), USER_SUSPENDED("user.suspended"), 
+	USER_UNSUSPENDED("user.unsuspended"), LIBRARY_CARD_ASSIGNED("user.libraryCard.assigned");
 
 	public final String eventName;
 

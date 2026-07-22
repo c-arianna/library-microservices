@@ -5,9 +5,10 @@ import java.util.Optional;
 
 import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.view.LoanView;
+import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 
 public interface LoanViewQueryRepository {
 	 public Optional<LoanView> findById(String id);
-	 public List<LoanView> find(LoanFilter filter);
+	 public List<LoanDto> find(LoanFilter filter);
 
 }

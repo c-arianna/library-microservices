@@ -29,6 +29,10 @@ public class JpaUserViewSpecification {
 			if (!ObjectUtils.isEmpty(filter.lastname())) {
 				predicates.add(cb.equal(root.get("lastname"), filter.lastname()));
 			}
+			
+			if (!ObjectUtils.isEmpty(filter.cardNumber())) {
+				predicates.add(cb.equal(root.get("cardNumber"), filter.cardNumber()));
+			}
 
 			if (!ObjectUtils.isEmpty(filter.status())) {
 				predicates.add(cb.equal(root.get("status"), filter.status()));

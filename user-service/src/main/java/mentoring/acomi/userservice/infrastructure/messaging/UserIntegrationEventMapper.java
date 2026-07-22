@@ -7,12 +7,15 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventT
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.domain.events.AggregateType;
 import mentoring.acomi.userservice.domain.events.UserEvent;
+import mentoring.acomi.userservice.domain.events.LibraryCardAssignedEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsubscribeEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsuspendedEvent;
+import mentoring.acomi.userservice.domain.events.payload.LibraryCardAssignedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
+import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.LibraryCardAssignedIntegrationPayload;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
 
 @Component
@@ -33,6 +36,9 @@ public class UserIntegrationEventMapper {
 		}
 		case UserUnsuspendedEvent e -> {
 			yield getUserUnsuspendedIntegrationEvent(e);
+		}
+		case LibraryCardAssignedEvent e -> {
+			yield getLibraryCardAssignedIntegrationEvent(e);
 		}
 	
 		};
@@ -56,8 +62,17 @@ public class UserIntegrationEventMapper {
 	private IntegrationEventEnvelope<?> getUserSubscribedIntegrationEvent(UserSubscribedEvent e) {
 		UserSubscribedPayload eventPayload = e.payload();
 		UserSubscribedIntegrationPayload payload = new UserSubscribedIntegrationPayload(eventPayload.id(), eventPayload.email(), eventPayload.name(),
-				eventPayload.lastname(), eventPayload.userIdentityProviderId(), eventPayload.status(), eventPayload.role());
+				eventPayload.lastname(), eventPayload.userIdentityProviderId(), eventPayload.cardNumber(), 
+				eventPayload.status(), eventPayload.role());
 		return envelope(e, IntegrationEventTypes.USER_SUBSCRIBED, UserIntegrationPublisherEventVersions.USER_SUBSCRIBED, payload);
+	}
+	
+	private IntegrationEventEnvelope<?> getLibraryCardAssignedIntegrationEvent(LibraryCardAssignedEvent e) {
+		LibraryCardAssignedPayload eventPayload = e.payload();
+		LibraryCardAssignedIntegrationPayload payload = new LibraryCardAssignedIntegrationPayload(eventPayload.userId(),
+				eventPayload.cardNumber());
+		return envelope(e, IntegrationEventTypes.LIBRARY_CARD_ASSIGNED, 
+				UserIntegrationPublisherEventVersions.LIBRARY_CARD_ASSIGNED, payload);
 	}
 	
 	private <T> IntegrationEventEnvelope<T> envelope(UserEvent e, IntegrationEventTypes type, int version, T payload) {

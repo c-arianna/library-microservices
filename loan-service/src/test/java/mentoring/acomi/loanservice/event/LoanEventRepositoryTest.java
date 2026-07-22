@@ -33,7 +33,7 @@ import mentoring.acomi.loanservice.domain.model.LoanStatus;
 @Import(SecurityTestConfig.class)
 public class LoanEventRepositoryTest {
 
-	private static final int EVENT_VERSION = 1;
+	private static final int SCHEMA_VERSION = 1;
 	@Autowired
 	private LoanEventRepository repository;
 
@@ -46,7 +46,7 @@ public class LoanEventRepositoryTest {
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent event = createLoanRequestedEvent(loanId, "9788804336327");
 
-		repository.appendToStream(event, EVENT_VERSION);
+		repository.appendToStream(event, SCHEMA_VERSION);
 
 		entityManager.clear();
 
@@ -61,10 +61,10 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
+		repository.appendToStream(loanRequestedEvent, SCHEMA_VERSION);
 
 		LoanCanceledEvent loanCanceledEvent = createLoanCanceledEvent(loanId, isbn);
-		repository.appendToStream(loanCanceledEvent, EVENT_VERSION);
+		repository.appendToStream(loanCanceledEvent, SCHEMA_VERSION);
 
 		entityManager.clear();
 
@@ -83,7 +83,7 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
+		repository.appendToStream(loanRequestedEvent, SCHEMA_VERSION);
 
 		entityManager.clear();
 
@@ -106,7 +106,7 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
+		repository.appendToStream(loanRequestedEvent, SCHEMA_VERSION);
 
 		entityManager.clear();
 		
@@ -129,7 +129,7 @@ public class LoanEventRepositoryTest {
 		String isbn = "9788804336327";
 		String loanId = UUID.randomUUID().toString();
 		LoanRequestedEvent loanRequestedEvent = createLoanRequestedEvent(loanId, isbn);
-		repository.appendToStream(loanRequestedEvent, EVENT_VERSION);
+		repository.appendToStream(loanRequestedEvent, SCHEMA_VERSION);
 
 		List<LoanEvent> loaded = repository.loadStream(loanId);
 
@@ -149,7 +149,7 @@ public class LoanEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		LoanPayload payload = new LoanPayload(loanId, isbn, "user-01");
-		return new LoanCanceledEvent(loanId, eventId, 0, payload, Instant.now());
+		return new LoanCanceledEvent(loanId, eventId, 1, payload, Instant.now());
 
 	}
 

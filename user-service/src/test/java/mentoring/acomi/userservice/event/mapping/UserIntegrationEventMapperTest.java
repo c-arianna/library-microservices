@@ -15,10 +15,12 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventT
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.domain.events.UserEvent;
+import mentoring.acomi.userservice.domain.events.LibraryCardAssignedEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsubscribeEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsuspendedEvent;
+import mentoring.acomi.userservice.domain.events.payload.LibraryCardAssignedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserUnsubscribedPayload;
@@ -32,19 +34,28 @@ public class UserIntegrationEventMapperTest {
 	private static final String USER_SUSPENDED_EVENT_NAME = IntegrationEventTypes.USER_SUSPENDED.eventName;
 	private static final String USER_UNSUBSCRIBED_EVENT_NAME = IntegrationEventTypes.USER_UNSUBSCRIBED.eventName;
 	private static final String USER_SUBSCRIBED_EVENT_NAME = IntegrationEventTypes.USER_SUBSCRIBED.eventName;
+	private static final String LIBRARY_CARD_ASSIGNED_EVENT_NAME = IntegrationEventTypes.LIBRARY_CARD_ASSIGNED.eventName;
+	
+	private static final String CARD_NUMBER = "LIB-000001";
+	
+	private static final int VERSION_1 = 1;
+	private static final int VERSION_2 = 2;
+	
+	private static final String USER_ID = UUID.randomUUID().toString();
+	private static final String EVENT_ID = UUID.randomUUID().toString();
 	
 	private static final String PRODUCER = "user-service";
 	private final UserIntegrationEventMapper mapper = new UserIntegrationEventMapper();
 	
 	@ParameterizedTest(name = "[{index}] set correct metadata -> {0}")
 	@MethodSource("eventCases")
-	void shouldSetCorrectMetadata(String name, UserEvent domainEvent, IntegrationEventTypes eventType) {
+	void shouldSetCorrectMetadata(String name, UserEvent domainEvent, IntegrationEventTypes eventType, int eventVersion) {
 
 		IntegrationEventEnvelope<?> event = mapper.map(domainEvent);
 
 		Assertions.assertEquals(eventType, event.eventType());
 		Assertions.assertEquals(PRODUCER, event.producer());
-		Assertions.assertEquals(1, event.schemaVersion());
+		Assertions.assertEquals(eventVersion, event.schemaVersion());
 		Assertions.assertNotNull(event.eventId());
 	}
 	
@@ -82,31 +93,38 @@ public class UserIntegrationEventMapperTest {
 	
 	
 	static Stream<Arguments> eventCases() {
-		return Stream.of(Arguments.of(USER_SUBSCRIBED_EVENT_NAME, getUserSubscribedEvent(), IntegrationEventTypes.USER_SUBSCRIBED),
-				Arguments.of(USER_UNSUBSCRIBED_EVENT_NAME, getUserUnsubscribedEvent(), IntegrationEventTypes.USER_UNSUBSCRIBED),
-				Arguments.of(USER_SUSPENDED_EVENT_NAME, getUserSuspendedEvent(), IntegrationEventTypes.USER_SUSPENDED),
-				Arguments.of(USER_UNSUSPENDED_EVENT_NAME, getUserUnsuspendedEvent(), IntegrationEventTypes.USER_UNSUSPENDED));
+		return Stream.of(Arguments.of(USER_SUBSCRIBED_EVENT_NAME, getUserSubscribedEvent(), IntegrationEventTypes.USER_SUBSCRIBED, VERSION_2),
+				Arguments.of(USER_UNSUBSCRIBED_EVENT_NAME, getUserUnsubscribedEvent(), IntegrationEventTypes.USER_UNSUBSCRIBED, VERSION_1),
+				Arguments.of(USER_SUSPENDED_EVENT_NAME, getUserSuspendedEvent(), IntegrationEventTypes.USER_SUSPENDED, VERSION_1),
+				Arguments.of(LIBRARY_CARD_ASSIGNED_EVENT_NAME, getLibraryCardAssignedEvent(), IntegrationEventTypes.LIBRARY_CARD_ASSIGNED, VERSION_1),
+				Arguments.of(USER_UNSUSPENDED_EVENT_NAME, getUserUnsuspendedEvent(), IntegrationEventTypes.USER_UNSUSPENDED, VERSION_1));
 	}
 	
 	private static UserUnsuspendedEvent getUserUnsuspendedEvent() {
-		UserPayload payload = new UserPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Policy Violation", "admin1");
-		return new UserUnsuspendedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "d50cc664-0391-4833-8414-18c4c9e1bd45", 0, payload, Instant.now());
+		UserPayload payload = new UserPayload(USER_ID, "test@gmail.com", "Policy Violation", "admin1");
+		return new UserUnsuspendedEvent(USER_ID, EVENT_ID, 0, payload, Instant.now());
 	}
 
 	private static UserSuspendEvent getUserSuspendedEvent() {
-		UserPayload payload = new UserPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Policy Violation", "admin1");
-		return new UserSuspendEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "92e57621-d491-4c02-9a21-d910107e71d0", 0, payload, Instant.now());
+		UserPayload payload = new UserPayload(USER_ID, "test@gmail.com", "Policy Violation", "admin1");
+		return new UserSuspendEvent(USER_ID, EVENT_ID, 0, payload, Instant.now());
 	}
 
 	private static UserUnsubscribeEvent getUserUnsubscribedEvent() {
-		UserUnsubscribedPayload payload = new UserUnsubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Unsubscribed");
-		return new UserUnsubscribeEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "9c8db1b1-38d0-4717-aa34-702365299081", 0, payload, Instant.now()); 
+		UserUnsubscribedPayload payload = new UserUnsubscribedPayload(USER_ID, "test@gmail.com", "Unsubscribed");
+		return new UserUnsubscribeEvent(USER_ID, EVENT_ID, 0, payload, Instant.now()); 
 	}
 
 	private static UserSubscribedEvent getUserSubscribedEvent() {
 		String identityId = UUID.randomUUID().toString();
-		UserSubscribedPayload payload = new UserSubscribedPayload("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "test@gmail.com", "Test", "Test", 
-				identityId, UserStatus.ACTIVE, UserRole.READER);
-		return new UserSubscribedEvent("148a2b0c-1c3c-4e81-b522-5c4a07f71a9a", "07bf89ea-fd4e-4080-8fda-eb94679c4f6d", 0, payload, Instant.now());
+		UserSubscribedPayload payload = new UserSubscribedPayload(USER_ID, "test@gmail.com", "Test", "Test", identityId, 
+				CARD_NUMBER, UserStatus.ACTIVE, UserRole.READER);
+		return new UserSubscribedEvent(USER_ID, EVENT_ID, 0, payload, Instant.now());
     }
+	
+	private static LibraryCardAssignedEvent getLibraryCardAssignedEvent() {
+		LibraryCardAssignedPayload payload = new LibraryCardAssignedPayload(USER_ID, CARD_NUMBER);
+		return new LibraryCardAssignedEvent(USER_ID, EVENT_ID, 0, payload, Instant.now());
+	}
+
 }

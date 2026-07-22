@@ -15,9 +15,10 @@ import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
+import mentoring.acomi.loanservice.infrastructure.dto.LoanDetailDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
+import mentoring.acomi.sharedcodelibrary.common.CardNumberUtils;
 
 @RestController
 public class LoanController {
@@ -59,14 +60,14 @@ public class LoanController {
 	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")
 	@GetMapping
 	public LoansResponse findLoans(@RequestParam(required = false) String userId, @RequestParam(required = false) String isbn,
-		    @RequestParam(required = false) LoanStatus status) {
-	    LoanFilter loanFilter = new LoanFilter(isbn, userId, status);
+			@RequestParam(required = false) String cardNumber, @RequestParam(required = false) LoanStatus status) {
+	    LoanFilter loanFilter = new LoanFilter(isbn, userId, CardNumberUtils.normalizeCardNumber(cardNumber), status);
 		return service.findLoans(loanFilter);
 	}
 	
 	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")
 	@GetMapping("/{loanId}")
-	public LoanDto getLoan(@PathVariable String loanId) {
+	public LoanDetailDto getLoan(@PathVariable String loanId) {
 		return service.getLoan(loanId);
 	}
 

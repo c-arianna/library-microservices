@@ -5,11 +5,13 @@ import org.springframework.stereotype.Component;
 import mentoring.acomi.sharedcorelibrary.eventstore.EventMapper;
 import mentoring.acomi.userservice.domain.events.UserEvent;
 import mentoring.acomi.userservice.domain.events.UserEventType;
+import mentoring.acomi.userservice.domain.events.LibraryCardAssignedEvent;
 import mentoring.acomi.userservice.domain.events.UserSubscribedEvent;
 import mentoring.acomi.userservice.domain.events.UserSuspendEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsubscribeEvent;
 import mentoring.acomi.userservice.domain.events.UserUnsuspendedEvent;
 import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
+import mentoring.acomi.userservice.domain.events.payload.LibraryCardAssignedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserUnsubscribedPayload;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserEventEntity;
@@ -55,6 +57,11 @@ public class UserEventJpaMapper implements EventMapper<UserEvent, UserEventEntit
 		case UserUnsuspended -> {
 			UserPayload payload = objectMapper.treeToValue(event.getPayload(), UserPayload.class);
 			yield new UserUnsuspendedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
+		}
+		case LibraryCardAssigned -> {
+			LibraryCardAssignedPayload payload = objectMapper.treeToValue(event.getPayload(), LibraryCardAssignedPayload.class);
+			yield new LibraryCardAssignedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, 
+					event.getOccurredAt());
 		}
 
 		};

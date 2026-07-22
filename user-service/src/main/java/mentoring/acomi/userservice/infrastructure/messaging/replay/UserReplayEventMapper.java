@@ -1,11 +1,13 @@
 package mentoring.acomi.userservice.infrastructure.messaging.replay;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserIntegrationPayload;
+import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.LibraryCardAssignedIntegrationPayload;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.domain.events.UserEventType;
+import mentoring.acomi.userservice.domain.events.payload.LibraryCardAssignedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserSubscribedPayload;
 import mentoring.acomi.userservice.domain.events.payload.UserUnsubscribedPayload;
@@ -36,6 +38,9 @@ public class UserReplayEventMapper {
 		case UserUnsuspended-> {
 		    yield IntegrationEventTypes.USER_UNSUSPENDED;
 		}
+		case LibraryCardAssigned -> {
+			 yield IntegrationEventTypes.LIBRARY_CARD_ASSIGNED;
+		}
 		
 		};
 	}
@@ -46,7 +51,7 @@ public class UserReplayEventMapper {
 			case UserSubscribed -> {
 				UserSubscribedPayload payload = mapper.convertValue(eventPayload, UserSubscribedPayload.class);
 			    yield new UserSubscribedIntegrationPayload(payload.id(), payload.email(), payload.name(), payload.lastname(), 
-			    		payload.userIdentityProviderId(), payload.status(), payload.role());
+			    		payload.userIdentityProviderId(), payload.cardNumber(), payload.status(), payload.role());
 			}
 			case UserSuspended -> {
 				UserPayload payload = mapper.convertValue(eventPayload, UserPayload.class);
@@ -60,10 +65,12 @@ public class UserReplayEventMapper {
 				UserPayload payload = mapper.convertValue(eventPayload, UserPayload.class);
 				yield new UserIntegrationPayload(payload.userId(), UserStatus.ACTIVE);
 			}
+			case LibraryCardAssigned -> {
+				LibraryCardAssignedPayload payload = mapper.convertValue(eventPayload, LibraryCardAssignedPayload.class);
+				yield new LibraryCardAssignedIntegrationPayload(payload.userId(), payload.cardNumber());
+			}
 		 
 		};
 	}
-	
-	
 
 }

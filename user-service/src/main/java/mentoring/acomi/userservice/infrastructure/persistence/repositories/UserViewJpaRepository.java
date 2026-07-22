@@ -1,6 +1,7 @@
 package mentoring.acomi.userservice.infrastructure.persistence.repositories;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 
@@ -24,4 +26,11 @@ public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, Str
 	@Transactional
 	@Query("DELETE from UserViewEntity u where u.role = 'READER'")
 	void deleteAllReaderUsers();
+	@Modifying
+	@Transactional
+	@Query("UPDATE UserViewEntity u SET u.cardNumber = :cardNumber, u.updatedAt = :updatedAt WHERE u.id = :id")
+	void updateCardNumber(String id, String cardNumber, Instant updatedAt);
+	@Query("SELECT u FROM UserViewEntity u WHERE u.cardNumber is null and u.role = :role")
+	List<UserViewEntity> findWithoutCardNumber(@Param("role") UserRole role);
+	
 }

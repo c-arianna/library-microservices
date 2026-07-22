@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import mentoring.acomi.sharedcodelibrary.common.CardNumberUtils;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.UserFilter;
 import mentoring.acomi.userservice.application.services.UserService;
@@ -61,8 +62,9 @@ public class UserController {
 	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@GetMapping("/")
 	public UsersResponse getUsers(@RequestParam(required = false) String mail, @RequestParam(required = false) String name,
-			@RequestParam(required = false) String lastname, @RequestParam(required = false) UserStatus status) {
-		UserFilter filter = new UserFilter(mail, name, lastname, status);
+			@RequestParam(required = false) String lastname, @RequestParam(required = false) String cardNumber,
+			@RequestParam(required = false) UserStatus status) {
+		UserFilter filter = new UserFilter(mail, name, lastname, CardNumberUtils.normalizeCardNumber(cardNumber), status);
 		return service.getUsers(filter);
 	}
 	

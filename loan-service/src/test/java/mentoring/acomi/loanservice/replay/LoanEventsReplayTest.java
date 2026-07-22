@@ -90,6 +90,8 @@ public class LoanEventsReplayTest {
 	
 	private static final String TOKEN_VALUE = "test-token";
 	
+	private static final String USER_IDENTITY_PROVIDER_ID = UUID.randomUUID().toString();
+	
 	@AfterEach
 	void stopListeners() {
 	    registry.stop();
@@ -98,7 +100,8 @@ public class LoanEventsReplayTest {
 	@Test
 	void shouldRebuildProjectionsFromEventsReplay() {
 		
-		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UUID.randomUUID().toString(), UserStatus.ACTIVE), Instant.now());
+		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), "Harry", "Potter", "LIB-000001", 
+				USER_IDENTITY_PROVIDER_ID, UserStatus.ACTIVE), Instant.now());
 		setAuthenticatedUser(USER_ID, "READER");
 		
 		String loanId = createLoan();
@@ -132,6 +135,7 @@ public class LoanEventsReplayTest {
 	private void setAuthenticatedUser(String userId, String role) {
 
 		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none")
+				.claim("sub", USER_IDENTITY_PROVIDER_ID)
 				.claim("email", String.format("test%s@gmail.com", userId))
 				.claim("realm_access", Map.of("roles", List.of(role))).build();
 

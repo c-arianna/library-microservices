@@ -18,21 +18,23 @@ public class User {
 	private String name;
 	private String lastname;
 	private String userIdentityProviderId;
+	private CardNumber cardNumber;
 	private UserStatus status;
 	private UserRole role;
 	
-	private User(String id, Email email, String name, String lastname, String identityProviderId, UserStatus status, UserRole role) {
+	private User(String id, Email email, String name, String lastname, String identityProviderId, CardNumber cardNumber, UserStatus status, UserRole role) {
         this.id = id;
        this.email = email;
        this.name = name;
        this.lastname = lastname;
        this.userIdentityProviderId = identityProviderId;
+       this.cardNumber = cardNumber;
        this.status = status;
        this.role = role;
     }
 	
-	public static User create(String id, String email,String name, String lastname, String identityProviderId, UserRole role) {
-        return new User(id, new Email(email), name, lastname, identityProviderId, UserStatus.ACTIVE, role);
+	public static User create(String id, String email,String name, String lastname, String identityProviderId, String cardNumber, UserRole role) {
+        return new User(id, new Email(email), name, lastname, identityProviderId, new CardNumber(cardNumber),  UserStatus.ACTIVE, role);
     }
 
 }

@@ -23,7 +23,13 @@ public class UserViewEntity {
 	
 	private String email;
 	
+	private String name;
+	
+	private String lastname;
+	
 	private String userIdentityProviderId;
+	
+	private String cardNumber;
 	
 	@Enumerated(EnumType.STRING)
 	private UserStatus status;
@@ -33,9 +39,12 @@ public class UserViewEntity {
 	
 	private Instant updatedAt;
 	    
-    public UserViewEntity(String id, String email, String userIdentityProvider, UserStatus status) {
+    public UserViewEntity(String id, String email, String name, String lastname, String cardNumber, String userIdentityProvider, UserStatus status) {
     	this.id = id;
+    	this.name = name;
+    	this.lastname = lastname;
     	this.email = email;
+    	this.cardNumber = cardNumber;
     	this.userIdentityProviderId = userIdentityProvider;
     	this.status = status;
     }

@@ -61,7 +61,7 @@ import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 @SpringBootTest
 @Testcontainers
 @Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
-class LoanRabbitIntegrationTest {
+public class LoanRabbitIntegrationTest {
 
 	@Container
 	static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
@@ -98,14 +98,16 @@ class LoanRabbitIntegrationTest {
 	@Autowired
 	private UserViewQueryRepository userViewQueryRepository;
 	
-	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
 
 	private static final String TOKEN_VALUE = "test-token";
 
+	String USER_IDENTITY_PROVIDER_ID = UUID.randomUUID().toString();
+	
 	@BeforeEach
 	public void setupUser() {
-		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), UUID.randomUUID().toString(), UserStatus.ACTIVE), Instant.now());
+		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), "Harry", "Potter", "LIB-000001", 
+				USER_IDENTITY_PROVIDER_ID, UserStatus.ACTIVE), Instant.now());
 		setAuthenticatedUser(USER_ID, "READER");
 	}
 	
@@ -117,8 +119,9 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldConsumeBookReservedAndReserveLoan() {
 
-		String loanId = createLoan();
-		publishBookReserved(loanId);
+		String isbn = "978-8828727422";
+		String loanId = createLoan(isbn);
+		publishBookReserved(loanId, isbn);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var loan = loanViewRepository.findById(loanId);
@@ -133,8 +136,9 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldConsumeBookReservationRejectedAndFailLoanWhenBookNotAvailable() {
 
-		String loanId = createLoan();
-		publishBookReservationRejected(loanId, "BOOK_NOT_AVAILABLE");
+		String isbn = "9788415723356";
+		String loanId = createLoan(isbn);
+		publishBookReservationRejected(loanId, isbn, "BOOK_NOT_AVAILABLE");
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var loan = loanViewRepository.findById(loanId);
@@ -149,8 +153,9 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldConsumeBookBorrowedAndConfirmLoan() {
 
-		String loanId = createLoan();
-		publishBookReserved(loanId);
+		String isbn = "0988262509";
+		String loanId = createLoan(isbn);
+		publishBookReserved(loanId, isbn);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var loan = loanViewRepository.findById(loanId);
@@ -158,7 +163,7 @@ class LoanRabbitIntegrationTest {
 			Assertions.assertEquals(LoanStatus.RESERVED, loan.get().status());
 		});
 
-		publishBookBorrowed(loanId);
+		publishBookBorrowed(loanId, isbn);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var loan = loanViewRepository.findById(loanId);
@@ -172,9 +177,11 @@ class LoanRabbitIntegrationTest {
 	
 	@Test
 	void shouldConsumeBookBorrowRejectedAndFailLoanWhenReservationMissing() {
-		String loanId = createLoan();
+		
+		String isbn = "9780439139595";
+		String loanId = createLoan(isbn);
 
-		publishBookBorrowRejected(loanId, "RESERVATION_MISSING");
+		publishBookBorrowRejected(loanId, isbn, "RESERVATION_MISSING");
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var loan = loanViewRepository.findById(loanId);
@@ -189,8 +196,9 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldPublishLoanRequestedWhenLoanIsCreated() {
 
+		String isbn = "9788850335404";
 		String queue = createTmpQueue(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey());
-		createLoan();
+		createLoan(isbn);
 
 		String body = waitForMessageBody(queue);
 
@@ -198,7 +206,7 @@ class LoanRabbitIntegrationTest {
 			Assertions.assertNotNull(body);
 			Assertions.assertTrue(body.contains("\"eventType\":\"LOAN_REQUESTED\""));
 			Assertions.assertTrue(body.contains("\"producer\":\"loan-service\""));
-			Assertions.assertTrue(body.contains(String.format("\"isbn\":\"%s\"", ISBN)));
+			Assertions.assertTrue(body.contains(String.format("\"isbn\":\"%s\"", isbn)));
 			Assertions.assertTrue(body.contains(String.format("\"userId\":\"%s\"", USER_ID)));
 		});
 	}
@@ -206,10 +214,11 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldPublishLoanReservedAfterConsumingBookReserved() {
 
+		String isbn = "9781428709546";
 		String queue = createTmpQueue(IntegrationEventTypes.LOAN_RESERVED.getRoutingKey());
-		String loanId = createLoan();
+		String loanId = createLoan(isbn);
 
-		publishBookReserved(loanId);
+		publishBookReserved(loanId, isbn);
 
 		String body = waitForMessageBody(queue);
 
@@ -238,12 +247,12 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldRejectNotSupportedSchemaVersion() {
 
-		String loanId = createLoan();
+		String isbn = "9780060281373";
+		String loanId = createLoan(isbn);
 
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, AggregateType.BOOK.name(), 0, Instant.now(),
-				LoanIntegrationConsumerEventVersions.BOOK_RESERVED,
-				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, "book-service", 
+				isbn, AggregateType.BOOK.name(), 1, Instant.now(), LoanIntegrationConsumerEventVersions.BOOK_RESERVED,
+				new BookLoanIntegrationPayload(isbn, loanId, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(), event);
@@ -257,12 +266,12 @@ class LoanRabbitIntegrationTest {
 	@Test
 	void shouldNotConsumeDuplicateEventsTwice() {
 
-		String loanId = createLoan();
+		String isbn = "9788804336334";
+		String loanId = createLoan(isbn);
 
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, AggregateType.BOOK.name(), 0, Instant.now(),
-				LoanIntegrationConsumerEventVersions.BOOK_RESERVED,
-				new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, 
+				"book-service", isbn, AggregateType.BOOK.name(), 1, Instant.now(), 
+				LoanIntegrationConsumerEventVersions.BOOK_RESERVED, new BookLoanIntegrationPayload(isbn, loanId, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(), event);
@@ -282,47 +291,46 @@ class LoanRabbitIntegrationTest {
 		});
 	}
 
-	private String createLoan() {
+	private String createLoan(String isbn) {
 
-		LoanResponse response = loanService.addLoan(new AddLoanRequest(ISBN, USER_ID, LocalDate.now(), null));
+		LoanResponse response = loanService.addLoan(new AddLoanRequest(isbn, USER_ID, LocalDate.now(), null));
 
 		Assertions.assertNotNull(response);
 		Assertions.assertNotNull(response.loanId());
 		return response.loanId();
 	}
 
-	private void publishBookReserved(String loanId) {
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reserved-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVED, "book-service", ISBN, AggregateType.BOOK.name(), 0, Instant.now(),
-				1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+	private void publishBookReserved(String loanId, String isbn) {
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, 
+				"book-service", isbn, AggregateType.BOOK.name(), 1, Instant.now(), 1,
+				new BookLoanIntegrationPayload(isbn, loanId, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_RESERVED.getRoutingKey(), event);
 	}
 
-	private void publishBookBorrowed(String loanId) {
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-borrowed-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_BORROWED, "book-service", ISBN, AggregateType.BOOK.name(), 1, Instant.now(),
-				1, new BookLoanIntegrationPayload(ISBN, loanId, USER_ID));
+	private void publishBookBorrowed(String loanId, String isbn) {
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_BORROWED, 
+				"book-service", isbn, AggregateType.BOOK.name(), 3, Instant.now(), 1, 
+				new BookLoanIntegrationPayload(isbn, loanId, USER_ID));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_BORROWED.getRoutingKey(), event);
 	}
 
-	private void publishBookReservationRejected(String loanId, String reason) {
-		var event = new IntegrationEventEnvelope<>(String.format("evt-book-reject-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_RESERVATION_REJECTED, "book-service", ISBN, AggregateType.BOOK.name(), 0,
-				Instant.now(), 1, new BookReservationRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
+	private void publishBookReservationRejected(String loanId, String isbn, String reason) {
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVATION_REJECTED, 
+				"book-service", isbn, AggregateType.BOOK.name(), 0, Instant.now(), 1, 
+				new BookReservationRejectedIntegrationPayload(isbn, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_RESERVATION_REJECTED.getRoutingKey(), event);
 	}
 
-	private void publishBookBorrowRejected(String loanId, String reason) {
-		var event = new IntegrationEventEnvelope<>(
-				String.format("evt-book-borrow-reject-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.BOOK_BORROW_REJECTED, "book-service", ISBN, AggregateType.BOOK.name(), 0,
-				Instant.now(), 1, new BookBorrowRejectedIntegrationPayload(ISBN, loanId, USER_ID, reason));
+	private void publishBookBorrowRejected(String loanId, String isbn, String reason) {
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_BORROW_REJECTED, 
+				"book-service", isbn, AggregateType.BOOK.name(), 1, Instant.now(), 1, 
+				new BookBorrowRejectedIntegrationPayload(isbn, loanId, USER_ID, reason));
 
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.BOOK_BORROW_REJECTED.getRoutingKey(), event);
@@ -330,11 +338,10 @@ class LoanRabbitIntegrationTest {
 
 	private void publishUserSubscribed(String userId) {
 		
-		var event = new IntegrationEventEnvelope<>(
-				String.format("evt-user-subscribed-%s", UUID.randomUUID().toString()),
-				IntegrationEventTypes.USER_SUBSCRIBED, "user-service", userId, AggregateType.USER.name(), 0,
-				Instant.now(), 1, new UserSubscribedIntegrationPayload(userId, "test.%s@test.com".formatted(userId), "Test", "Test", "1234", 
-						UserStatus.ACTIVE, UserRole.READER));
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.USER_SUBSCRIBED, 
+				"user-service", userId, AggregateType.USER.name(), 1, Instant.now(), 1, 
+				new UserSubscribedIntegrationPayload(userId, "test.%s@test.com".formatted(userId), "Test", "Test", "1234", 
+						"LIB-000001", UserStatus.ACTIVE, UserRole.READER));
 		
 		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
 				IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey(), event);
@@ -363,6 +370,7 @@ class LoanRabbitIntegrationTest {
 	private void setAuthenticatedUser(String userId, String role) {
 
 		Jwt jwt = Jwt.withTokenValue(TOKEN_VALUE).header("alg", "none")
+				.claim("sub", USER_IDENTITY_PROVIDER_ID)
 				.claim("email", String.format("test%s@gmail.com", userId))
 				.claim("realm_access", Map.of("roles", List.of(role))).build();
 

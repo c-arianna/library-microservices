@@ -50,7 +50,8 @@ public class LoanUpdatedV1NotificationHandler extends AbstractNotificationHandle
 		 
 		 LoanUpdatedNotificationPayload notificationPayload = 
 	                new LoanUpdatedNotificationPayload(requiredField(payload, "loanId"), requiredField(payload, "isbn"),
-	                		requiredField(payload, "userId"), requiredField(payload, "identityProviderId"), status, startDate, endDate);
+	                		requiredField(payload, "userId"), requiredField(payload, "identityProviderId"), 
+	                		 requiredField(payload, "cardNumber"), status, startDate, endDate);
 		
 		  EventNotification notificationEvent = new EventNotification(event.eventType(), notificationPayload);
 		  messagingTemplate.convertAndSend("/topic/loans", notificationEvent);

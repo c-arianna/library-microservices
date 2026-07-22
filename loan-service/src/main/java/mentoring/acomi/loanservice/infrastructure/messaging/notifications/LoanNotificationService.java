@@ -25,7 +25,7 @@ public class LoanNotificationService {
 	public void publishLoanUpdated(String loanId, int schemaVersion) {
         LoanView loan = loanRepository.findById(loanId).orElseThrow(() -> new LoanNotFound("%s not found".formatted(loanId)));
         UserView user = userRepository.findById(loan.userId()).orElseThrow(() -> new UserNotFound("%s not found".formatted(loan.userId())));
-        publisher.publishLoanUpdated(loan, user.identityProviderId(), schemaVersion);
+        publisher.publishLoanUpdated(loan, user.identityProviderId(), user.cardNumber(), schemaVersion);
     }
 	
 }

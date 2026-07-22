@@ -31,6 +31,8 @@ public class UserViewEntity {
 	
 	private String userIdentityProviderId;
 	
+	private String cardNumber;
+	
 	@Enumerated(EnumType.STRING)
 	private UserStatus status;
 	
@@ -42,12 +44,14 @@ public class UserViewEntity {
 	
 	private Instant updatedAt;
 	    
-    public UserViewEntity(String id, String email, String name, String lastname, String userIdentityProviderId, UserStatus status, UserRole role) {
+    public UserViewEntity(String id, String email, String name, String lastname, String userIdentityProviderId, String cardNumber,
+    		UserStatus status, UserRole role) {
     	this.id = id;
     	this.email = email;
     	this.name = name;
     	this.lastname = lastname;
     	this.userIdentityProviderId = userIdentityProviderId;
+    	this.cardNumber = cardNumber;
     	this.status = status;
     	this.role = role;
     }

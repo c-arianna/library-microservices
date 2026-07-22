@@ -8,10 +8,7 @@ import org.springframework.stereotype.Component;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.userservice.application.projection.UserProjectionOperations;
-import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserSubscribedV1Handler;
-import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserSuspendedV1Handler;
-import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserUnsubscribedV1Handler;
-import mentoring.acomi.userservice.infrastructure.messaging.handlers.UserUnsuspendedV1Handler;
+import mentoring.acomi.userservice.infrastructure.messaging.handlers.*;
 
 @Component
 public class ReplayUserHandlerFactory {
@@ -26,10 +23,11 @@ public class ReplayUserHandlerFactory {
 
 	public List<EventHandler> createHandlers() {
 
-		return List.of(new UserSubscribedV1Handler(replayProjection, mapper),
+		return List.of(new UserSubscribedHandler(replayProjection, mapper),
 				       new UserSuspendedV1Handler(replayProjection, mapper),
 				       new UserUnsubscribedV1Handler(replayProjection, mapper),
-				       new UserUnsuspendedV1Handler(replayProjection, mapper)     
+				       new UserUnsuspendedV1Handler(replayProjection, mapper),
+				       new LibraryCardAssignedHandler(replayProjection, mapper)
 		);
 	}
 }

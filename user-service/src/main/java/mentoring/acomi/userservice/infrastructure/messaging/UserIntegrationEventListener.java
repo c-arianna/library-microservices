@@ -37,7 +37,7 @@ public class UserIntegrationEventListener {
 			
 			switch (eventEnvelope.eventType()) {
 			
-			case USER_SUBSCRIBED, USER_UNSUBSCRIBED, USER_SUSPENDED, USER_UNSUSPENDED -> {
+			case USER_SUBSCRIBED, USER_UNSUBSCRIBED, USER_SUSPENDED, USER_UNSUSPENDED, LIBRARY_CARD_ASSIGNED -> {
 				eventProcessor.processProducerEvent(eventEnvelope);
 			}
 			

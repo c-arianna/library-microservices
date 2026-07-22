@@ -76,7 +76,9 @@ public class LoanViewRepositoryTest {
 	}
 
 	private void insertLoan(String loanId) {
-		LoanViewEntity entity = new LoanViewEntity(loanId, "9788804336327", "user01", LocalDate.now(), null);
+		LocalDate startDate = LocalDate.now();
+		LocalDate endDate = startDate.plusDays(30);
+		LoanViewEntity entity = new LoanViewEntity(loanId, "9788804336327", "user01", startDate, endDate);
 		entity.markCreated(Instant.now());
 		jpaRepository.saveAndFlush(entity);
 	}

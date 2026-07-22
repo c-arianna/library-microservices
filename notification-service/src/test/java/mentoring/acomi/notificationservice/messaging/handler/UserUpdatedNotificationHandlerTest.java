@@ -71,6 +71,7 @@ public class UserUpdatedNotificationHandlerTest {
 				() -> Assertions.assertEquals(expectedPayload.name(), payload.name()),
 				() -> Assertions.assertEquals(expectedPayload.lastname(), payload.lastname()),
 				() -> Assertions.assertEquals(expectedPayload.userIdentityProviderId(), payload.userIdentityProviderId()),
+				() -> Assertions.assertEquals(expectedPayload.cardNumber(), payload.cardNumber()),
 				() -> Assertions.assertEquals(expectedPayload.status(), payload.status()),
 				() -> Assertions.assertEquals(expectedPayload.role(), payload.role()));
 	}
@@ -121,7 +122,7 @@ public class UserUpdatedNotificationHandlerTest {
 
 	private UserUpdatedNotificationPayload getPayload() {
 		return new UserUpdatedNotificationPayload(UUID.randomUUID().toString(), "test@gmail.com", "Test", "Test", UUID.randomUUID().toString(),
-				UserStatus.ACTIVE, UserRole.READER);
+				"LIB-000001", UserStatus.ACTIVE, UserRole.READER);
 	}
 
 }

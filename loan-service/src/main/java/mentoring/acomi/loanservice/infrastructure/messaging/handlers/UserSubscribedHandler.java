@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
@@ -15,13 +16,13 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventE
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.USER_SUBSCRIBED, supportedVersions = {1}, mode = HandlerMode.REPLAYABLE)
+@HandlerMetadata(eventType = IntegrationEventTypes.USER_SUBSCRIBED, supportedVersions = {1,2}, mode = HandlerMode.REPLAYABLE)
 @Component
-public class UserSubscribedV1Handler extends AbstractEventHandler<UserSubscribedIntegrationPayload> {
+public class UserSubscribedHandler extends AbstractEventHandler<UserSubscribedIntegrationPayload> {
 
 	private final UserProjectionOperations projectionOperations;
 
-	public UserSubscribedV1Handler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public UserSubscribedHandler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
 		super(mapper);
 		this.projectionOperations = projectionOperations;
 	}
@@ -33,6 +34,11 @@ public class UserSubscribedV1Handler extends AbstractEventHandler<UserSubscribed
 	
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(UserSubscribedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+		
+		if (event.schemaVersion() >= 2 && !StringUtils.hasText(payload.cardNumber())) {
+		    throw new IllegalStateException("cardNumber is mandatory for schema version 2");
+		}
+		
 		projectionOperations.handleSubscribeUser(payload, event.occurredAt());
 		return Optional.empty();
 	}

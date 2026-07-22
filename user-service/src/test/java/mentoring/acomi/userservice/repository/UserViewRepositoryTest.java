@@ -26,6 +26,8 @@ import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserV
 @Import(SecurityTestConfig.class)
 public class UserViewRepositoryTest {
 
+	private static final String CARD_NUMBER = "LIB-000001";
+	
 	@Autowired
 	private UserViewQueryRepository queryRepository;
 
@@ -47,7 +49,7 @@ public class UserViewRepositoryTest {
 
 		String identityId = UUID.randomUUID().toString();
 		
-		UserView user = new UserView(userId, "test@gmail.com", "Arianna", "Comi", identityId, UserStatus.ACTIVE, UserRole.LIBRARIAN);
+		UserView user = new UserView(userId, "test@gmail.com", "Arianna", "Comi", identityId, CARD_NUMBER, UserStatus.ACTIVE, UserRole.LIBRARIAN);
 		repository.add(user, Instant.now());
 		userView = queryRepository.findById(userId);
 
@@ -60,6 +62,7 @@ public class UserViewRepositoryTest {
 				() -> Assertions.assertEquals("Arianna", userViewFound.name()),
 				() -> Assertions.assertEquals("Comi", userViewFound.lastname()),
 				() -> Assertions.assertEquals(identityId, userViewFound.userIdentityProviderId()),
+				() -> Assertions.assertEquals(CARD_NUMBER, userViewFound.cardNumber()),
 				() -> Assertions.assertEquals(UserStatus.ACTIVE, userViewFound.status()),
 				() -> Assertions.assertEquals(UserRole.LIBRARIAN, userViewFound.role()));
 
@@ -81,7 +84,8 @@ public class UserViewRepositoryTest {
 
 	private void createUser(String userId, String email) {
 		String identityProviderId = UUID.randomUUID().toString();
-		UserViewEntity entity = new UserViewEntity(userId, email,"Arianna", "Comi", identityProviderId, UserStatus.ACTIVE, UserRole.READER);
+		UserViewEntity entity = new UserViewEntity(userId, email,"Arianna", "Comi", identityProviderId, "LIB-000001", 
+				UserStatus.ACTIVE, UserRole.READER);
 		entity.markCreated(Instant.now());
 		jpaRepository.saveAndFlush(entity);
 	}

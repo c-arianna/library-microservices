@@ -32,6 +32,8 @@ import tools.jackson.databind.ObjectMapper;
 @ExtendWith(MockitoExtension.class)
 public class LoanUpdatedNotificationHandlerTest {
 	
+	private static final String CARD_NUMBER = "LIB-000001";
+
 	@Mock
 	private SimpMessagingTemplate messagingTemplate;
 
@@ -69,6 +71,7 @@ public class LoanUpdatedNotificationHandlerTest {
 				() -> Assertions.assertEquals(expectedPayload.isbn(), payload.isbn()),
 				() -> Assertions.assertEquals(expectedPayload.userId(), payload.userId()),
 				() -> Assertions.assertEquals(expectedPayload.identityProviderId(), payload.identityProviderId()),
+				() -> Assertions.assertEquals(expectedPayload.cardNumber(), payload.cardNumber()),
 				() -> Assertions.assertEquals(expectedPayload.status(), payload.status()),
 				() -> Assertions.assertEquals(expectedPayload.startDate(), payload.startDate()),
 				() -> Assertions.assertEquals(expectedPayload.endDate(), payload.endDate()));
@@ -122,7 +125,7 @@ public class LoanUpdatedNotificationHandlerTest {
 		LocalDate start = LocalDate.now();
 		LocalDate end = start.plusDays(30);
 		return new LoanUpdatedNotificationPayload(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), 
-				UUID.randomUUID().toString(), LoanStatus.PENDING, start, end);
+				UUID.randomUUID().toString(), CARD_NUMBER, LoanStatus.PENDING, start, end);
 	}
 
 }

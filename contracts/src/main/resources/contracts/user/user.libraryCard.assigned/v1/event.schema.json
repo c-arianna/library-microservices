@@ -1,0 +1,44 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "LibraryCardAssignedEventV1",
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
+		},
+		{
+			"type": "object",
+			"properties": {
+				"eventType": {
+					"const": "LIBRARY_CARD_ASSIGNED"
+				},
+				"producer": {
+					"const": "user-service"
+				},
+				"aggregateType": {
+					"const": "USER"
+				},
+				"payload": {
+					"properties": {
+						"userId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"cardNumber": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						}
+					},
+					"required": [
+						"userId",
+						"cardNumber"
+					]
+				}
+			},
+			"required": [
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
+			]
+		}
+	],
+	"unevaluatedProperties": false
+}

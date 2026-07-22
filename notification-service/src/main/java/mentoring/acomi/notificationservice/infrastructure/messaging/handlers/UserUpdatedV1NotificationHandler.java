@@ -49,7 +49,7 @@ public class UserUpdatedV1NotificationHandler extends AbstractNotificationHandle
 		 UserUpdatedNotificationPayload notificationPayload = 
 	                new UserUpdatedNotificationPayload(requiredField(payload, "userId"), requiredField(payload, "email"),
 	                		requiredField(payload, "name"),  requiredField(payload, "lastname"), requiredField(payload, "userIdentityProviderId"), 
-	                		status, role);
+	                		requiredField(payload, "cardNumber"), status, role);
 		
 		  EventNotification notificationEvent = new EventNotification(event.eventType(), notificationPayload);
 		  messagingTemplate.convertAndSend("/topic/users", notificationEvent);

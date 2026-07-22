@@ -1,0 +1,1 @@
+ALTER TABLE user_view ADD card_number varchar(20) after lastname;

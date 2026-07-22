@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.UserFilter;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
@@ -63,6 +64,16 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 	public List<UserView> find(UserFilter filter) {
 		Specification<UserViewEntity> spec = JpaUserViewSpecification.fromFilter(filter);
 		return repository.findAll(spec).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public void updateCardNumber(String userId, String cardNumber, Instant occurredAt) {
+		repository.updateCardNumber(userId, cardNumber, occurredAt);
+	}
+
+	@Override
+	public List<UserView> findWithoutCardNumber() {
+		return repository.findWithoutCardNumber(UserRole.READER).stream().map(mapper::toDomain).toList();
 	}
 
 }

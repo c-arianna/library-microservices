@@ -55,7 +55,7 @@ public class UserUnsuspendedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).unsuspendUser(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).unsuspendUser(event.payload().userId(), event.occurredAt());
 	}
 	
 	@TestFactory

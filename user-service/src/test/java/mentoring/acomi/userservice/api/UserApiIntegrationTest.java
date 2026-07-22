@@ -42,7 +42,7 @@ import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
+public class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	private static final String USER_LASTNAME = "Comi";
 
@@ -242,7 +242,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 		Assertions.assertEquals(user.email(), body.email());
 		Assertions.assertEquals(USER_NAME, body.name());
 		Assertions.assertEquals(USER_LASTNAME, body.lastname());
-		Assertions.assertEquals(user.userIdentityProviderId(), body.userIdentityProviderId());
+		Assertions.assertEquals(user.cardNumber(), body.cardNumber());
 		Assertions.assertEquals(user.status(), body.status());
 		Assertions.assertEquals(user.role(), body.role());
 		
@@ -286,7 +286,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 		UserSubscribedResponse user = response.getBody();
 
 		userViewRepository.add(new UserView(user.userId(), user.email(), USER_NAME, USER_LASTNAME,
-				user.userIdentityProviderId(), UserStatus.ACTIVE, user.role()), Instant.now());
+				user.userIdentityProviderId(), user.cardNumber(), UserStatus.ACTIVE, user.role()), Instant.now());
 
 		return user;
 	}
@@ -301,7 +301,7 @@ class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	private void createUser(String userId, UserRole role) {
 		String identityProvider = UUID.randomUUID().toString();
-		userViewRepository.add(new UserView(userId, String.format(USER_EMAIL, userId), "Test", "Test", identityProvider,
+		userViewRepository.add(new UserView(userId, String.format(USER_EMAIL, userId), "Test", "Test", identityProvider, null,
 				UserStatus.ACTIVE, role), Instant.now());
 	}
 	

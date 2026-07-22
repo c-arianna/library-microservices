@@ -55,7 +55,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isEmpty());
-		verify(projectionOperations, times(1)).handleUpdateUserStatus(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).handleUpdateUserStatus(event.payload().userId(), event.payload().status(), event.occurredAt());
 	}
 	
 	@TestFactory

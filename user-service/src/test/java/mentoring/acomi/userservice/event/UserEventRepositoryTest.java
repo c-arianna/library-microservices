@@ -32,6 +32,8 @@ public class UserEventRepositoryTest {
 
 	private static final int EVENT_VERSION = 1;
 	
+	private static final String CARD_NUMBER = "LIB-000001";
+	
 	@Autowired
 	private UserEventRepository repository;
 
@@ -60,8 +62,8 @@ public class UserEventRepositoryTest {
 		UserSubscribedEvent userSubscribedEvent = createUserSubscribedEvent(userId);
 		repository.appendToStream(userSubscribedEvent, EVENT_VERSION);
 
-		UserSuspendEvent userSuspenedEvent = createUserSuspendedEvent(userId);
-		repository.appendToStream(userSuspenedEvent, EVENT_VERSION);
+		UserSuspendEvent userSuspendedEvent = createUserSuspendedEvent(userId);
+		repository.appendToStream(userSuspendedEvent, EVENT_VERSION);
 
 		entityManager.clear();
 
@@ -133,7 +135,8 @@ public class UserEventRepositoryTest {
 	private UserSubscribedEvent createUserSubscribedEvent(String userId) {
 		String eventId = UUID.randomUUID().toString();
 		String identityId = UUID.randomUUID().toString();
-		UserSubscribedPayload payload = new UserSubscribedPayload(userId, "test@gmail.com", "Arianna", "Comi", identityId, UserStatus.ACTIVE, UserRole.READER);
+		UserSubscribedPayload payload = new UserSubscribedPayload(userId, "test@gmail.com", "Arianna", "Comi", identityId,
+				CARD_NUMBER, UserStatus.ACTIVE, UserRole.READER);
 		return new UserSubscribedEvent(userId, eventId, 0, payload, Instant.now());
 
 	}
@@ -143,7 +146,7 @@ public class UserEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		UserPayload payload = new UserPayload(userId, "test@gmail.com", "User not respect the loan deadline", "admin01");
-		return new UserSuspendEvent(userId, eventId, 0, payload, Instant.now());
+		return new UserSuspendEvent(userId, eventId, 1, payload, Instant.now());
 
 	}
 

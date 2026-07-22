@@ -7,4 +7,4 @@ import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 public record UserSubscribedIntegrationPayload(@NotBlank String userId, @NotNull @Email String email, @NotBlank String name, 
-		@NotBlank String lastname, @NotBlank String userIdentityProviderId, @NotNull UserStatus status, @NotNull UserRole role) {}
+		@NotBlank String lastname, @NotBlank String userIdentityProviderId, String cardNumber, @NotNull UserStatus status, @NotNull UserRole role) {}

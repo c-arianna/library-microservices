@@ -33,7 +33,7 @@ public class UserSuspendedV1Handler extends AbstractEventHandler<UserIntegration
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.suspendUser(payload, event.occurredAt());
+		projectionOperations.suspendUser(payload.userId(), event.occurredAt());
 		return Optional.of(new ProjectionUpdateNotification(payload.userId(), event.schemaVersion()));
 	}
 	

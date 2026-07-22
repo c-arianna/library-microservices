@@ -2,6 +2,7 @@ package mentoring.acomi.loanservice.messaging.handler;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -20,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
-import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSubscribedV1Handler;
+import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSubscribedHandler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
@@ -30,7 +31,7 @@ import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @ExtendWith(MockitoExtension.class)
-public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
+public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 
 	private static final String MAIL = "test@gmail.com";
 	private static final String NAME = "Test";
@@ -38,11 +39,11 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	@Mock
 	private UserProjectionOperations projectionOperations;
-	private UserSubscribedV1Handler handler;
+	private UserSubscribedHandler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new UserSubscribedV1Handler(projectionOperations, mapper);
+		handler = new UserSubscribedHandler(projectionOperations, mapper);
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Override
 	protected IntegrationEventEnvelope<UserSubscribedIntegrationPayload> validEvent() {
-		return getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, 
+		return getUserSubscribedV1Event(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, 
 				UserRole.READER, 1);
 	}
 	
@@ -64,6 +65,32 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 		verify(projectionOperations, times(1)).handleSubscribeUser(event.payload(), event.occurredAt());
 	}
 
+	@Test
+	void shouldHandleVersion2Event() {
+
+	    IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event =
+	            getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, UUID.randomUUID().toString(), "LIB-000001", 
+	            		UserStatus.ACTIVE, UserRole.READER,  2);
+
+	    Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
+
+	    Assertions.assertTrue(notification.isEmpty());
+
+	    verify(projectionOperations, times(1)).handleSubscribeUser(event.payload(), event.occurredAt());
+	}
+	
+	@Test
+	void shouldRejectVersion2WithoutCardNumber() {
+
+	    IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event =
+	    		 getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, UUID.randomUUID().toString(), null, 
+		            		UserStatus.ACTIVE, UserRole.READER,  2);
+
+	    Assertions.assertThrows(IllegalStateException.class, () -> handler.handleEvent(event));
+
+	    verifyNoInteractions(projectionOperations);
+	}
+	
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
@@ -73,43 +100,49 @@ public class UserSubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {
 	    return List.of(new InvalidPayloadScenario("blank userId", "userId", 
-	    		           getUserSubscribedEvent("", MAIL, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1)),
+	    		           getUserSubscribedV1Event("", MAIL, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, UserRole.READER, 1)),
 	                   new InvalidPayloadScenario("null email", "email", 
-	                	   getUserSubscribedEvent(UUID.randomUUID().toString(), null, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, 
+	                	   getUserSubscribedV1Event(UUID.randomUUID().toString(), null, NAME, LASTNAME, UUID.randomUUID().toString(), UserStatus.ACTIVE, 
 	                			   UserRole.READER, 1)),
 	                   new InvalidPayloadScenario("invalid email", "email", 
-	                	   getUserSubscribedEvent(UUID.randomUUID().toString(), "test1", NAME, LASTNAME, UUID.randomUUID().toString(), 
+	                	   getUserSubscribedV1Event(UUID.randomUUID().toString(), "test1", NAME, LASTNAME, UUID.randomUUID().toString(), 
 	                			   UserStatus.ACTIVE, UserRole.READER, 1)),
 	                   new InvalidPayloadScenario("blank name", "name", 
-	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, "", LASTNAME, UUID.randomUUID().toString(), 
+	                		   getUserSubscribedV1Event(UUID.randomUUID().toString(), MAIL, "", LASTNAME, UUID.randomUUID().toString(), 
 								        UserStatus.ACTIVE, UserRole.READER, 1)),
 	                   new InvalidPayloadScenario("blank lastname", "lastname", 
-	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, "", UUID.randomUUID().toString(), 
+	                		   getUserSubscribedV1Event(UUID.randomUUID().toString(), MAIL, NAME, "", UUID.randomUUID().toString(), 
 	                    		        UserStatus.ACTIVE, UserRole.READER, 1)),
 	                   new InvalidPayloadScenario("blank userIdentityProviderId", "userIdentityProviderId", 
-	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, "", UserStatus.ACTIVE, UserRole.READER, 1)),
+	                		   getUserSubscribedV1Event(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, "", UserStatus.ACTIVE, UserRole.READER, 1)),
 	                   new InvalidPayloadScenario("null status", "status", 
-	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, 
+	                		   getUserSubscribedV1Event(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, 
 	                    		  		UUID.randomUUID().toString(), null, UserRole.READER, 1)),
 	                   new InvalidPayloadScenario("null role", "role", 
-	                		   getUserSubscribedEvent(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, UUID.randomUUID().toString(),
+	                		   getUserSubscribedV1Event(UUID.randomUUID().toString(), MAIL, NAME, LASTNAME, UUID.randomUUID().toString(),
 	                    		        UserStatus.ACTIVE, null, 1)));
 	                   
 	}
 								
-	private IntegrationEventEnvelope<UserSubscribedIntegrationPayload> getUserSubscribedEvent(String userId, String mail, String name, 
+	private IntegrationEventEnvelope<UserSubscribedIntegrationPayload> getUserSubscribedV1Event(String userId, String mail, String name, 
 			String lastname, String identityProvider, UserStatus status, UserRole role, int schemaVersion) {
+		return getUserSubscribedEvent(userId, mail, name, lastname, identityProvider, null, status, role, schemaVersion);
+	}
+
+	private IntegrationEventEnvelope<UserSubscribedIntegrationPayload> getUserSubscribedEvent(String userId, String mail, String name, 
+			String lastname, String identityProvider, String cardNumber, UserStatus status, UserRole role, int schemaVersion) {
 
 		String aggregateId = userId == null || userId.isBlank() ? UUID.randomUUID().toString() : userId;
 		
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.USER_SUBSCRIBED,
 				"test-handler", aggregateId, AggregateType.USER.name(), 0, Instant.now(), schemaVersion, 
-				getPayload(userId, mail, name, lastname, identityProvider, status, role));
+				getPayload(userId, mail, name, lastname, identityProvider, cardNumber, status, role));
 	}
 
-	private UserSubscribedIntegrationPayload getPayload(String userId, String mail, String name, String lastname, String identityProvider,
-			UserStatus status, UserRole role) {
-		return new UserSubscribedIntegrationPayload(userId, mail, name, lastname, identityProvider, status, role);
+	
+	private UserSubscribedIntegrationPayload getPayload(String userId, String mail, String name, String lastname, 
+			String identityProvider, String cardNumber, UserStatus status, UserRole role) {
+		return new UserSubscribedIntegrationPayload(userId, mail, name, lastname, identityProvider, cardNumber, status, role);
 	}
 
 }

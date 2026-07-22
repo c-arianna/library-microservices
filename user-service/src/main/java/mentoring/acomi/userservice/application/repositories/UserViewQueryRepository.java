@@ -10,4 +10,5 @@ public interface UserViewQueryRepository {
 	public Optional<UserView> findById(String id);
 	public Optional<UserView> findByEmail(String email);
 	public List<UserView> find(UserFilter filter);
+	List<UserView> findWithoutCardNumber();
 }

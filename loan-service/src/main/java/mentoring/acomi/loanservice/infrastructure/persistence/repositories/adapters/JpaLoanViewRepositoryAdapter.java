@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.loanservice.application.LoanFilter;
@@ -13,10 +12,10 @@ import mentoring.acomi.loanservice.application.repositories.LoanViewQueryReposit
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.mapper.LoanViewJpaMapper;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanViewJpaRepository;
-import mentoring.acomi.loanservice.infrastructure.persistence.repositories.spec.JpaLoanViewSpecification;
 
 @Primary
 @Repository
@@ -49,9 +48,8 @@ public class JpaLoanViewRepositoryAdapter implements LoanViewRepository, LoanVie
 	}
 
 	@Override
-	public List<LoanView> find(LoanFilter filter) {
-		Specification<LoanViewEntity> spec = JpaLoanViewSpecification.fromFilter(filter);
-		return repository.findAll(spec).stream().map(mapper::toView).toList();
+	public List<LoanDto> find(LoanFilter filter) {
+		return repository.findByFilter(filter.isbn(), filter.userId(), filter.status(), filter.cardNumber());
 	}
 
 	@Override
