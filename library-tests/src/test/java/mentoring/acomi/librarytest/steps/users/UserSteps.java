@@ -20,6 +20,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import mentoring.acomi.librarytest.config.TestConfig;
 import mentoring.acomi.librarytest.steps.CommonSteps;
+import mentoring.acomi.librarytest.support.ExpectedValue;
 import mentoring.acomi.librarytest.support.Helper;
 import mentoring.acomi.librarytest.support.TestContext;
 
@@ -257,6 +258,34 @@ public class UserSteps {
 
 	}
 	
+	@When("l'amministratore crea un utente ADMIN, con i seguenti dati:")
+	public void registerUser(DocString body) {
+		
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+		
+		var result = client.post().uri("/users").contentType(MediaType.APPLICATION_JSON).body(body.getContent())
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		
+		if (result.getResponseBody() != null) {
+			
+			String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+			context.put(CommonSteps.RESPONSE_BODY, response);
+			
+			if(result.getStatus().value() == 200) {
+				var bodyResponse = JsonPath.parse(response);
+				String userId = bodyResponse.read("$.userId");
+	
+				String userIdentityProviderId = bodyResponse.read("$.userIdentityProviderId");
+			
+				context.put(CommonSteps.USER_ID, userId);
+				context.userProviderIdToDelete.add(userIdentityProviderId);
+			}
+				
+		}
+		
+	}
 	/*
 	 * ############################### THEN #####################################
 	 */
@@ -290,8 +319,8 @@ public class UserSteps {
 				if(cardNumber.equals("-")) {
 					Assertions.assertNotNull(responseCardNumber);
 				}else {
-				String expectedCardNumber = Helper.resolve(cardNumber, context);
-				Assertions.assertEquals(expectedCardNumber, responseCardNumber);
+				ExpectedValue expectedCardNumber = Helper.normalizeExpected(Helper.resolve(cardNumber, context));
+				Assertions.assertTrue(expectedCardNumber.matches(responseCardNumber));
 				}
 		}), 5000, 200);
 

@@ -76,4 +76,9 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 		return repository.findWithoutCardNumber(UserRole.READER).stream().map(mapper::toDomain).toList();
 	}
 
+	@Override
+	public void deleteByUserIdentityProviderId(String userIdentityProviderId) {
+		repository.deleteByUserIdentityProviderId(userIdentityProviderId);	
+	}
+
 }

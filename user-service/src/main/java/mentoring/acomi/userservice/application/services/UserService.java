@@ -39,6 +39,8 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
+import mentoring.acomi.userservice.infrastructure.dto.UserRegisterRequest;
+import mentoring.acomi.userservice.infrastructure.dto.UserRegisteredDto;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
@@ -66,25 +68,12 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserSubscribedResponse subscribe(SubscribeRequest request, String role) {
+	public UserSubscribedResponse subscribe(SubscribeRequest request) {
 
-		String userId = UUID.randomUUID().toString();
-		String email = request.email();
-
-		if (userViewRepository.findByEmail(email).isPresent()) {
-			throw new ApplicationConflict("USER_ALREADY_EXISTS", String.format("Email: %s", email));
-		}
-
-		ProviderUserCreated keycloakUser = createIdentityProviderUser(request, role);
-
-		UserAggregate aggregate = loadUser(userId);
-		CardNumber cardNumber = cardNumberGenerator.generate();
-		User user = getUser(userId, request, keycloakUser.identityProviderId(), cardNumber.value());
-		aggregate.subscribe(user);
-
-		return new UserSubscribedResponse(user.getId(), user.getEmail().getValue(), user.getUserIdentityProviderId(),
-				user.getCardNumber().value(), user.getRole(), user.getStatus());
-
+		 UserRegisteredDto userRegistered = new UserRegisteredDto(request.name(), request.lastname(), request.email(), 
+				 request.password(), UserRole.READER);
+		 
+		return createUser(userRegistered);
 	}
 
 	@Transactional
@@ -123,6 +112,48 @@ public class UserService {
 		return new UserResponse(request.userId(), aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.cardNumber(),
 				aggregate.role(), UserStatus.ACTIVE);
 	}
+	
+	@Transactional
+	public UserSubscribedResponse register(UserRegisterRequest request) {
+		 UserRegisteredDto userRegistered = new UserRegisteredDto(request.name(), request.lastname(), request.email(), request.password(),
+		    		request.role());
+		 
+		return createUser(userRegistered);
+	}
+
+	private UserSubscribedResponse createUser(UserRegisteredDto userRegistered) {
+		
+		String userId = UUID.randomUUID().toString();
+		String email = userRegistered.email();
+
+		if (userViewRepository.findByEmail(email).isPresent()) {
+			throw new ApplicationConflict("USER_ALREADY_EXISTS", String.format("Email: %s", email));
+		}
+		
+		ProviderUserCreated keycloakUser = createIdentityProviderUser(userRegistered);
+
+		UserAggregate aggregate = loadUser(userId);
+		
+		String cardNumber = generateCardNumber(userRegistered.role());
+		
+		User user = getUser(userId, userRegistered, keycloakUser.identityProviderId(), cardNumber);
+		
+		aggregate.subscribe(user);
+
+		return new UserSubscribedResponse(user.getId(), user.getEmail().getValue(), user.getUserIdentityProviderId(),
+				user.getCardNumber().value(), user.getRole(), user.getStatus());
+	}
+
+	private String generateCardNumber(UserRole role) {
+		
+		if(UserRole.ADMIN.equals(role) || UserRole.LIBRARIAN.equals(role)) {
+			return null;
+		}
+		
+		CardNumber cardNumber =  cardNumberGenerator.generate();
+		
+		return cardNumber.value();
+	}
 
 	private UserView getLoggedUser() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -142,9 +173,8 @@ public class UserService {
 
 	}
 
-	private User getUser(String userId, SubscribeRequest request, String identityProviderId, String cardNumber) {
-		return User.create(userId, request.email(), request.name(), request.lastname(), identityProviderId, cardNumber, 
-				UserRole.READER);
+	private User getUser(String userId, UserRegisteredDto user, String identityProviderId, String cardNumber) {
+		return User.create(userId, user.email(), user.name(), user.lastname(), identityProviderId, cardNumber, user.role());
 	}
 
 	private UserAggregate loadUser(String userId) {
@@ -182,10 +212,11 @@ public class UserService {
 		};
 	}
 
-	private ProviderUserCreated createIdentityProviderUser(SubscribeRequest request, String role) {
+	private ProviderUserCreated createIdentityProviderUser(UserRegisteredDto user) {
 		
 		try {	
-			return identityProviderService.createUser(request.email(), request.password(), request.name(), request.lastname(), role);
+			String role = "ROLE_%s".formatted(user.role().toString());
+			return identityProviderService.createUser(user.email(), user.password(), user.name(), user.lastname(), role);
 		}catch (KeycloakException ex) {
 		    throw mapIdentityProviderException(ex);
 		}

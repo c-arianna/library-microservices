@@ -299,7 +299,7 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 		String email = String.format("test.%s@mail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
 		
-		UserSubscribedResponse response = userService.subscribe(request, "ROLE_READER");
+		UserSubscribedResponse response = userService.subscribe(request);
 		
 		await().atMost(Duration.ofSeconds(7)).untilAsserted(() -> {
 			    Assertions.assertTrue(userViewRepository.findById(response.userId()).isPresent());

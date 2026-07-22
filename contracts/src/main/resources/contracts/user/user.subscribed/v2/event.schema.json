@@ -35,7 +35,7 @@
 							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
 						},
 						"cardNumber": {
-							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+							"type": "string"
 						},
 						"status": {
 							"const": "ACTIVE"

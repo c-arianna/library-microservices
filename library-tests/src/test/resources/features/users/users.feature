@@ -166,7 +166,7 @@ L'amministratore della bibloteca può
       | code    | "USER_NOT_CREATED"           |
       | type    | "AGGREGATE_INVARIANT_FAILED" |
       
-  Rule: visualizzazione profilo utente
+  Rule: Visualizzazione profilo utente
   
     Scenario: Un utente READER può visualizzare il suo profilo
       Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
@@ -268,5 +268,21 @@ L'amministratore della bibloteca può
       Then la risposta ha status code 403
       And la risposta contiene il campo "message"
       And la risposta contiene i seguenti campi:
-      | code    | "ACCESS_DENIED"     |
-      | type    | "SECURITY" |
+      | code    | "ACCESS_DENIED"   |
+      | type    | "SECURITY"        |
+      
+  Rule: Creazione utente admin
+  
+    Scenario: Un utente ADMIN può creare utenti ADMIN/LIBRARIAN
+      When l'amministratore crea un utente ADMIN, con i seguenti dati:
+        """
+        {
+          "name": "Gastone",
+          "lastname": "Fortunato",
+          "email": "g.fortunato.admin@gmail.com",
+          "password": "FortunatoAdmin12345678",
+          "role": "ADMIN"
+        }
+        """
+      Then la risposta ha status code 200
+      And l'utente ha email "g.fortunato.admin@gmail.com", ruolo "ADMIN", stato "ACTIVE", numero tessera "NULL"

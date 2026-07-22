@@ -93,7 +93,7 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 		String email = String.format("test.%s@mail.com", UUID.randomUUID().toString());
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
 		
-		UserSubscribedResponse user = userService.subscribe(request, "ROLE_READER");
+		UserSubscribedResponse user = userService.subscribe(request);
 		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 		    Assertions.assertThat(userViewRepository.findById(user.userId()).isPresent()).isTrue();

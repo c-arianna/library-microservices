@@ -10,4 +10,5 @@ public interface UserViewRepository {
 	public void updateStatus(String id, UserStatus status, Instant updatedAt);
 	public void deleteAllReaderUsers();
 	public void updateCardNumber(String userId, String cardNumber, Instant occurredAt);
+	public void deleteByUserIdentityProviderId(String userIdentityProviderId);
 }

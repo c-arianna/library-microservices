@@ -13,6 +13,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.userservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.userservice.application.projection.UserSubscriptionData;
 import mentoring.acomi.userservice.infrastructure.messaging.payload.producer.UserSubscribedIntegrationPayload;
@@ -36,12 +37,21 @@ public class UserSubscribedHandler extends AbstractEventHandler<UserSubscribedIn
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(UserSubscribedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		
-		if (event.schemaVersion() >= 2 && !StringUtils.hasText(payload.cardNumber())) {
-		    throw new IllegalStateException("card number is mandatory for schema version 2");
+		if (event.schemaVersion() >= 2) {
+			
+			boolean hasCardNumber = StringUtils.hasText(payload.cardNumber());
+			boolean invalidReader = payload.role() == UserRole.READER && !hasCardNumber;
+			boolean invalidOperator = payload.role() != UserRole.READER && hasCardNumber;
+			
+			if (invalidReader || invalidOperator) {
+				throw new IllegalStateException("invalid card number for schema version 2");
+			}
 		}
 		
 		projectionOperations.subscribeUser(getSubscriptionData(payload), event.occurredAt());
+	
 		return Optional.of(new ProjectionUpdateNotification(payload.userId(), event.schemaVersion()));
+		
 	}
 
 	private UserSubscriptionData getSubscriptionData(UserSubscribedIntegrationPayload payload) {

@@ -17,6 +17,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
+import mentoring.acomi.userservice.infrastructure.dto.UserRegisterRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
@@ -50,7 +51,7 @@ public class UserController {
 	
 	@PostMapping("/subscribe")
 	public UserSubscribedResponse subscribe(@RequestBody @Valid SubscribeRequest request) {
-		return service.subscribe(request, "ROLE_READER");
+		return service.subscribe(request);
 	}
 	
 	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
@@ -71,6 +72,12 @@ public class UserController {
 	@GetMapping("/profile")
 	public UserDetail getUserProfile() {
 		return service.getUserProfile();
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN')")
+	@PostMapping("/")
+	public UserSubscribedResponse registerUser(@RequestBody @Valid UserRegisterRequest request) {
+		return service.register(request);
 	}
 	
 }

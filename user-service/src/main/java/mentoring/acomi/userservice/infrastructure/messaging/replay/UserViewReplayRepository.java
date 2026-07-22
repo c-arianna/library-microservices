@@ -62,4 +62,9 @@ public class UserViewReplayRepository implements UserViewRepository, ReplayProje
 		jdbcTemplate.update("UPDATE %s SET card_number = ?, updated_at = ? WHERE id = ?".formatted(TABLE_TMP), cardNumber, updatedAt, id);
 	}
 
+	@Override
+	public void deleteByUserIdentityProviderId(String userIdentityProviderId) {
+		throw new UnsupportedOperationException("Not needed");	
+	}
+
 }

@@ -32,5 +32,8 @@ public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, Str
 	void updateCardNumber(String id, String cardNumber, Instant updatedAt);
 	@Query("SELECT u FROM UserViewEntity u WHERE u.cardNumber is null and u.role = :role")
 	List<UserViewEntity> findWithoutCardNumber(@Param("role") UserRole role);
+	@Modifying
+	@Transactional
+	void deleteByUserIdentityProviderId(String userIdentityProviderId);	
 	
 }

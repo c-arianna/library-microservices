@@ -33,6 +33,7 @@ public class TestController {
     
     @PostMapping("/reset/user/{userIdentityProviderId}")
     public void deleteUser(@PathVariable String userIdentityProviderId) {
+    	userRepository.deleteByUserIdentityProviderId(userIdentityProviderId);
     	service.deleteUser(userIdentityProviderId);
     }
 

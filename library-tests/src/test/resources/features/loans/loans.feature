@@ -307,7 +307,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And la risposta contiene il campo "loans"
       And eventualmente "loans" è una lista vuota
       
-  Rule: visualizzazione dettaglio prestito
+  Rule: Visualizzazione dettaglio prestito
   
     Scenario: Dettaglio di un prestito esistente
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato

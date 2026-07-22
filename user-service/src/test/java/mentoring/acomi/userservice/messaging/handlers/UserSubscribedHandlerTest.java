@@ -82,7 +82,7 @@ public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 	}
 	
 	@Test
-	void shouldRejectVersion2WithoutCardNumber() {
+	void shouldRejectVersion2WithoutCardNumberForReaderUser() {
 
 	    IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event =
 	            getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER,
@@ -93,6 +93,17 @@ public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 	    verifyNoInteractions(projectionOperations);
 	}
 	
+	@Test
+	void shouldRejectVersion2WithCardNumberForAdminUser() {
+
+	    IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event =
+	            getUserSubscribedEvent(UUID.randomUUID().toString(), EMAIL, NAME, LASTNAME, IDENTITY_PROVIDER,
+	                    UserStatus.ACTIVE, UserRole.ADMIN, "LIB-000001", 2);
+
+	    Assertions.assertThrows(IllegalStateException.class, () -> handler.handleEvent(event));
+
+	    verifyNoInteractions(projectionOperations);
+	}
 	
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {

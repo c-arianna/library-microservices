@@ -37,7 +37,7 @@ import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
-import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
+import mentoring.acomi.userservice.infrastructure.dto.UserRegisterRequest;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 
@@ -101,16 +101,17 @@ public class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 	@Test
 	void shouldCreateUser() {
 		SubscribeRequest request = new SubscribeRequest(USER_NAME, USER_LASTNAME, "test@gmail.com", "12345678");
-		ResponseEntity<UserResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
-				.body(request).retrieve().toEntity(UserResponse.class);
+		ResponseEntity<UserSubscribedResponse> response = client.post().uri("/subscribe").contentType(MediaType.APPLICATION_JSON)
+				.body(request).retrieve().toEntity(UserSubscribedResponse.class);
 
 		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
-		UserResponse body = response.getBody();
+		UserSubscribedResponse body = response.getBody();
 
 		Assertions.assertNotNull(response.getBody());
 
 		Assertions.assertNotNull(body.userId());
+		Assertions.assertNotNull(body.cardNumber());
 
 	}
 
@@ -246,6 +247,40 @@ public class UserApiIntegrationTest extends AbstractKeycloakIntegrationTest {
 		Assertions.assertEquals(user.status(), body.status());
 		Assertions.assertEquals(user.role(), body.role());
 		
+	}
+	
+	@Test
+	void userCannotCreateOperationUser() {
+		UserSubscribedResponse user = createUser();
+		generateToken(READER_ROLE, user.email());
+		
+		UserRegisterRequest request = new UserRegisterRequest(USER_NAME, USER_LASTNAME, "test@gmail.com", "12345678", UserRole.ADMIN);
+		ResponseEntity<String> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request)
+				.exchange((req, res) -> toEntity(res));
+
+		Assertions.assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+	}
+	
+	@Test
+	void adminCanCreateOperationUser() {
+		
+		generateToken(ADMIN_ROLE, String.format(USER_EMAIL, ADMIN_1));
+		
+		UserRegisterRequest request = new UserRegisterRequest(USER_NAME, USER_LASTNAME, "adminTest@gmail.com", "12345678", UserRole.ADMIN);
+		ResponseEntity<UserSubscribedResponse> response = client.post().uri("/").contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE)).body(request).retrieve().toEntity(UserSubscribedResponse.class);
+
+		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+
+		UserSubscribedResponse body = response.getBody();
+
+		Assertions.assertNotNull(response.getBody());
+
+		Assertions.assertNotNull(body.userId());
+		Assertions.assertNull(body.cardNumber());
+		Assertions.assertEquals(UserRole.ADMIN, body.role());
+
 	}
 	
 	private ResponseEntity<String> unsubscribeUser() {
