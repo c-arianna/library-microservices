@@ -18,7 +18,7 @@ public class EventHandlerRegistry {
             HandlerMetadata metadata = handler.getClass().getAnnotation(HandlerMetadata.class);
 
             if (metadata == null) {
-                throw new IllegalStateException("Missing @Projector on %s".formatted(handler.getClass().getName()));
+                throw new IllegalStateException("Missing @HandlerMetadata on %s".formatted(handler.getClass().getName()));
             }
 
             for (int version : metadata.supportedVersions()) {

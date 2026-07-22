@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -22,7 +21,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNotification;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.UserUpdatedNotificationPayload;
-import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.UserUpdatedV1NotificationHandler;
+import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.UserUpdatedNotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
@@ -37,11 +36,11 @@ public class UserUpdatedNotificationHandlerTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
 	
-	private UserUpdatedV1NotificationHandler handler;
+	private UserUpdatedNotificationHandler handler;
 	
 	@BeforeEach
 	void setUp() {
-		handler = new UserUpdatedV1NotificationHandler(mapper, messagingTemplate);
+		handler = new UserUpdatedNotificationHandler(mapper, messagingTemplate);
 	}
 	
 	@Test
@@ -74,33 +73,6 @@ public class UserUpdatedNotificationHandlerTest {
 				() -> Assertions.assertEquals(expectedPayload.cardNumber(), payload.cardNumber()),
 				() -> Assertions.assertEquals(expectedPayload.status(), payload.status()),
 				() -> Assertions.assertEquals(expectedPayload.role(), payload.role()));
-	}
-
-	@Test
-	void shouldSupportVersion1() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.USER_UPDATED, "user-service", Instant.now(), 1, Map.of());
-
-		Assertions.assertTrue(handler.accepts(event));
-	}
-
-	@Test
-	void shouldNotSupportUnknownSchemaVersion() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.USER_UPDATED, "user-service", Instant.now(), 999, Map.of());
-
-		Assertions.assertFalse(handler.accepts(event));
-	}
-
-	@Test
-	void shouldNotSupportDifferentEventType() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.LOAN_UPDATED, "loan-service", Instant.now(), 1, Map.of());
-
-		Assertions.assertFalse(handler.accepts(event));
 	}
 
 	@Test

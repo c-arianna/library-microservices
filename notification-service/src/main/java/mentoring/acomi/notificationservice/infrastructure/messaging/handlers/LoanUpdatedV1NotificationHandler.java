@@ -14,6 +14,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.Not
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+@NotificationHandlerMetadata(notificationEventType = NotificationEventType.LOAN_UPDATED, supportedVersions = {1})
 @Component
 public class LoanUpdatedV1NotificationHandler extends AbstractNotificationHandler {
 	
@@ -24,17 +25,7 @@ public class LoanUpdatedV1NotificationHandler extends AbstractNotificationHandle
 		this.mapper = mapper;
 		this.messagingTemplate = messagingTemplate;
 	}
-	
-	@Override
-	public NotificationEventType eventType() {
-		return NotificationEventType.LOAN_UPDATED;
-	}
-	
-	@Override
-	public boolean accepts(NotificationEventEnvelope<?> event) {
-		return event.eventType() == eventType() && event.schemaVersion() == 1;
-	}
-	
+		
 	@Override
 	public void handleEvent(NotificationEventEnvelope<?> event) {
 		 		 

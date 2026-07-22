@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -75,33 +74,6 @@ public class LoanUpdatedNotificationHandlerTest {
 				() -> Assertions.assertEquals(expectedPayload.status(), payload.status()),
 				() -> Assertions.assertEquals(expectedPayload.startDate(), payload.startDate()),
 				() -> Assertions.assertEquals(expectedPayload.endDate(), payload.endDate()));
-	}
-
-	@Test
-	void shouldSupportVersion1() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.LOAN_UPDATED, "loan-service", Instant.now(), 1, Map.of());
-
-		Assertions.assertTrue(handler.accepts(event));
-	}
-
-	@Test
-	void shouldNotSupportUnknownSchemaVersion() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.LOAN_UPDATED, "loan-service", Instant.now(), 999, Map.of());
-
-		Assertions.assertFalse(handler.accepts(event));
-	}
-
-	@Test
-	void shouldNotSupportDifferentEventType() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.BOOK_UPDATED, "book-service", Instant.now(), 1, Map.of());
-
-		Assertions.assertFalse(handler.accepts(event));
 	}
 
 	@Test

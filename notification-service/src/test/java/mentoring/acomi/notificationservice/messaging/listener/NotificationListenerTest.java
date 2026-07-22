@@ -1,13 +1,12 @@
 package mentoring.acomi.notificationservice.messaging.listener;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -20,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.NotificationListener;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.BookUpdatedNotificationPayload;
+import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandlerRegistry;
 import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
@@ -29,72 +29,52 @@ public class NotificationListenerTest {
 
 	@Mock
 	private NotificationHandler handler;
+	
+	@Mock
+	private NotificationHandlerRegistry registry;
 
 	private NotificationListener listener;
 
 	@BeforeEach
 	void setUp() {
-
-		when(handler.eventType()).thenReturn(NotificationEventType.BOOK_UPDATED);
-
-		listener = new NotificationListener(List.of(handler));
+		listener = new NotificationListener(registry);
 	}
 
 	@Test
 	void shouldInvokeHandler() {
-
 		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
-
-		when(handler.accepts(event)).thenReturn(true);
-
+		when(registry.find(event)).thenReturn(Optional.of(handler));
 		listener.onEvent(event);
-
+		verify(registry).find(event);
 		verify(handler).handleEvent(event);
 	}
 
 	@Test
-	void shouldIgnoreUnknownEvent() {
+	void shouldFailWhenHandlerNotFound() {
 
-		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
+	    NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
 
-		listener.onEvent(event);
+	    when(registry.find(event)).thenReturn(Optional.empty());
 
-		verify(handler, never()).handleEvent(any());
+	    Assertions.assertThrows(IllegalStateException.class, () -> listener.onEvent(event));
+
+	    verifyNoInteractions(handler);
 	}
 
-	@Test
-	void shouldIgnoreUnsupportedSchemaVersion() {
-
-		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
-
-		when(handler.accepts(event)).thenReturn(false);
-
-		listener.onEvent(event);
-
-		verify(handler, never()).handleEvent(any());
-	}
 
 	@Test
 	void shouldDiscardNotificationHandlingException() {
-
 		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
-
-		when(handler.accepts(event)).thenReturn(true);
-
+		when(registry.find(event)).thenReturn(Optional.of(handler));
 		doThrow(new NotificationHandlingException("invalid payload")).when(handler).handleEvent(event);
-
 		Assertions.assertDoesNotThrow(() -> listener.onEvent(event));
 	}
 
 	@Test
 	void shouldRethrowUnexpectedException() {
-
 		NotificationEventEnvelope<?> event = buildBookUpdatedEvent();
-
-		when(handler.accepts(event)).thenReturn(true);
-
+		when(registry.find(event)).thenReturn(Optional.of(handler));
 		doThrow(new RuntimeException("Error!")).when(handler).handleEvent(event);
-
 		Assertions.assertThrows(RuntimeException.class, () -> listener.onEvent(event));
 	}
 
