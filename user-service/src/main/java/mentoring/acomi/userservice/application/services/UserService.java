@@ -214,9 +214,8 @@ public class UserService {
 
 	private ProviderUserCreated createIdentityProviderUser(UserRegisteredDto user) {
 		
-		try {	
-			String role = "ROLE_%s".formatted(user.role().toString());
-			return identityProviderService.createUser(user.email(), user.password(), user.name(), user.lastname(), role);
+		try {
+			return identityProviderService.createUser(user.email(), user.password(), user.name(), user.lastname(), user.role());
 		}catch (KeycloakException ex) {
 		    throw mapIdentityProviderException(ex);
 		}
@@ -260,14 +259,14 @@ public class UserService {
 		UserView userView = user.get();
 		
 		return new UserDetail(userView.id(), userView.email(), userView.name(), userView.lastname(), userView.cardNumber(), 
-				 userView.status(), userView.role());
+				userView.userIdentityProviderId(),  userView.status(), userView.role());
 	
 	}
 	
 	public UserDetail getUserProfile() {
 		UserView loggedUser = getLoggedUser();
 		return new UserDetail(loggedUser.id(), loggedUser.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.cardNumber(), 
-				loggedUser.status(), loggedUser.role());
+				loggedUser.userIdentityProviderId(), loggedUser.status(), loggedUser.role());
 	}
 
 	public UsersResponse getUsers(UserFilter filter) {

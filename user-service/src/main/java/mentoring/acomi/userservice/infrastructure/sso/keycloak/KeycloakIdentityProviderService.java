@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.userservice.application.sso.IdentityProviderService;
 import mentoring.acomi.userservice.application.sso.ProviderUserCreated;
 import mentoring.acomi.userservice.infrastructure.sso.client.KeycloakAdminTokenService;
@@ -42,13 +43,16 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 	}
 
 	@Override
-	public ProviderUserCreated createUser(String email, String password, String name, String lastName, String role) {
+	public ProviderUserCreated createUser(String email, String password, String name, String lastName, UserRole role) {
 
 		try {
 
-			String userIdentityProviderId = createUser(email, password, name, lastName);
+			boolean temporaryPassword = UserRole.READER != role;
+			
+			String userRole = "ROLE_%s".formatted(role.toString());
+			String userIdentityProviderId = createUser(email, password, name, lastName, temporaryPassword);
 
-			assignRole(userIdentityProviderId, role);
+			assignRole(userIdentityProviderId, userRole);
 			
 			return new ProviderUserCreated(userIdentityProviderId, email, email);
 
@@ -58,11 +62,11 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 
 	}
 
-	private String createUser(String email, String password, String name, String lastName) {
+	private String createUser(String email, String password, String name, String lastName, boolean temporaryPassword) {
 		
 		String accessToken = tokenService.getAccessToken();
 
-		KeycloakCredentialRequest credential = new KeycloakCredentialRequest("password", password, false);
+		KeycloakCredentialRequest credential = new KeycloakCredentialRequest("password", password, temporaryPassword);
 		KeycloakCreateUserRequest request = new KeycloakCreateUserRequest(email, email, name, lastName, true, true,
 				List.of(credential));
 
