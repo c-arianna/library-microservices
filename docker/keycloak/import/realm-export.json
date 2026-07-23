@@ -26,6 +26,7 @@
     "oauth2DeviceCodeLifespan": 600,
     "oauth2DevicePollingInterval": 5,
     "enabled": true,
+	"loginTheme": "library",
     "sslRequired": "external",
     "registrationAllowed": false,
     "registrationEmailAsUsername": false,
@@ -2105,7 +2106,12 @@
             }
         ]
     },
-    "internationalizationEnabled": false,
+    "internationalizationEnabled": true,
+	"supportedLocales": [
+		"it",
+		"en"
+	],
+	"defaultLocale": "it",
     "authenticationFlows": [
         {
             "id": "8c1e0a78-095a-4487-b059-3bde1fd430fa",

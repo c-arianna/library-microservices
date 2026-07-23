@@ -1,6 +1,13 @@
 {
     "realm": "library-microservices-test",
     "enabled": true,
+	"loginTheme": "library",
+	"internationalizationEnabled": true,
+	"supportedLocales": [
+		"it",
+		"en"
+	],
+	"defaultLocale": "it",
     "roles": {
         "realm": [
             {

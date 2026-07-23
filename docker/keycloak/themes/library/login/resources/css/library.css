@@ -1,0 +1,55 @@
+#kc-header {
+    display: none;
+}
+
+.login-pf-page {
+    display: flex;
+    justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+}
+
+.card-pf {
+    width: min(700px, 90vw);
+
+    margin: 0;
+    padding: 2rem;
+
+    background-color: #1e293b;
+}
+
+.login-pf-page h1,
+.login-pf-page h2 {
+    color: #f9fafb;
+}
+
+.pf-v5-c-form__label-text,
+label {
+    color: #d1d5db;
+}
+
+input {
+    background-color: #111827;
+    color: #f9fafb;
+    border: 1px solid #374151;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+input:focus {
+    border-color: #60a5fa;
+}
+
+#kc-login {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+#kc-login:hover {
+    background-color: #1d4ed8;
+}
+
+.alert-error {
+    background-color: #3b0d0d;
+    color: #fecaca;
+}
