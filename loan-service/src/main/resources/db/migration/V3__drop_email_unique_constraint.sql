@@ -1,0 +1,1 @@
+ALTER TABLE user_view DROP INDEX uq_email;

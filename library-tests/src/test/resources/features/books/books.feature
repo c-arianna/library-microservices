@@ -170,7 +170,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
     
   Rule: Gestione delle copie di un libro
   
-    Scenario: aggiunta di una copia di un libro con successo
+    Scenario: Aggiunta di una copia di un libro con successo
       Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
       And l'amministratore aggiunge un libro con isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante" e descrizione
         """
@@ -287,7 +287,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       | code    | "CANNOT_REMOVE_BOOK_COPIES"  |
       | type    | "AGGREGATE_INVARIANT_FAILED" |
   
-  Rule: visualizzazione dettaglio libro
+  Rule: Visualizzazione dettaglio libro
     
     Scenario: Dettaglio di in libro presente nel catalogo
       Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato

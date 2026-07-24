@@ -8,7 +8,7 @@ import mentoring.acomi.userservice.application.view.UserView;
 
 public interface UserViewQueryRepository {
 	public Optional<UserView> findById(String id);
-	public Optional<UserView> findByEmail(String email);
+	public Optional<UserView> findNotDisabledUserByEmail(String email);
 	public List<UserView> find(UserFilter filter);
 	List<UserView> findWithoutCardNumber();
 }

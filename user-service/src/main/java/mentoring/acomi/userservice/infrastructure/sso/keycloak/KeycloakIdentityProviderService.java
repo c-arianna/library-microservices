@@ -2,7 +2,6 @@ package mentoring.acomi.userservice.infrastructure.sso.keycloak;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,6 @@ import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakEx
 public class KeycloakIdentityProviderService implements IdentityProviderService {
 
 	private static final String CREATE_USER_ENDPOINT = "%s/admin/realms/%s/users";
-	private static final String DISABLE_USER_ENDPOINT = "%s/admin/realms/%s/users/%s";
 	private static final String ASSIGN_ROLE_ENDPOINT = "%s/admin/realms/%s/users/%s/role-mappings/realm";
 	private static final String ROLE_INFO_ENDPOINT = "%s/admin/realms/%s/roles/%s";
 	private static final String DELETE_USER_ENDPOINT = "%s/admin/realms/%s/users/%s";
@@ -85,34 +83,16 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 		return extractIdFromLocation(location);
 	}
 
-	@Override
-	public void disableUser(String userIdentityProviderId) {
-
-		String accessToken = tokenService.getAccessToken();
-
-		try {
-			restClient.put()
-					.uri(String.format(DISABLE_USER_ENDPOINT, properties.baseUrl(), properties.realm(),
-							userIdentityProviderId))
-					.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", accessToken))
-					.contentType(MediaType.APPLICATION_JSON).body(Map.of("enabled", false)).retrieve()
-					.toBodilessEntity();
-
-		} catch (RestClientResponseException ex) {
-			throw mapKeycloakError(ex, userIdentityProviderId);
-		}
-
-	}
-
 	private KeycloakException mapKeycloakError(RestClientResponseException ex, String email) {
 
 		HttpStatusCode status = ex.getStatusCode();
 
 		return switch (status.value()) {
-		case 400 -> new KeycloakException(status, String.format("Invalid user data for ", email));
-		case 403 -> new KeycloakException(status, "Not authorized to create user in Keycloak");
-		case 409 -> new KeycloakException(status, String.format("User already exists: ", email));
-		default -> new KeycloakException(status, String.format("Keycloak error: ", ex.getResponseBodyAsString()));
+			case 400 -> new KeycloakException(status, String.format("Invalid user data for ", email));
+			case 403 -> new KeycloakException(status, "Not authorized to create user in Keycloak");
+			case 409 -> new KeycloakException(status, String.format("User already exists: ", email));
+			case 404 -> new KeycloakException(status, String.format("User not found: ", email));
+			default -> new KeycloakException(status, String.format("Keycloak error: ", ex.getResponseBodyAsString()));
 		};
 	}
 
@@ -146,10 +126,17 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 		
 		String accessToken = tokenService.getAccessToken();
 		
-		restClient.delete().uri(String.format(DELETE_USER_ENDPOINT, properties.baseUrl(), properties.realm(), identityProviderUserId))
-		.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", accessToken))
-		.retrieve()
-	    .toBodilessEntity();
+		try {
+			restClient.delete().uri(String.format(DELETE_USER_ENDPOINT, properties.baseUrl(), properties.realm(), identityProviderUserId))
+			.header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", accessToken))
+			.retrieve()
+		    .toBodilessEntity();
+		}catch (RestClientResponseException ex) {
+			if (HttpStatus.NOT_FOUND.equals(ex.getStatusCode())) {
+				return;
+			}
+			throw mapKeycloakError(ex, identityProviderUserId);
+		}
 
 	}
 

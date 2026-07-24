@@ -76,7 +76,7 @@ public class UserViewRepositoryTest {
 
 		entityManager.clear();
 		
-		Optional<UserView> userViewFound = queryRepository.findByEmail("test@gmail.com");
+		Optional<UserView> userViewFound = queryRepository.findNotDisabledUserByEmail("test@gmail.com");
 		
 		Assertions.assertTrue(userViewFound.isPresent());
 

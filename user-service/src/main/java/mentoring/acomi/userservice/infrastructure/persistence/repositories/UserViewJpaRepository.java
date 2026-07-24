@@ -18,7 +18,12 @@ import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEnt
 
 @Repository
 public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, String>, JpaSpecificationExecutor<UserViewEntity>{
-	public Optional<UserViewEntity> findByEmail(String email);
+	@Query("""
+			SELECT u 
+			   FROM UserViewEntity u 
+			      WHERE u.email = :email and u.status <> mentoring.acomi.sharedcorelibrary.model.UserStatus.DISABLED
+		    """)
+	Optional<UserViewEntity> findNotDisabledUserByEmail(String email);	
 	@Modifying
 	@Query("UPDATE UserViewEntity u SET u.status = :status, u.updatedAt = :updatedAt WHERE u.id = :id")
 	int updateStatus(@Param("id") String id, @Param("status") UserStatus status, @Param("updatedAt") Instant updatedAt);
@@ -34,6 +39,14 @@ public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, Str
 	List<UserViewEntity> findWithoutCardNumber(@Param("role") UserRole role);
 	@Modifying
 	@Transactional
-	void deleteByUserIdentityProviderId(String userIdentityProviderId);	
-	
+	void deleteByUserIdentityProviderId(String userIdentityProviderId);
+	@Modifying
+	@Query("""
+	    UPDATE UserViewEntity u
+	       SET u.status = mentoring.acomi.sharedcorelibrary.model.UserStatus.DISABLED,
+	           u.activeEmail = null,
+	           u.updatedAt = :updatedAt
+	     WHERE u.id = :id
+	""")
+	void unsubscribeUser(@Param("id") String id,  @Param("updatedAt") Instant updatedAt);	
 }

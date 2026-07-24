@@ -6,5 +6,5 @@ import mentoring.acomi.loanservice.application.view.UserView;
 
 public interface UserViewQueryRepository {
 	public Optional<UserView> findById(String id);
-	public Optional<UserView> findByEmail(String email);
+	public Optional<UserView> findNotDisabledUserByEmail(String email);
 }

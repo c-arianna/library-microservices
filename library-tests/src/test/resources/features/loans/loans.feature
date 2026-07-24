@@ -23,7 +23,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
 
      """
     And l'amministratore aggiunge 1 copie del libro "9788415723356"
-    And esiste l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678"
+    And esiste l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678", nome "Mario", cognome "Rossi"
     
   Rule: Creazione di una richiesta di prestito
 
@@ -82,7 +82,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "FAILED", numero tessera "${CARD_NUMBER}"
   
     Scenario: L'utente READER può creare prestiti solo per sè stesso
-      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
       When l'utente crea una richiesta di prestito con i seguenti dati:
         """
@@ -99,7 +99,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       | type    | "LOAN_INVALID_USER" |
   
     Scenario: L'amministratore può creare prestiti per altri utenti
-      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       When l'amministratore crea una richiesta di prestito con i seguenti dati:
         """
         {
@@ -277,11 +277,11 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         | userId     | ${USER_ID}      |
             
     Scenario: Consultazione elenco prestiti, filtrato per numero tessera
-      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
       And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
       And il prestito è in stato "RESERVED"
-      And esiste l'utente con credenziali "mario.bianchi@mail.it", "MarioBianchi12345678"
+      And esiste l'utente con credenziali "mario.bianchi@mail.it", "MarioBianchi12345678", nome "Mario", cognome "Bianchi"
       And l'utente con credenziali "mario.bianchi@mail.it", "MarioBianchi12345678" è autenticato
       And esiste un prestito dell'utente per il libro ISBN "9788415723356" in attesa di conferma
       And il prestito è in stato "RESERVED"
@@ -297,7 +297,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         | userId     | ${USER_ID}       |
                
     Scenario: Consultazione elenco prestiti, un utente può vedere solo i suoi prestiti
-      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
       And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
       And il prestito è in stato "RESERVED"
@@ -328,7 +328,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       | type    | "APPLICATION_ERROR" |
       
      Scenario: Un utente READER può vedere solo il dettaglio dei suoi prestiti
-      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678"
+      Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
       And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
       And il prestito è in stato "RESERVED"

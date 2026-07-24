@@ -96,6 +96,21 @@ public class UserSteps {
 		
 		Assertions.assertEquals(200, result.getStatus().value());
 	}
+	
+	@Given("l'utente si disiscrive")
+	public void unsubscribeUser() {
+		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
+			
+		String body = """
+				{
+				  "reason": "registration"
+				}
+				""";
+		
+		var result = unsubscribeUser(body, accessToken);
+		
+		Assertions.assertEquals(200, result.getStatus().value());
+	}
 		
 	/*
 	 * ############################### WHEN #####################################
@@ -131,9 +146,7 @@ public class UserSteps {
 	@When("l'utente si disiscrive con i seguenti dati:")
 	public void userUnsubscribe(DocString body) {
 	    String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
-		var result = client.post().uri("/users/unsubscribe").contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer %s".formatted(accessToken)).body(body.getContent()).exchange()
-				.expectBody().returnResult();
+		var result = unsubscribeUser(body.getContent(), accessToken);
 		
 		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
 		
@@ -289,8 +302,8 @@ public class UserSteps {
 	/*
 	 * ############################### THEN #####################################
 	 */
-	@Then("l'utente ha email {string}, ruolo {string}, stato {string}, numero tessera {string}")
-	public void checkUserView(String email, String role, String status, String cardNumber) {
+	@Then("l'utente ha email {string}, nome {string}, cognome {string}, ruolo {string}, stato {string}, numero tessera {string}")
+	public void checkUserView(String email, String name, String lastname, String role, String status, String cardNumber) {
 
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 		String userId = context.get(CommonSteps.USER_ID, String.class);
@@ -305,6 +318,14 @@ public class UserSteps {
 			() -> {
 				String responseEmail = json.read("$.email");
 				Assertions.assertEquals(email, responseEmail);
+			}, 
+			() -> {
+				String responseName = json.read("$.name");
+				Assertions.assertEquals(name, responseName);
+			}, 
+			() -> {
+				String responseLastname = json.read("$.lastname");
+				Assertions.assertEquals(lastname, responseLastname);
 			}, 
 			() -> {
 				String responseRole = json.read("$.role");
@@ -400,4 +421,10 @@ public class UserSteps {
 
 	}
 	
+	private EntityExchangeResult<byte[]> unsubscribeUser(String body, String accessToken) {
+		var result = client.post().uri("/users/unsubscribe").contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer %s".formatted(accessToken)).body(body).exchange()
+				.expectBody().returnResult();
+		return result;
+	}
 }

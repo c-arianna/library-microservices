@@ -53,3 +53,7 @@ input:focus {
     background-color: #3b0d0d;
     color: #fecaca;
 }
+
+.pf-c-form__helper-text.pf-m-error {
+    color: #fca5a5;
+}

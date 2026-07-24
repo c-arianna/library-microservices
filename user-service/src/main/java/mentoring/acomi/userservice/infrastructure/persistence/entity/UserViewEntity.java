@@ -33,6 +33,8 @@ public class UserViewEntity {
 	
 	private String cardNumber;
 	
+	private String activeEmail;
+	
 	@Enumerated(EnumType.STRING)
 	private UserStatus status;
 	
@@ -52,6 +54,7 @@ public class UserViewEntity {
     	this.lastname = lastname;
     	this.userIdentityProviderId = userIdentityProviderId;
     	this.cardNumber = cardNumber;
+    	this.activeEmail = email;
     	this.status = status;
     	this.role = role;
     }

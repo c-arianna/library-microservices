@@ -116,17 +116,17 @@ public class CommonSteps {
 		Assertions.assertEquals(204, result.getStatus().value());
 	}
 	
-	@Given("esiste l'utente con credenziali {string}, {string}")
-	public void subscribeUser(String mail, String password) {
+	@Given("esiste l'utente con credenziali {string}, {string}, nome {string}, cognome {string}")
+	public void subscribeUser(String mail, String password, String name, String lastname) {
 
 		String body = """
 				{
-				  "name": "Mario",
-				  "lastname": "Rossi",
+				  "name": "%s",
+				  "lastname": "%s",
 				  "email": "%s",
 				  "password": "%s"
 				}
-				""".formatted(mail, password);
+				""".formatted(name, lastname, mail, password);
 
 		var result = client.post().uri("/users/subscribe").contentType(MediaType.APPLICATION_JSON).body(body).exchange()
 				.expectBody().returnResult();

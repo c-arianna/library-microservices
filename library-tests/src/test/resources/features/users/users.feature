@@ -27,10 +27,10 @@ L'amministratore della bibloteca può
         }
         """
       Then la risposta ha status code 200
-      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "-"
+      And l'utente ha email "mario.rossi@gmail.com", nome "Mario", cognome "Rossi", ruolo "READER", stato "ACTIVE", numero tessera "-"
       
     Scenario: Registrazione di un utente con mail già registrata
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
       When l'utente si registra con i seguenti dati:
         """
         {
@@ -59,10 +59,27 @@ L'amministratore della bibloteca può
       | code    | "VALIDATION_ERROR" |
       | type    | "VALIDATION_ERROR" |
       
+    Scenario: Registrazione di un utente con mail già associata a un utente disiscritto
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678" è autenticato
+      And l'utente si disiscrive
+      And l'utente ha stato "DISABLED"
+      When l'utente si registra con i seguenti dati:
+        """
+        {
+          "name": "Andrea",
+          "lastname": "Rossi",
+          "email": "mario.rossi@gmail.com",
+          "password": "AndreaRossi12345678"
+        }
+        """
+      Then la risposta ha status code 200
+      And l'utente ha email "mario.rossi@gmail.com", nome "Andrea", cognome "Rossi", ruolo "READER", stato "ACTIVE", numero tessera "-"
+      
   Rule: Disiscrizione di un utente
   
     Scenario: Disiscrizione di un utente con successo  
-	  Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+	  Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
 	  And l'utente ha stato "ACTIVE"
 	  And l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678" è autenticato
 	  When l'utente si disiscrive con i seguenti dati:
@@ -72,12 +89,12 @@ L'amministratore della bibloteca può
         }
         """
 	  Then la risposta ha status code 200
-	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "DISABLED", numero tessera "${CARD_NUMBER}"
+	  And l'utente ha email "mario.rossi@gmail.com", nome "Mario", cognome "Rossi", ruolo "READER", stato "DISABLED", numero tessera "${CARD_NUMBER}"
 	        
   Rule: Sospensione di un utente
     
     Scenario: Sospensione di un utente con successo
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
 	  And l'utente ha stato "ACTIVE"
 	  When l'amministratore sospende l'utente:
 	     """
@@ -87,10 +104,10 @@ L'amministratore della bibloteca può
         }
         """
       Then la risposta ha status code 200
-	  And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "SUSPENDED", numero tessera "${CARD_NUMBER}"
+	  And l'utente ha email "mario.rossi@gmail.com", nome "Mario", cognome "Rossi", ruolo "READER", stato "SUSPENDED", numero tessera "${CARD_NUMBER}"
 	  
 	Scenario: Sospensione di un utente con dati non validi
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
 	  And l'utente ha stato "ACTIVE"
 	  When l'amministratore sospende l'utente:
 	     """
@@ -122,7 +139,7 @@ L'amministratore della bibloteca può
   Rule: Riattivazione di un utente sospeso
   
     Scenario: Riattivazione di un utente con successo
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
 	  And l'utente ha stato "ACTIVE"
 	  And l'amministratore sospende l'utente
 	  And l'utente ha stato "SUSPENDED"
@@ -134,10 +151,10 @@ L'amministratore della bibloteca può
         }
         """
      Then la risposta ha status code 200
-	 And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
+	 And l'utente ha email "mario.rossi@gmail.com", nome "Mario", cognome "Rossi", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
 	 
 	Scenario: Riattivazione di un utente con dati non validi
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
 	  And l'utente ha stato "ACTIVE"
 	  When l'amministratore riattiva l'utente:
 	     """
@@ -169,19 +186,19 @@ L'amministratore della bibloteca può
   Rule: Visualizzazione profilo utente
   
     Scenario: Un utente READER può visualizzare il suo profilo
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
       And l'utente ha stato "ACTIVE"
       And l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678" è autenticato
       When l'utente visualizza il suo profilo
       Then la risposta ha status code 200
-      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
+      And l'utente ha email "mario.rossi@gmail.com", nome "Mario", cognome "Rossi", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
      
     Scenario: L'amministratore può vedere il profilo di tutti gli utenti
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
       And l'utente ha stato "ACTIVE"
       When l'amministratore visualizza il profilo di "mario.rossi@gmail.com"
       Then la risposta ha status code 200
-      And l'utente ha email "mario.rossi@gmail.com", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
+      And l'utente ha email "mario.rossi@gmail.com", nome "Mario", cognome "Rossi", ruolo "READER", stato "ACTIVE", numero tessera "${CARD_NUMBER}"
       
      Scenario: Visualizzazione del profilo di un utente non registrato
       Given l'utente con ID "100" non esiste
@@ -195,9 +212,9 @@ L'amministratore della bibloteca può
   Rule: Visualizzazione elenco utenti
   
     Scenario: L'amministratore può visualizzare l'elenco degli utenti
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
       And l'utente ha stato "ACTIVE"
-      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente ha stato "ACTIVE"
       And l'amministratore sospende l'utente
 	  And l'utente ha stato "SUSPENDED"
@@ -226,9 +243,9 @@ L'amministratore della bibloteca può
         | status | "ACTIVE"          |
     
     Scenario: Consultazione elenco utenti, filtrato per stato presente
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
       And l'utente ha stato "ACTIVE"
-      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente ha stato "ACTIVE"
       And l'amministratore sospende l'utente
 	  And l'utente ha stato "SUSPENDED"
@@ -243,9 +260,9 @@ L'amministratore della bibloteca può
         | status | "SUSPENDED"             |
         
     Scenario: Consultazione elenco utenti, filtrato per numero tessera
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
       And l'utente ha stato "ACTIVE"
-      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente ha stato "ACTIVE"
       And l'amministratore sospende l'utente
 	  And l'utente ha stato "SUSPENDED"
@@ -261,7 +278,7 @@ L'amministratore della bibloteca può
         | cardNumber | ${CARD_NUMBER}          |
         
     Scenario: Un utente READER non può visualizzare l'elenco degli utenti
-      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678"
+      Given esiste l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678", nome "Mario", cognome "Rossi"
       And l'utente ha stato "ACTIVE"
       And l'utente con credenziali "mario.rossi@gmail.com", "MarioRossi12345678" è autenticato
       When l'utente visualizza l'elenco degli utenti
@@ -285,4 +302,4 @@ L'amministratore della bibloteca può
         }
         """
       Then la risposta ha status code 200
-      And l'utente ha email "g.fortunato.admin@gmail.com", ruolo "ADMIN", stato "ACTIVE", numero tessera "NULL"
+      And l'utente ha email "g.fortunato.admin@gmail.com", nome "Gastone", cognome "Fortunato", ruolo "ADMIN", stato "ACTIVE", numero tessera "NULL"

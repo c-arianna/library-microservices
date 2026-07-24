@@ -1,7 +1,6 @@
 package mentoring.acomi.userservice.application.projection;
 
 import java.time.Instant;
-
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
@@ -12,7 +11,7 @@ import mentoring.acomi.userservice.application.view.UserView;
 public class UserProjection implements UserProjectionOperations {
 
 	private final UserViewRepository repository;
-
+	
 	public UserProjection(UserViewRepository repository) {
 		this.repository = repository;
 	}
@@ -24,7 +23,7 @@ public class UserProjection implements UserProjectionOperations {
 	
 	@Override
 	public void unsubscribeUser(String userId, Instant occurredAt) {
-		repository.updateStatus(userId, UserStatus.DISABLED, occurredAt);
+		repository.unsubscribeUser(userId, occurredAt);
 	}
 	
 	@Override

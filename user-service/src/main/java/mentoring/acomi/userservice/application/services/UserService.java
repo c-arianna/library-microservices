@@ -82,7 +82,7 @@ public class UserService {
 		UserView loggedUser = getLoggedUser();
 		String loggedUserId = loggedUser.id();
 		
-		disableIdentityProviderUser(loggedUser.userIdentityProviderId());
+		deleteIdentityProviderUser(loggedUser.userIdentityProviderId());
 		
 		UserAggregate aggregate = loadUser(loggedUserId);
 		aggregate.unsubscribe(request.reason());
@@ -126,7 +126,7 @@ public class UserService {
 		String userId = UUID.randomUUID().toString();
 		String email = userRegistered.email();
 
-		if (userViewRepository.findByEmail(email).isPresent()) {
+		if (userViewRepository.findNotDisabledUserByEmail(email).isPresent()) {
 			throw new ApplicationConflict("USER_ALREADY_EXISTS", String.format("Email: %s", email));
 		}
 		
@@ -169,7 +169,7 @@ public class UserService {
 			throw new UserNotFound("Email not present in token");
 		}
 
-		return userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+		return userViewRepository.findNotDisabledUserByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
 
 	}
 
@@ -221,9 +221,9 @@ public class UserService {
 		}
 	}
 
-	private void disableIdentityProviderUser(String userIdentityProviderId) {
+	private void deleteIdentityProviderUser(String userIdentityProviderId) {
 		try {	
-			identityProviderService.disableUser(userIdentityProviderId);
+			identityProviderService.deleteUser(userIdentityProviderId);
 		}catch (KeycloakException ex) {
 		    throw mapIdentityProviderException(ex);
 		}

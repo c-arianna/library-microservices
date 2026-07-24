@@ -42,16 +42,27 @@ public class UserViewReplayRepository implements UserViewRepository, ReplayProje
 	
 	@Override
 	public void add(UserView user, Instant createdAt) {
-		jdbcTemplate.update("INSERT INTO %s(id, email, name, lastname, user_identity_provider_id, card_number, role, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)"
-				.formatted(TABLE_TMP), user.id(), user.email(), user.name(), user.lastname(), user.userIdentityProviderId(), user.cardNumber(), user.role().name(), 
-				      user.status().name(), createdAt, createdAt);
+		jdbcTemplate.update("""
+				INSERT INTO %s(id, email, name, lastname, user_identity_provider_id, card_number, role, status, active_email, 
+				created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)"""
+				.formatted(TABLE_TMP), user.id(), user.email(), user.name(), user.lastname(), user.userIdentityProviderId(), 
+				      user.cardNumber(), user.role().name(), user.status().name(), user.email(), createdAt, createdAt);
 	}
 
 	@Override
 	public void updateStatus(String id, UserStatus status, Instant updatedAt) {
-		jdbcTemplate.update("UPDATE %s SET status = ?, updated_at = ? WHERE id = ?".formatted(TABLE_TMP), status.name(), updatedAt, id);
+		jdbcTemplate.update("UPDATE %s SET status = ?, updated_at = ? WHERE id = ?"
+				.formatted(TABLE_TMP), status.name(), updatedAt, id);
 	}
 
+	@Override
+	public void unsubscribeUser(String userId, Instant occurredAt) {
+		String status = UserStatus.DISABLED.name();
+		jdbcTemplate.update("UPDATE %s SET status = ?, active_email = null, updated_at = ? WHERE id = ?"
+				.formatted(TABLE_TMP), status, occurredAt, userId);
+		
+	}
+	
 	@Override
 	public void deleteAllReaderUsers() {
 		throw new UnsupportedOperationException("Not needed");		

@@ -18,9 +18,14 @@ public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, Str
 	@Modifying
 	@Query("UPDATE UserViewEntity u SET u.status = :status, u.updatedAt = :updateAt WHERE u.id = :id")
 	int updateStatus(@Param("id") String id, @Param("status") UserStatus status, @Param("updateAt") Instant updateAt);
-	 Optional<UserViewEntity> findByEmail(String email);
-	 @Modifying
-	 @Transactional
-	 @Query("UPDATE UserViewEntity u SET u.cardNumber = :cardNumber, u.updatedAt = :updatedAt WHERE u.id = :id")
-	 void updateCardNumber(String id, String cardNumber, Instant updatedAt);
+	@Query("""
+			SELECT u 
+			   FROM UserViewEntity u 
+			      WHERE u.email = :email and u.status <> mentoring.acomi.sharedcorelibrary.model.UserStatus.DISABLED
+		    """)
+	Optional<UserViewEntity> findNotDisabledUserByEmail(String email);
+	@Modifying
+	@Transactional
+	@Query("UPDATE UserViewEntity u SET u.cardNumber = :cardNumber, u.updatedAt = :updatedAt WHERE u.id = :id")
+	void updateCardNumber(String id, String cardNumber, Instant updatedAt);
 }

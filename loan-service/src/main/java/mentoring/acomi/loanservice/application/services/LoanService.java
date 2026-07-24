@@ -173,7 +173,7 @@ public class LoanService {
 		String email = userInfo.email();
 
 		if (userInfo.isReader) {
-			UserView user = userViewRepository.findByEmail(email)
+			UserView user = userViewRepository.findNotDisabledUserByEmail(email)
 					.orElseThrow(() -> new UserNotFound(String.format("Mail: %s", email)));
 			return new LoanFilter(filter.isbn(), user.id(), filter.cardNumber(), filter.status());
 		}
@@ -251,7 +251,7 @@ public class LoanService {
 
 	    if (userInfo.isReader()) {
 	        String email = userInfo.email();
-			UserView user = userViewRepository.findByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
+			UserView user = userViewRepository.findNotDisabledUserByEmail(email).orElseThrow(() -> new UserNotFound(String.format("Email: %s", email)));
 			
 			String loggedUserId = user.id();
 			

@@ -45,8 +45,8 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 	}
 
 	@Override
-	public Optional<UserView> findByEmail(String email) {
-		Optional<UserViewEntity> entity = repository.findByEmail(email);
+	public Optional<UserView> findNotDisabledUserByEmail(String email) {
+		Optional<UserViewEntity> entity = repository.findNotDisabledUserByEmail(email);
 		return entity.isEmpty() ? Optional.empty() : Optional.of(mapper.toDomain(entity.get()));
 	}
 
@@ -55,6 +55,11 @@ public class JpaUserViewRepositoryAdapter implements UserViewRepository, UserVie
 		repository.updateStatus(id, status, updatedAt);
 	}
 
+	@Override
+	public void unsubscribeUser(String userId, Instant occurredAt) {
+		repository.unsubscribeUser(userId, occurredAt);
+	}
+	
 	@Override
 	public void deleteAllReaderUsers() {
 		repository.deleteAllReaderUsers();		
