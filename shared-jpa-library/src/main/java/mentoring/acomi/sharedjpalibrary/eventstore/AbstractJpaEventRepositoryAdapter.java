@@ -29,7 +29,7 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 
 	@Override
 	public List<E> loadStream(String aggregateId) {
-		return repository.findByAggregateIdAndEventCategory(aggregateId, EventCategory.PRODUCER.name()).stream().map(mapper::toDomain).toList();
+		return repository.findByAggregateIdAndEventCategoryOrderByEventVersion(aggregateId, EventCategory.PRODUCER.name()).stream().map(mapper::toDomain).toList();
 	}
 
 	@Override

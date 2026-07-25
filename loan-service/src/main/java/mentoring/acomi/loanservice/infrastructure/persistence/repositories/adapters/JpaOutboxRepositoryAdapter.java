@@ -1,4 +1,4 @@
-package mentoring.acomi.userservice.persistence.repositories.adapters;
+package mentoring.acomi.loanservice.infrastructure.persistence.repositories.adapters;
 
 import java.time.Instant;
 import java.util.List;
@@ -6,12 +6,12 @@ import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import mentoring.acomi.loanservice.infrastructure.persistence.entity.OutboxEventEntity;
+import mentoring.acomi.loanservice.infrastructure.persistence.mapper.OutboxEventJpaMapper;
+import mentoring.acomi.loanservice.infrastructure.persistence.repositories.OutboxJpaRepository;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxEvent;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxRepository;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxStatus;
-import mentoring.acomi.userservice.infrastructure.persistence.entity.OutboxEventEntity;
-import mentoring.acomi.userservice.infrastructure.persistence.mapper.OutboxEventJpaMapper;
-import mentoring.acomi.userservice.infrastructure.persistence.repositories.OutboxJpaRepository;
 
 @Repository
 public class JpaOutboxRepositoryAdapter implements OutboxRepository {
@@ -49,7 +49,8 @@ public class JpaOutboxRepositoryAdapter implements OutboxRepository {
 
 	@Override
 	public void deleteAll() {
-		repository.deleteAll();		
+		repository.deleteAll();
 	}
 
 }
+

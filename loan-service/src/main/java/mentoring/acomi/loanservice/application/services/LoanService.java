@@ -3,10 +3,7 @@ package mentoring.acomi.loanservice.application.services;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,10 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
+import mentoring.acomi.loanservice.application.aggregates.LoanAggregateFactory;
 import mentoring.acomi.loanservice.application.errors.InvalidUser;
 import mentoring.acomi.loanservice.application.errors.LoanNotFound;
 import mentoring.acomi.loanservice.application.errors.UserNotFound;
-import mentoring.acomi.loanservice.application.messaging.EventDispatcher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewQueryRepository;
@@ -27,8 +24,6 @@ import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
-import mentoring.acomi.loanservice.domain.events.LoanEvent;
-import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.model.Loan;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDetailDto;
@@ -36,7 +31,6 @@ import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanUserDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
-import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationPublisherEventVersions;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @Service
@@ -45,16 +39,15 @@ public class LoanService {
 	private final LoanEventRepository loanEventRepository;
 	private final LoanViewQueryRepository loanViewRepository;
 	private final UserViewQueryRepository userViewRepository;
-	private final EventDispatcher eventDispatcher;
-
-	private final Logger logger = LogManager.getLogger(LoanService.class);
-
+	
+	private final LoanAggregateFactory aggregateFactory;
+	
 	public LoanService(LoanEventRepository eventRepository, LoanViewQueryRepository loanViewRepository,
-			UserViewQueryRepository userViewRepository, EventDispatcher eventDispatcher) {
+			UserViewQueryRepository userViewRepository, LoanAggregateFactory aggregateFactory) {
 		this.loanEventRepository = eventRepository;
 		this.loanViewRepository = loanViewRepository;
 		this.userViewRepository = userViewRepository;
-		this.eventDispatcher = eventDispatcher;
+		this.aggregateFactory = aggregateFactory;
 	}
 
 	@Transactional
@@ -67,7 +60,7 @@ public class LoanService {
 
 		Loan loan = Loan.create(loanId, request.isbn(), userId, request.startDate(), request.endDate());
 
-		LoanAggregate aggregate = loadLoan(loanId);
+		LoanAggregate aggregate = aggregateFactory.create(loanId);
 		aggregate.add(loan);
 
 		return new LoanResponse(loanId);
@@ -76,7 +69,7 @@ public class LoanService {
 	@Transactional
 	public void confirmLoan(String loanId) {
 
-		LoanAggregate aggregate = loadLoan(loanId);
+		LoanAggregate aggregate = aggregateFactory.create(loanId);
 
 		aggregate.ensureCreated();
 
@@ -90,13 +83,13 @@ public class LoanService {
 
 	@Transactional
 	public void cancelLoan(String loanId) {
-		LoanAggregate aggregate = loadLoan(loanId);
+		LoanAggregate aggregate = aggregateFactory.create(loanId);
 		aggregate.cancel();
 	}
 
 	@Transactional
 	public void returnLoan(String loanId) {
-		LoanAggregate aggregate = loadLoan(loanId);
+		LoanAggregate aggregate = aggregateFactory.create(loanId);
 		aggregate.returnLoan();
 	}
 
@@ -123,49 +116,7 @@ public class LoanService {
 		}
 
 	}
-
-	private LoanAggregate loadLoan(String loanId) {
-		List<LoanEvent> events = loanEventRepository.loadStream(loanId);
-		Consumer<LoanEvent> dispatch = event -> {
-			loanEventRepository.appendToStream(event, getSchemaVersion(event.type()));
-			try {
-				eventDispatcher.dispatch(event);
-			} catch (Exception e) {
-				logger.error("[Dispatch] error after event persistence, eventType={}", event.type(), e);
-			}
-		};
-
-		return new LoanAggregate(loanId, dispatch, events);
-	}
-
-	private int getSchemaVersion(LoanEventType type) {
-
-		return switch(type) {
-		
-		case LoanRequested -> {
-			yield LoanIntegrationPublisherEventVersions.LOAN_REQUESTED;
-		}
-		case LoanFailed -> {
-			yield LoanIntegrationPublisherEventVersions.LOAN_FAILED;
-		}
-		case LoanReserved -> {
-			yield LoanIntegrationPublisherEventVersions.LOAN_RESERVED;
-		}
-		case LoanConfirmed -> {
-			yield LoanIntegrationPublisherEventVersions.LOAN_CONFIRMED;
-		}
-		case LoanCanceled -> {
-			yield LoanIntegrationPublisherEventVersions.LOAN_CANCELED;
-		}
-		case LoanReturned -> {
-			yield LoanIntegrationPublisherEventVersions.LOAN_RETURNED;
-		}
-		case LoanConfirmRequested -> {
-			yield LoanIntegrationPublisherEventVersions.LOAN_CONFIRM_REQUESTED;
-		}
-		};
-	}
-
+	
 	private LoanFilter applyCheckUserFilter(LoanFilter filter) {
 
 		UserInfo userInfo = getUserInfo();

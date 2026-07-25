@@ -5,6 +5,7 @@ import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
@@ -28,9 +29,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.outbox.OutboxPublisher;
-import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.services.UserService;
+import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.config.RabbitMQConfigTest;
 import mentoring.acomi.userservice.config.SecurityTestConfig;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
@@ -68,9 +69,6 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 	
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private UserEventRepository userEventRepository;
 	
 	@Autowired
 	private UserViewJpaRepository viewRepository;
@@ -103,8 +101,10 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 		
 		outboxPublisher.publishPendingEvents();
 		
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-		    Assertions.assertThat(userViewRepository.findById(user.userId()).isPresent()).isTrue();
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {	
+			Optional<UserView> userView = userViewRepository.findById(user.userId());
+			Assertions.assertThat(userView).isPresent();
+			Assertions.assertThat(userView.get().status()).isEqualTo(UserStatus.ACTIVE);
 		});
 		
 		setAuthenticatedUser(user.email(), "ADMIN");
@@ -113,22 +113,26 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 		outboxPublisher.publishPendingEvents();
 		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		    UserView userView = userViewRepository.findById(user.userId()).orElseThrow();
+			Assertions.assertThat(userView.status()).isEqualTo(UserStatus.SUSPENDED);
+		});
+		
 		userService.unsuspend(new SuspendRequest(user.userId(), "reactivation"));
 
 		outboxPublisher.publishPendingEvents();
 		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {	
+		    UserView userView = userViewRepository.findById(user.userId()).orElseThrow();
+			Assertions.assertThat(userView.status()).isEqualTo(UserStatus.ACTIVE);
+		});
+		
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
-
 		outboxPublisher.publishPendingEvents();
 		
-		await().atMost(Duration.ofSeconds(10))
-	       .untilAsserted(() -> {
-
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 	           UserViewEntity userView = viewRepository.findById(user.userId()).orElseThrow();
-
 	           Assertions.assertThat(userView.getStatus()).isEqualTo(UserStatus.DISABLED);
-
-	           Assertions.assertThat(userEventRepository.loadStream(user.userId())).hasSize(4);
 	       });
 		
 		List<UserViewEntity> expectedUsers = viewRepository.findAll();

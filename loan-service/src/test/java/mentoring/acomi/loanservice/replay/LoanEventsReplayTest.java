@@ -23,7 +23,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -45,7 +44,6 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 @SpringBootTest(properties = { "spring.jpa.hibernate.ddl-auto=none", "spring.sql.init.mode=always"})
 @Testcontainers
 @Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
-@Sql("/db/replay/replay-schema.sql")
 public class LoanEventsReplayTest {
 
 	@Container

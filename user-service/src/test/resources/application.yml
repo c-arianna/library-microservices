@@ -18,6 +18,10 @@ spring:
   flyway:
     enabled: true
 
+  task:
+     scheduling:
+      enabled: false
+
 keycloak:
   base-url: http://localhost:8084
   admin-realm: master

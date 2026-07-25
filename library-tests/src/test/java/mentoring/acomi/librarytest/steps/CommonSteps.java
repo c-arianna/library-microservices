@@ -153,7 +153,7 @@ public class CommonSteps {
 			() -> {
 				String responseCardNumber = json.read("$.cardNumber");
 				Assertions.assertEquals(cardNumber, responseCardNumber);
-		}), 10000, 200);
+		}), 5000, 200);
 		
 		context.put(USER_ID, userId);
 		context.put(CARD_NUMBER, cardNumber);

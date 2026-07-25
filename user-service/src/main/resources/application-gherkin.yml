@@ -1,0 +1,3 @@
+outbox:
+  publisher:
+    delay: 2000

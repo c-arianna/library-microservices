@@ -44,6 +44,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventT
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.loanservice.application.outbox.OutboxPublisher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewQueryRepository;
@@ -98,6 +99,9 @@ public class LoanRabbitIntegrationTest {
 	@Autowired
 	private UserViewQueryRepository userViewQueryRepository;
 	
+	@Autowired
+	private OutboxPublisher outboxPublisher;
+	
 	private static final String USER_ID = "user-1";
 
 	private static final String TOKEN_VALUE = "test-token";
@@ -121,9 +125,12 @@ public class LoanRabbitIntegrationTest {
 
 		String isbn = "978-8828727422";
 		String loanId = createLoan(isbn);
+				
 		publishBookReserved(loanId, isbn);
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {	
 			var loan = loanViewRepository.findById(loanId);
 			Assertions.assertTrue(loan.isPresent());
 			Assertions.assertEquals(LoanStatus.RESERVED, loan.get().status());
@@ -138,9 +145,12 @@ public class LoanRabbitIntegrationTest {
 
 		String isbn = "9788415723356";
 		String loanId = createLoan(isbn);
+				
 		publishBookReservationRejected(loanId, isbn, "BOOK_NOT_AVAILABLE");
-
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {	
 			var loan = loanViewRepository.findById(loanId);
 			Assertions.assertTrue(loan.isPresent());
 			Assertions.assertEquals(LoanStatus.FAILED, loan.get().status());
@@ -157,7 +167,9 @@ public class LoanRabbitIntegrationTest {
 		String loanId = createLoan(isbn);
 		publishBookReserved(loanId, isbn);
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {	
 			var loan = loanViewRepository.findById(loanId);
 			Assertions.assertTrue(loan.isPresent());
 			Assertions.assertEquals(LoanStatus.RESERVED, loan.get().status());
@@ -165,7 +177,17 @@ public class LoanRabbitIntegrationTest {
 
 		publishBookBorrowed(loanId, isbn);
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		await().untilAsserted(() -> {
+			Assertions.assertTrue(
+		        loanEventRepository.loadStream(loanId)
+		            .stream()
+		            .anyMatch(e -> e.type() == LoanEventType.LoanConfirmed)
+		    );
+		});
+		
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {	
 			var loan = loanViewRepository.findById(loanId);
 			Assertions.assertTrue(loan.isPresent());
 			Assertions.assertEquals(LoanStatus.CONFIRMED, loan.get().status());
@@ -183,6 +205,8 @@ public class LoanRabbitIntegrationTest {
 
 		publishBookBorrowRejected(loanId, isbn, "RESERVATION_MISSING");
 
+		outboxPublisher.publishPendingEvents();
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var loan = loanViewRepository.findById(loanId);
 			Assertions.assertTrue(loan.isPresent());
@@ -200,6 +224,8 @@ public class LoanRabbitIntegrationTest {
 		String queue = createTmpQueue(IntegrationEventTypes.LOAN_REQUESTED.getRoutingKey());
 		createLoan(isbn);
 
+	    outboxPublisher.publishPendingEvents();
+		
 		String body = waitForMessageBody(queue);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
@@ -217,9 +243,19 @@ public class LoanRabbitIntegrationTest {
 		String isbn = "9781428709546";
 		String queue = createTmpQueue(IntegrationEventTypes.LOAN_RESERVED.getRoutingKey());
 		String loanId = createLoan(isbn);
-
+		
 		publishBookReserved(loanId, isbn);
-
+		
+		await().untilAsserted(() -> {
+			Assertions.assertTrue(
+		        loanEventRepository.loadStream(loanId)
+		            .stream()
+		            .anyMatch(e -> e.type() == LoanEventType.LoanReserved)
+		    );
+		});
+		
+		outboxPublisher.publishPendingEvents();
+		
 		String body = waitForMessageBody(queue);
 
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
@@ -249,7 +285,7 @@ public class LoanRabbitIntegrationTest {
 
 		String isbn = "9780060281373";
 		String loanId = createLoan(isbn);
-
+		
 		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, "book-service", 
 				isbn, AggregateType.BOOK.name(), 1, Instant.now(), LoanIntegrationConsumerEventVersions.BOOK_RESERVED,
 				new BookLoanIntegrationPayload(isbn, loanId, USER_ID));
@@ -268,7 +304,7 @@ public class LoanRabbitIntegrationTest {
 
 		String isbn = "9788804336334";
 		String loanId = createLoan(isbn);
-
+		
 		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, 
 				"book-service", isbn, AggregateType.BOOK.name(), 1, Instant.now(), 
 				LoanIntegrationConsumerEventVersions.BOOK_RESERVED, new BookLoanIntegrationPayload(isbn, loanId, USER_ID));
@@ -297,6 +333,9 @@ public class LoanRabbitIntegrationTest {
 
 		Assertions.assertNotNull(response);
 		Assertions.assertNotNull(response.loanId());
+		
+		outboxPublisher.publishPendingEvents();
+		
 		return response.loanId();
 	}
 

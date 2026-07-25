@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import mentoring.acomi.sharedcorelibrary.outbox.OutboxRepository;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.sso.IdentityProviderService;
-import mentoring.acomi.userservice.infrastructure.persistence.repositories.OutboxJpaRepository;
 
 @RestController
 @RequestMapping("/test")
@@ -18,11 +18,11 @@ public class TestController {
 	
 	private final UserViewRepository userRepository;
 	private final UserEventRepository eventRepository;
-	private final OutboxJpaRepository outboxRepository;
+	private final OutboxRepository outboxRepository;
 	private final IdentityProviderService service;
 	
 	public TestController(UserViewRepository userRepository, UserEventRepository eventRepository, 
-			IdentityProviderService service, OutboxJpaRepository outboxRepository) {
+			IdentityProviderService service, OutboxRepository outboxRepository) {
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.outboxRepository = outboxRepository;

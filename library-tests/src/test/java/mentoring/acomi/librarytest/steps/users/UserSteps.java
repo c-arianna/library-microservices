@@ -76,7 +76,7 @@ public class UserSteps {
 			() -> {
 				String responseStatus = json.read("$.status");
 				Assertions.assertEquals(status, responseStatus);
-		}), 10000, 200);
+		}), 5000, 200);
 	}
 	
 	@Given("l'amministratore sospende l'utente")
@@ -343,7 +343,7 @@ public class UserSteps {
 				ExpectedValue expectedCardNumber = Helper.normalizeExpected(Helper.resolve(cardNumber, context));
 				Assertions.assertTrue(expectedCardNumber.matches(responseCardNumber));
 				}
-		}), 10000, 200);
+		}), 5000, 200);
 
 	}
 

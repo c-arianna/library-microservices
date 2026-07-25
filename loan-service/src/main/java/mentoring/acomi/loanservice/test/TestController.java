@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
+import mentoring.acomi.sharedcorelibrary.outbox.OutboxRepository;
 
 @RestController
 @RequestMapping("/test")
@@ -17,11 +18,14 @@ public class TestController {
 	private final LoanViewRepository loanRepository;
 	private final LoanEventRepository eventRepository;
 	private final UserViewRepository userViewRepository;
+	private final OutboxRepository outboxRepository;
 	
-	public TestController(LoanViewRepository loanRepository, LoanEventRepository eventRepository, UserViewRepository userViewRepository) {
+	public TestController(LoanViewRepository loanRepository, LoanEventRepository eventRepository, UserViewRepository userViewRepository,
+			OutboxRepository outboxRepository) {
         this.loanRepository = loanRepository;
         this.eventRepository = eventRepository;
         this.userViewRepository = userViewRepository;
+        this.outboxRepository = outboxRepository;
     }
 
     @PostMapping("/reset")
@@ -29,6 +33,7 @@ public class TestController {
     	loanRepository.deleteAll();
         eventRepository.deleteAll();
         userViewRepository.deleteAll();
+        outboxRepository.deleteAll();
     }
 
 }
