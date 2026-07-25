@@ -58,4 +58,9 @@ public abstract class AbstractJpaEventRepositoryAdapter<E extends DomainEvent, E
 		return repository.existsByEventIdAndAggregateTypeAndProcessedTrue(eventId, aggregateType);
 	}
 	
+	@Override
+	public Optional<E> getEventByEventIdAndAggregateType(String eventId, String aggregateType) {
+		Optional<ENTITY> event = repository.getByEventIdAndAggregateType(eventId, aggregateType);
+		return event.isEmpty() ? Optional.empty() : Optional.of(mapper.toDomain(event.get()));
+	}
 }

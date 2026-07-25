@@ -141,11 +141,25 @@ public class CommonSteps {
 		String userIdentityProviderId = bodyResponse.read("$.userIdentityProviderId");
         String cardNumber = bodyResponse.read("$.cardNumber");
         
+        String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+		
+		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get().uri("/users/%s".formatted(userId))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		Helper.awaitAndAssert(query, json -> Assertions.assertAll(
+			() -> {
+				Assertions.assertEquals(200, query.get().getStatus().value());	
+			}, 
+			() -> {
+				String responseCardNumber = json.read("$.cardNumber");
+				Assertions.assertEquals(cardNumber, responseCardNumber);
+		}), 10000, 200);
+		
 		context.put(USER_ID, userId);
 		context.put(CARD_NUMBER, cardNumber);
 		context.userProviderIdToDelete.add(userIdentityProviderId);
 		context.put(mail, userId);
-
+	
 	}
 
 	@Given("l'utente con ID {string} non esiste")

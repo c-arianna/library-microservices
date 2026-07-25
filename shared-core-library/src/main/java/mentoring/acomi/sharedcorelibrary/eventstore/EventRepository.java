@@ -11,4 +11,5 @@ public interface EventRepository<E extends DomainEvent> {
 	public void deleteAll();
     public void markProcessed(String eventId, String aggregateType);
     public boolean existsEventProcessed(String eventId, String aggregateType);
+    public Optional<E> getEventByEventIdAndAggregateType(String eventId, String aggregateType);
 }

@@ -21,13 +21,14 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.outbox.OutboxPublisher;
+import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.services.UserService;
 import mentoring.acomi.userservice.config.RabbitMQConfigTest;
@@ -44,7 +45,6 @@ import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTes
 @SpringBootTest(properties = { "spring.jpa.hibernate.ddl-auto=none", "spring.sql.init.mode=always"})
 @Testcontainers
 @Import({RabbitMQConfigTest.class, SecurityTestConfig.class})
-@Sql("/db/replay/replay-schema.sql")
 public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 	@Container
@@ -70,6 +70,9 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 	private UserService userService;
 
 	@Autowired
+	private UserEventRepository userEventRepository;
+	
+	@Autowired
 	private UserViewJpaRepository viewRepository;
 	
 	@Autowired
@@ -80,6 +83,9 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 	@Autowired
 	private RabbitListenerEndpointRegistry registry;
+	
+	@Autowired
+	private OutboxPublisher outboxPublisher;
 	
 	@AfterEach
 	void clearSecurityContext() {
@@ -95,6 +101,8 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 		
 		UserSubscribedResponse user = userService.subscribe(request);
 		
+		outboxPublisher.publishPendingEvents();
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 		    Assertions.assertThat(userViewRepository.findById(user.userId()).isPresent()).isTrue();
 		});
@@ -103,14 +111,25 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 		userService.suspend(new SuspendRequest(user.userId(), "policy violation"));
 
+		outboxPublisher.publishPendingEvents();
+		
 		userService.unsuspend(new SuspendRequest(user.userId(), "reactivation"));
 
+		outboxPublisher.publishPendingEvents();
+		
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-	        UserViewEntity userView = viewRepository.findById(user.userId()).orElseThrow();
-	        Assertions.assertThat(userView.getStatus()).isEqualTo(UserStatus.DISABLED);
-	    });
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(10))
+	       .untilAsserted(() -> {
+
+	           UserViewEntity userView = viewRepository.findById(user.userId()).orElseThrow();
+
+	           Assertions.assertThat(userView.getStatus()).isEqualTo(UserStatus.DISABLED);
+
+	           Assertions.assertThat(userEventRepository.loadStream(user.userId())).hasSize(4);
+	       });
 		
 		List<UserViewEntity> expectedUsers = viewRepository.findAll();
 

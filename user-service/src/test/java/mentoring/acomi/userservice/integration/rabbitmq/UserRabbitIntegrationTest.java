@@ -36,6 +36,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.outbox.OutboxPublisher;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.services.UserService;
@@ -86,6 +87,9 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	@Autowired
+	private OutboxPublisher outboxPublisher;
 		
 	private static final String ADMIN_ROLE = "ADMIN";
 	
@@ -106,9 +110,9 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 		String routingKey = IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey();
 		String tmpQueue = createTmpQueue(routingKey);
-
+		
 		UserSubscribedResponse user = subscribeUser();
-
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId());
 			Assertions.assertTrue(userView.isPresent());
@@ -119,7 +123,7 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserSubscribed));
 
 		String body = waitForMessageBody(tmpQueue);
-
+			
 		Assertions.assertNotNull(body);
 
 		JsonNode json = objectMapper.readTree(body);
@@ -140,13 +144,15 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 	void shouldPublishUserSuspendedWhenAdminSuspendsUser() {
 
 		String tmpQueue = createTmpQueue(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey());
-
+	
 		UserSubscribedResponse user = subscribeUser();
 
 		setAuthenticatedUser(user.email(), ADMIN_ROLE);
 
 		userService.suspend(new SuspendRequest(user.userId(), "policy violation"));
 
+		outboxPublisher.publishPendingEvents();
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId());
 			Assertions.assertTrue(userView.isPresent());
@@ -186,6 +192,8 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 		userService.suspend(new SuspendRequest(user.userId(), "temporary suspension"));
 
+		outboxPublisher.publishPendingEvents();
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId());
 			Assertions.assertTrue(userView.isPresent());
@@ -194,6 +202,8 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 		userService.unsuspend(new SuspendRequest(user.userId(), "reactivation"));
 
+		outboxPublisher.publishPendingEvents();
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId());
 			Assertions.assertTrue(userView.isPresent());
@@ -204,7 +214,7 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsuspended));
 
 		String body = waitForMessageBody(tmpQueue);
-
+		
 		Assertions.assertNotNull(body);
 
 		JsonNode json = objectMapper.readTree(body);
@@ -233,6 +243,8 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
 
+		outboxPublisher.publishPendingEvents();
+		
 		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 			var userView = userViewRepository.findById(user.userId());
 			Assertions.assertTrue(userView.isPresent());
@@ -243,7 +255,7 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 		Assertions.assertTrue(events.stream().anyMatch(e -> e.type() == UserEventType.UserUnsubscribed));
 
 		String body = waitForMessageBody(tmpQueue);
-
+		
 		Assertions.assertNotNull(body);
 
 		JsonNode json = objectMapper.readTree(body);
@@ -300,6 +312,8 @@ class UserRabbitIntegrationTest extends AbstractKeycloakIntegrationTest {
 		SubscribeRequest request = new SubscribeRequest("Arianna", "Comi", email, "12345678");
 		
 		UserSubscribedResponse response = userService.subscribe(request);
+		
+		outboxPublisher.publishPendingEvents();
 		
 		await().atMost(Duration.ofSeconds(7)).untilAsserted(() -> {
 			    Assertions.assertTrue(userViewRepository.findById(response.userId()).isPresent());

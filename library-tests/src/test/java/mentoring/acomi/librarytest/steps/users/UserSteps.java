@@ -64,9 +64,9 @@ public class UserSteps {
 	public void checkUserStatus(String status) {
 		
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
-		String loanId = context.get(CommonSteps.USER_ID, String.class);
+		String userId = context.get(CommonSteps.USER_ID, String.class);
 
-		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get().uri("/users/%s".formatted(loanId))
+		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get().uri("/users/%s".formatted(userId))
 				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
 
 		Helper.awaitAndAssert(query, json -> Assertions.assertAll(
@@ -76,7 +76,7 @@ public class UserSteps {
 			() -> {
 				String responseStatus = json.read("$.status");
 				Assertions.assertEquals(status, responseStatus);
-		}), 5000, 200);
+		}), 10000, 200);
 	}
 	
 	@Given("l'amministratore sospende l'utente")
@@ -343,7 +343,7 @@ public class UserSteps {
 				ExpectedValue expectedCardNumber = Helper.normalizeExpected(Helper.resolve(cardNumber, context));
 				Assertions.assertTrue(expectedCardNumber.matches(responseCardNumber));
 				}
-		}), 5000, 200);
+		}), 10000, 200);
 
 	}
 

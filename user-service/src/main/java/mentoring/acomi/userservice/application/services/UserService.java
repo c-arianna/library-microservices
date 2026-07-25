@@ -3,10 +3,7 @@ package mentoring.acomi.userservice.application.services;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
@@ -19,20 +16,17 @@ import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.UserFilter;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
+import mentoring.acomi.userservice.application.aggregates.UserAggregateFactory;
 import mentoring.acomi.userservice.application.errors.InvalidUser;
 import mentoring.acomi.userservice.application.errors.InvalidUserData;
 import mentoring.acomi.userservice.application.errors.UserCreationError;
 import mentoring.acomi.userservice.application.errors.UserNotFound;
 import mentoring.acomi.userservice.application.generator.CardNumberGenerator;
-import mentoring.acomi.userservice.application.messaging.EventDispatcher;
-import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.userservice.application.sso.IdentityProviderService;
 import mentoring.acomi.userservice.application.sso.ProviderUserCreated;
 import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
-import mentoring.acomi.userservice.domain.events.UserEvent;
-import mentoring.acomi.userservice.domain.events.UserEventType;
 import mentoring.acomi.userservice.domain.model.CardNumber;
 import mentoring.acomi.userservice.domain.model.User;
 import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
@@ -44,27 +38,22 @@ import mentoring.acomi.userservice.infrastructure.dto.UserRegisteredDto;
 import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
-import mentoring.acomi.userservice.infrastructure.messaging.UserIntegrationPublisherEventVersions;
 import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakException;
 
 @Service
 public class UserService {
 
 	private final UserViewQueryRepository userViewRepository;
-	private final UserEventRepository userEventRepository;
-	private final EventDispatcher eventDispatcher;
 	private final IdentityProviderService identityProviderService;
 	private final CardNumberGenerator cardNumberGenerator;
+	private final UserAggregateFactory aggregateFactory;
 	
-	private final Logger logger = LogManager.getLogger(UserService.class);
-
-	public UserService(UserViewQueryRepository userViewRepository, UserEventRepository userEventRepository, 
-		 EventDispatcher eventDispatcher, IdentityProviderService identityProviderService, CardNumberGenerator cardNumberGenerator) {
+	public UserService(UserViewQueryRepository userViewRepository, IdentityProviderService identityProviderService, 
+		 CardNumberGenerator cardNumberGenerator, UserAggregateFactory aggregateFactory) {
 		this.userViewRepository = userViewRepository;
-		this.userEventRepository = userEventRepository;
-		this.eventDispatcher = eventDispatcher;
 		this.identityProviderService = identityProviderService;
 		this.cardNumberGenerator = cardNumberGenerator;
+		this.aggregateFactory = aggregateFactory;
 	}
 
 	@Transactional
@@ -84,7 +73,7 @@ public class UserService {
 		
 		deleteIdentityProviderUser(loggedUser.userIdentityProviderId());
 		
-		UserAggregate aggregate = loadUser(loggedUserId);
+		UserAggregate aggregate = aggregateFactory.create(loggedUserId);
 		aggregate.unsubscribe(request.reason());
 		return new UserResponse(loggedUserId, aggregate.email(), loggedUser.name(), loggedUser.lastname(), loggedUser.cardNumber(),
 				aggregate.role(), UserStatus.DISABLED);
@@ -93,7 +82,7 @@ public class UserService {
 	@Transactional
 	public UserResponse suspend(SuspendRequest request) {
 
-		UserAggregate aggregate = loadUser(request.userId());
+		UserAggregate aggregate = aggregateFactory.create(request.userId());
 
 		UserView loggedUser = getLoggedUser();
 
@@ -104,7 +93,7 @@ public class UserService {
 
 	@Transactional
 	public UserResponse unsuspend(SuspendRequest request) {
-		UserAggregate aggregate = loadUser(request.userId());
+		UserAggregate aggregate = aggregateFactory.create(request.userId());
 
 		UserView loggedUser = getLoggedUser();
 
@@ -132,7 +121,7 @@ public class UserService {
 		
 		ProviderUserCreated keycloakUser = createIdentityProviderUser(userRegistered);
 
-		UserAggregate aggregate = loadUser(userId);
+		UserAggregate aggregate = aggregateFactory.create(userId);
 		
 		String cardNumber = generateCardNumber(userRegistered.role());
 		
@@ -175,41 +164,6 @@ public class UserService {
 
 	private User getUser(String userId, UserRegisteredDto user, String identityProviderId, String cardNumber) {
 		return User.create(userId, user.email(), user.name(), user.lastname(), identityProviderId, cardNumber, user.role());
-	}
-
-	private UserAggregate loadUser(String userId) {
-		List<UserEvent> events = userEventRepository.loadStream(userId);
-		Consumer<UserEvent> dispatch = event -> {
-			userEventRepository.appendToStream(event, getSchemaVersion(event.type()));
-			try {
-				eventDispatcher.dispatch(event);
-			} catch (Exception e) {
-				logger.error("[Dispatch] error after event persistence, eventType={}", event.type(), e);
-			}
-		};
-
-		return new UserAggregate(userId, dispatch, events);
-	}
-
-	private int getSchemaVersion(UserEventType eventType) {
-		
-		return switch(eventType) {
-			case UserSubscribed -> {
-				yield UserIntegrationPublisherEventVersions.USER_SUBSCRIBED;
-			}
-			case UserUnsubscribed ->{
-				yield UserIntegrationPublisherEventVersions.USER_UNSUBSCRIBED;
-			}
-			case UserSuspended ->{
-				yield UserIntegrationPublisherEventVersions.USER_SUSPENDED;
-			}
-			case UserUnsuspended ->{
-				yield UserIntegrationPublisherEventVersions.USER_UNSUSPENDED;
-			}
-			case LibraryCardAssigned -> {
-				yield UserIntegrationPublisherEventVersions.LIBRARY_CARD_ASSIGNED;
-			}
-		};
 	}
 
 	private ProviderUserCreated createIdentityProviderUser(UserRegisteredDto user) {
