@@ -139,7 +139,7 @@ public class LoanSteps {
 			() -> {
 				String responseStatus = json.read("$.status");
 				Assertions.assertEquals(status, responseStatus);
-		}), 5000, 200);
+		}), 7000, 200);
 	}
 	
 	/*

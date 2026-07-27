@@ -14,16 +14,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import mentoring.acomi.bookservice.application.outbox.OutboxPublisher;
+import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewQueryRepository;
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
+import mentoring.acomi.bookservice.domain.events.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
@@ -34,7 +36,6 @@ import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookV
 @SpringBootTest(properties = { "spring.jpa.hibernate.ddl-auto=none", "spring.sql.init.mode=always"})
 @Testcontainers
 @Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
-@Sql("/db/replay/replay-schema.sql")
 public class BookEventsReplayTest {
 
 	@Container
@@ -70,6 +71,12 @@ public class BookEventsReplayTest {
 
 	@Autowired
 	private BookReplayService replayService;
+	
+	@Autowired
+	private BookEventRepository eventRepository;
+	
+	@Autowired
+	private OutboxPublisher outboxPublisher;
 
 	private static final String ISBN = "9788804336327";
 
@@ -82,9 +89,52 @@ public class BookEventsReplayTest {
 	void shouldRebuildProjectionsFromEventsReplay() {
 
 		bookService.addBook(new AddBookRequest(ISBN, "Italo Calvino", "Il barone rampante", ""));
+		
+		await().untilAsserted(() -> {
+			Assertions.assertThat(
+					eventRepository.loadStream(ISBN)
+		            .stream()
+		            .anyMatch(e -> e.type() == BookEventType.BookRegistered)
+		    ).isTrue();
+		});
+		
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var book = bookViewRepository.findById(ISBN);
+			Assertions.assertThat(book.isPresent()).isTrue();
+		});
+		
 		bookService.addBookCopies(new AddBookCopiesRequest(3), ISBN);
+		
+		await().untilAsserted(() -> {
+			Assertions.assertThat(
+					eventRepository.loadStream(ISBN)
+		            .stream()
+		            .anyMatch(e -> e.type() == BookEventType.BookCopiesAdded)
+		    ).isTrue();
+		});
+		
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			var book = bookViewRepository.findById(ISBN);
+			Assertions.assertThat(book.isPresent()).isTrue();
+			Assertions.assertThat(3).isEqualTo(book.get().availableCopies());
+		});
+				
 		bookService.removeBookCopies(new RemoveBookCopiesRequest(1, ""), ISBN);
 
+		await().untilAsserted(() -> {
+			Assertions.assertThat(
+					eventRepository.loadStream(ISBN)
+		            .stream()
+		            .anyMatch(e -> e.type() == BookEventType.BookCopiesRemoved)
+		    ).isTrue();
+		});
+		
+		outboxPublisher.publishPendingEvents();
+		
 		await().atMost(Duration.ofSeconds(50)).untilAsserted(() -> {
 			var book = bookViewRepository.findById(ISBN);
 			Assertions.assertThat(book.isPresent()).isTrue();

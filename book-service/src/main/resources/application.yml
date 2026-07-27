@@ -45,6 +45,9 @@ spring:
     init:
       continue-on-error: true
 
+  flyway:
+    baseline-on-migrate: true
+
 management:
   tracing:
     enabled: true

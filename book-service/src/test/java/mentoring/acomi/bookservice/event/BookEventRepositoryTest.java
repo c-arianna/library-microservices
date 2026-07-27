@@ -54,7 +54,7 @@ public class BookEventRepositoryTest {
 	@Test
 	public void shouldPreserveEventOrder() {
 
-		String isbn = "9788804336327";
+		String isbn = "978-8828727422";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
 		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
@@ -75,7 +75,7 @@ public class BookEventRepositoryTest {
 	@Test
 	public void shouldReturnTrueIfAggregateExists() {
 
-		String isbn = "9788804336327";
+		String isbn = "0988262509";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
 		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
@@ -97,7 +97,7 @@ public class BookEventRepositoryTest {
 	@Test
 	public void shouldReturnEvent() {
 
-		String isbn = "9788804336327";
+		String isbn = "9788415723356";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
 		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
@@ -119,7 +119,7 @@ public class BookEventRepositoryTest {
 	@Test
 	void shouldSerializeAndDeserializeEvent() {
 
-		String isbn = "9788804336327";
+		String isbn = "9780439139595";
 		BookRegisteredEvent bookRegisteredEvent = createBookRegisteredEvent(isbn);
 		repository.appendToStream(bookRegisteredEvent, EVENT_VERSION);
 
@@ -141,7 +141,7 @@ public class BookEventRepositoryTest {
 		String eventId = UUID.randomUUID().toString();
 
 		BookLoanPayload payload = new BookLoanPayload(isbn, "loan-01", "user-01");
-		return new BookReservedEvent(isbn, eventId, 0, payload, Instant.now());
+		return new BookReservedEvent(isbn, eventId, 1, payload, Instant.now());
 
 	}
 

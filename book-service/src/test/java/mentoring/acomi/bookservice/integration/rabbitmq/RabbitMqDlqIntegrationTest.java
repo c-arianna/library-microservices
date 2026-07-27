@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -30,6 +31,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology
         RabbitMQConfigTest.class,
         FailingListener.class
 })
+@TestPropertySource(properties = {"spring.datasource.url=jdbc:h2:mem:test;MODE=MySQL"})
 public class RabbitMqDlqIntegrationTest {
 
 	@Container

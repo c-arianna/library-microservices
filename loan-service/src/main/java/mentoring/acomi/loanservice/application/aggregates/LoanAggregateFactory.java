@@ -25,10 +25,10 @@ public class LoanAggregateFactory {
 		this.outboxRepository = outboxRepository;
 	}
 	
-	public LoanAggregate create(String userId) {
-		List<LoanEvent> events = loanEventRepository.loadStream(userId);
+	public LoanAggregate create(String loanId) {
+		List<LoanEvent> events = loanEventRepository.loadStream(loanId);
 		Consumer<LoanEvent> dispatcher = this::persistEvent;
-		return new LoanAggregate(userId, dispatcher, events);
+		return new LoanAggregate(loanId, dispatcher, events);
 	}
 	
 	private void persistEvent(LoanEvent event) {

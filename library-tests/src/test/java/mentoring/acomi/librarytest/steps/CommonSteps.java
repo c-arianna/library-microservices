@@ -35,13 +35,12 @@ public class CommonSteps {
 	public static final String RESPONSE_BODY = "responseBody";
 	public static final String RESPONSE_STATUS = "responseStatus";
 	public static final String LAST_QUERY = "LAST_QUERY";
-	
+
 	public static final String USER_ID = "USER_ID";
 	public static final String CARD_NUMBER = "CARD_NUMBER";
-	
-	
+
 	private RestTestClient client = RestTestClient.bindToServer().baseUrl(TestConfig.BASE_URL).build();;
-	
+
 	public CommonSteps(TestContext context) {
 		this.context = context;
 	}
@@ -81,12 +80,28 @@ public class CommonSteps {
 				.returnResult();
 
 		Assertions.assertEquals(201, result.getStatus().value());
+
+		String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+
+		var bodyResponse = JsonPath.parse(response);
+
+		String isbnResponse = bodyResponse.read("$.isbn");
+
+		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get().uri("/books/%s".formatted(isbnResponse))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		Helper.awaitAndAssert(query, json -> Assertions.assertAll(() -> {
+			Assertions.assertEquals(200, query.get().getStatus().value());
+		}), 5000, 200);
+
 	}
-	
+
 	@Given("l'amministratore aggiunge {int} copie del libro {string}")
 	public void addBookCopies(int quantity, String isbn) {
-		
+
 		String accessToken = context.get(ADMIN_ACCESS_TOKEN, String.class);
+
+		int initialTotalCopies = getInitialTotalCopies(isbn, accessToken);
 
 		String body = """
 				{
@@ -97,13 +112,24 @@ public class CommonSteps {
 		var result = addBookCopies(isbn, accessToken, body);
 
 		Assertions.assertEquals(204, result.getStatus().value());
+
+		Supplier<EntityExchangeResult<byte[]>> detail = () -> client.get().uri("/books/%s".formatted(isbn))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		Helper.awaitAndAssert(detail, json -> Assertions.assertAll(() -> {
+			Integer responseTotalCopies = json.read("$.totalCopies");
+			Assertions.assertEquals(initialTotalCopies + quantity, responseTotalCopies);
+		}), 5000, 200);
+
 	}
-	
+
 	@Given("l'amministratore rimuove una copia del libro {string}")
 	public void removeCopies(String isbn) {
 
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 
+		int initialTotalCopies = getInitialTotalCopies(isbn, accessToken);
+		
 		String body = """
 				{
 				  "quantity": 1,
@@ -114,8 +140,16 @@ public class CommonSteps {
 		var result = removeBookCopies(isbn, accessToken, body);
 
 		Assertions.assertEquals(204, result.getStatus().value());
+
+		Supplier<EntityExchangeResult<byte[]>> detail = () -> client.get().uri("/books/%s".formatted(isbn))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		Helper.awaitAndAssert(detail, json -> Assertions.assertAll(() -> {
+			Integer responseTotalCopies = json.read("$.totalCopies");
+			Assertions.assertEquals(initialTotalCopies - 1, responseTotalCopies);
+		}), 5000, 200);
 	}
-	
+
 	@Given("esiste l'utente con credenziali {string}, {string}, nome {string}, cognome {string}")
 	public void subscribeUser(String mail, String password, String name, String lastname) {
 
@@ -139,27 +173,25 @@ public class CommonSteps {
 
 		String userId = bodyResponse.read("$.userId");
 		String userIdentityProviderId = bodyResponse.read("$.userIdentityProviderId");
-        String cardNumber = bodyResponse.read("$.cardNumber");
-        
-        String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
-		
+		String cardNumber = bodyResponse.read("$.cardNumber");
+
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+
 		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get().uri("/users/%s".formatted(userId))
 				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
 
-		Helper.awaitAndAssert(query, json -> Assertions.assertAll(
-			() -> {
-				Assertions.assertEquals(200, query.get().getStatus().value());	
-			}, 
-			() -> {
-				String responseCardNumber = json.read("$.cardNumber");
-				Assertions.assertEquals(cardNumber, responseCardNumber);
+		Helper.awaitAndAssert(query, json -> Assertions.assertAll(() -> {
+			Assertions.assertEquals(200, query.get().getStatus().value());
+		}, () -> {
+			String responseCardNumber = json.read("$.cardNumber");
+			Assertions.assertEquals(cardNumber, responseCardNumber);
 		}), 5000, 200);
-		
+
 		context.put(USER_ID, userId);
 		context.put(CARD_NUMBER, cardNumber);
 		context.userProviderIdToDelete.add(userIdentityProviderId);
 		context.put(mail, userId);
-	
+
 	}
 
 	@Given("l'utente con ID {string} non esiste")
@@ -171,7 +203,7 @@ public class CommonSteps {
 				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
 
 		Assertions.assertEquals(result.getStatus().value(), 404);
-		
+
 		context.put(USER_ID, userId);
 	}
 	/*
@@ -207,10 +239,11 @@ public class CommonSteps {
 		expectedContent.forEach((key, expectedValue) -> {
 			Object actualValue = responseBody.read(String.format("$.%s", key));
 			Assertions.assertNotNull(actualValue, String.format("Missing field in response: %s", key));
-			Assertions.assertTrue(expectedValue.matches(actualValue), String.format("Mismatch on field: %s, actual value: %s", key, actualValue));
+			Assertions.assertTrue(expectedValue.matches(actualValue),
+					String.format("Mismatch on field: %s, actual value: %s", key, actualValue));
 		});
 	}
-	
+
 	@Then("eventualmente {string} è una lista vuota")
 	public void checkEmptyList(String field) {
 
@@ -220,13 +253,12 @@ public class CommonSteps {
 			throw new IllegalStateException("No query found in context.");
 		}
 
-		Helper.awaitAndAssert(query,
-				json -> {
-						Integer size = json.read("$.%s.length()".formatted(field));
-					    Assertions.assertEquals(0, size, "'%s' is not empty".formatted(field));
-		        }, 5000, 200);
+		Helper.awaitAndAssert(query, json -> {
+			Integer size = json.read("$.%s.length()".formatted(field));
+			Assertions.assertEquals(0, size, "'%s' is not empty".formatted(field));
+		}, 5000, 200);
 	}
-	
+
 	@Then("eventualmente {string} contiene {int} elementi")
 	public void checkList(String field, int size) {
 
@@ -270,25 +302,23 @@ public class CommonSteps {
 	public void checkBookView(String isbn, int totalCopies, int borrowedCopies, int reservedCopies) {
 
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
-		
-		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get().uri("/books/%s".formatted(isbn))
-				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody()
-				.returnResult();
 
-		Helper.awaitAndAssert(query,
-			json -> Assertions.assertAll(() -> {
-					Integer responseTotalCopies = json.read("$.totalCopies");
-					Assertions.assertEquals(totalCopies, responseTotalCopies);
-				}, () -> {
-					Integer responseBorrowedCopies = json.read("$.borrowedCopies");
-					Assertions.assertEquals(borrowedCopies, responseBorrowedCopies);
-				}, () -> {
-					Integer responseReservedCopies = json.read("$.reservedCopies");
-					Assertions.assertEquals(reservedCopies, responseReservedCopies);
+		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get().uri("/books/%s".formatted(isbn))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		Helper.awaitAndAssert(query, json -> Assertions.assertAll(() -> {
+			Integer responseTotalCopies = json.read("$.totalCopies");
+			Assertions.assertEquals(totalCopies, responseTotalCopies);
+		}, () -> {
+			Integer responseBorrowedCopies = json.read("$.borrowedCopies");
+			Assertions.assertEquals(borrowedCopies, responseBorrowedCopies);
+		}, () -> {
+			Integer responseReservedCopies = json.read("$.reservedCopies");
+			Assertions.assertEquals(reservedCopies, responseReservedCopies);
 		}), 5000, 200);
 
 	}
-	
+
 	/*
 	 * ############################### HELPER METHODS #####################################
 	 */
@@ -300,19 +330,30 @@ public class CommonSteps {
 		return authClient.login(CLIENT_ID, username, password);
 
 	}
-	
+
 	private EntityExchangeResult<byte[]> addBookCopies(String isbn, String accessToken, String body) {
-		
+
 		return client.post().uri(String.format("/books/%s/copies/add", isbn)).contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer %s".formatted(accessToken)).body(body).exchange().expectBody()
 				.returnResult();
 	}
-	
+
 	public EntityExchangeResult<byte[]> removeBookCopies(String isbn, String accessToken, String body) {
 		return client.post().uri("/books/%s/copies/remove".formatted(isbn)).contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer %s".formatted(accessToken)).body(body).exchange().expectBody()
 				.returnResult();
 	}
 	
-}
+	private int getInitialTotalCopies(String isbn, String accessToken) {
+		
+		Supplier<EntityExchangeResult<byte[]>> detail = () -> client.get().uri("/books/%s".formatted(isbn))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
 
+		var initialResponse = new String(detail.get().getResponseBody(), StandardCharsets.UTF_8);
+
+		var initialJson = JsonPath.parse(initialResponse);
+
+		return initialJson.read("$.totalCopies");
+	}
+
+}
