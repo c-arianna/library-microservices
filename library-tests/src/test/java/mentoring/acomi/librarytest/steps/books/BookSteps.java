@@ -2,6 +2,7 @@ package mentoring.acomi.librarytest.steps.books;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -12,6 +13,7 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import io.cucumber.docstring.DocString;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import mentoring.acomi.librarytest.config.TestConfig;
@@ -32,6 +34,28 @@ public class BookSteps {
 		this.context = context;
 	}
 
+	/*
+	 * ############################### GIVEN #####################################
+	 */
+	
+	@Given("l'utente si sottoscrive alla disponibilità del libro ISBN {string}")
+	public void subscribeBookAvailability(String isbn) {
+		
+		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
+
+		String body = """
+				{
+				  "phoneNumber": "+390000000000"
+				}
+				""";
+		
+		var result = client.post().uri("/books/%s/subscription".formatted(isbn)).contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer %s".formatted(accessToken)).body(body).exchange()
+				.expectBody().returnResult();
+		
+		Assertions.assertEquals(204, result.getStatus().value());
+	}
+	
 	/*
 	 * ############################### WHEN #####################################
 	 */
@@ -168,7 +192,24 @@ public class BookSteps {
 
 		        }, 5000, 200);
 	}
+	
+	@Then("eventualmente la sottoscrizione con ISBN {string} risulta notificata")
+	public void checkSubscriptionStatus(String isbn) {
 		
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+		
+		Supplier<EntityExchangeResult<byte[]>> isbnSubscriptions = () -> client.get().uri("/books/%s/subscriptions".formatted(isbn))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+		
+		Helper.awaitAndAssert(isbnSubscriptions,
+			    json -> Assertions.assertAll(() -> {
+			        List<String> statuses = json.read("$.subscriptions[*].status");
+			        Assertions.assertFalse(statuses.isEmpty());
+			        Assertions.assertTrue(statuses.stream().allMatch("NOTIFIED"::equals));
+
+			    }), 5000, 200);
+	}
+	
 	/*
 	 * ############################### HELPER METHODS #####################################
 	 */

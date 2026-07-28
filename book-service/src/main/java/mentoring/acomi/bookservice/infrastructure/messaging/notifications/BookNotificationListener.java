@@ -1,4 +1,4 @@
-package mentoring.acomi.notificationservice.infrastructure.messaging;
+package mentoring.acomi.bookservice.infrastructure.messaging.notifications;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,17 +13,17 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.Not
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
 
 @Component
-public class NotificationListener {
-	
-	private final Logger logger = LogManager.getLogger(NotificationListener.class);
-		
+public class BookNotificationListener {
+
 	private final NotificationHandlerRegistry registry;
+
+	private final Logger logger = LogManager.getLogger(BookNotificationListener.class);
 	
-	public NotificationListener(NotificationHandlerRegistry registry) {
+	public BookNotificationListener(NotificationHandlerRegistry registry) {
 		this.registry = registry;
 	}
 	
-	@RabbitListener(queues = MessagingTopology.NOTIFICATION_QUEUE)
+	@RabbitListener(queues = MessagingTopology.BOOK_NOTIFICATION_QUEUE)
 	public void onEvent(NotificationEventEnvelope<?> notificationEvent) {
 		
 		NotificationEventType eventType = notificationEvent.eventType();
@@ -47,5 +47,4 @@ public class NotificationListener {
 		    throw ex;
 		}
 	}
-
 }

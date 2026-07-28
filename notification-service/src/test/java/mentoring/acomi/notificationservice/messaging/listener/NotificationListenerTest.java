@@ -16,13 +16,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.NotificationListener;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.BookUpdatedNotificationPayload;
-import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandlerRegistry;
-import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandlerRegistry;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationListenerTest {

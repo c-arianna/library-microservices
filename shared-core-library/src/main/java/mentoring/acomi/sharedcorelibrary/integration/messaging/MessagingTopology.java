@@ -14,5 +14,6 @@ public final class MessagingTopology {
 	public static final String REPLAY_LOAN_QUEUE = "replay.loan.queue";
 	public static final String REPLAY_USER_QUEUE = "replay.user.queue";
 	public static final String NOTIFICATION_QUEUE = "notification.queue";
+	public static final String BOOK_NOTIFICATION_QUEUE = "book-service.notification.queue";
 
 }

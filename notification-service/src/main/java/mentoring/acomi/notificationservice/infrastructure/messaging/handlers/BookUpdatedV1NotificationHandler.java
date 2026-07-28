@@ -3,11 +3,13 @@ package mentoring.acomi.notificationservice.infrastructure.messaging.handlers;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.BookUpdatedNotificationPayload;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNotification;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.AbstractNotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandlerMetadata;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

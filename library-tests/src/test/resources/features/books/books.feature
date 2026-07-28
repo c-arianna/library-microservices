@@ -318,3 +318,24 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       | code    | "BOOK_NOT_FOUND"    |
       | type    | "APPLICATION_ERROR" |
       
+  Rule: Sottoscrizione per libri non disponibili
+  
+  	Scenario: L'utente riceve una notifica quando il libro torna disponibile
+  	  Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And l'amministratore aggiunge un libro con isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante" e descrizione
+        """
+        Il barone rampante (1957) è il secondo libro della trilogia I nostri antenati
+        """
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And l'utente si sottoscrive alla disponibilità del libro ISBN "9788804336327"
+      When l'amministratore aggiunge una copia del libro "9788804336327", con i seguenti dati:
+        """
+        {
+          "quantity": 1
+        }
+        """
+      Then la risposta ha status code 204
+      And il libro "9788804336327" ha totalCopies = 1, borrowedCopies = 0, reservedCopies = 0
+      And eventualmente la sottoscrizione con ISBN "9788804336327" risulta notificata
+  
+      

@@ -68,6 +68,8 @@ public class BookEventProcessor {
 			notificationService.publishBookUpdated(notification.get().aggregateId(), notification.get().schemaVersion());
 		}
 		
+		notificationService.notifyAvailability(notification.get().aggregateId(), notification.get().schemaVersion());
+		
 		bookEventRepository.markProcessed(event.eventId(), event.aggregateType());	
 	}
 		     

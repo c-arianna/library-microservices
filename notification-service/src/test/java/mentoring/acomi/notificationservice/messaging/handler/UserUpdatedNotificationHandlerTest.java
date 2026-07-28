@@ -18,12 +18,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
-import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNotification;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.UserUpdatedNotificationPayload;
 import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.UserUpdatedNotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import tools.jackson.databind.ObjectMapper;

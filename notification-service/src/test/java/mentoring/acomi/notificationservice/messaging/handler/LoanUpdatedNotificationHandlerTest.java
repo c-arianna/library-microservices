@@ -19,13 +19,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
-import mentoring.acomi.notificationservice.application.errors.NotificationHandlingException;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNotification;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.LoanStatus;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.LoanUpdatedNotificationPayload;
 import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.LoanUpdatedV1NotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
 import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)

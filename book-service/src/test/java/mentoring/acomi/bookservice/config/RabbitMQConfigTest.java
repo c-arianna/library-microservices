@@ -45,6 +45,11 @@ public class RabbitMQConfigTest {
 	}
 	
 	@Bean
+	Queue bookNotificationQueue() {
+		return new Queue(MessagingTopology.BOOK_NOTIFICATION_QUEUE, true);
+	}
+	
+	@Bean
     Declarables bookBindings(Queue bookQueue, TopicExchange eventsExchange) {
         return new Declarables(
             BindingBuilder.bind(bookQueue).to(eventsExchange)
@@ -78,6 +83,13 @@ public class RabbitMQConfigTest {
         return new Declarables(
             BindingBuilder.bind(notificationQueue).to(notificationsExchange)
                 .with(NotificationEventType.BOOK_UPDATED.getRoutingKey()));
+    }
+	
+	@Bean
+    Declarables bookNotificationBindings(Queue bookNotificationQueue, TopicExchange notificationsExchange) {
+        return new Declarables(
+            BindingBuilder.bind(bookNotificationQueue).to(notificationsExchange)
+                .with(NotificationEventType.BOOK_SUBSCRIPTION_NOTIFIED.getRoutingKey()));
     }
 	
 	@Bean

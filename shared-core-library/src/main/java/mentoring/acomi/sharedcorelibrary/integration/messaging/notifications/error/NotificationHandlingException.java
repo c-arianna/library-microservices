@@ -1,4 +1,4 @@
-package mentoring.acomi.notificationservice.application.errors;
+package mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error;
 
 public class NotificationHandlingException extends RuntimeException {
 	

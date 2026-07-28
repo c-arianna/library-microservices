@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import mentoring.acomi.bookservice.application.errors.BookNotFound;
+import mentoring.acomi.bookservice.application.errors.InvalidUser;
+import mentoring.acomi.bookservice.application.errors.UserNotFound;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.errors.BookNotRegistered;
 import mentoring.acomi.bookservice.domain.errors.CannotRemoveBookCopies;
@@ -80,6 +82,18 @@ public class ApplicationExceptionHandler {
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorResponse handleBookNotFoundError(BookNotFound e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "APPLICATION_ERROR");
+	}
+	
+	@ExceptionHandler(UserNotFound.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleUserNotFoundError(UserNotFound e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "RESOURCE_NOT_FOUND");
+	}
+	
+	@ExceptionHandler(InvalidUser.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ErrorResponse handleInvalidUserError(InvalidUser e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "LOAN_INVALID_USER");
 	}
 	
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

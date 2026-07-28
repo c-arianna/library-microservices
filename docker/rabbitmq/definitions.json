@@ -92,6 +92,11 @@
             "vhost": "/",
             "durable": true
         },
+		{
+            "name": "book-service.notification.queue",
+            "vhost": "/",
+            "durable": true
+        },
         {
             "name": "book-service.dlq",
             "vhost": "/",
@@ -325,6 +330,20 @@
             "destination": "notification.queue",
             "destination_type": "queue",
             "routing_key": "notifications.user.updated"
+        },
+		{
+            "source": "notifications.exchange",
+            "vhost": "/",
+            "destination": "notification.queue",
+            "destination_type": "queue",
+            "routing_key": "notifications.book.subscription.requested"
+        },
+		{
+            "source": "notifications.exchange",
+            "vhost": "/",
+            "destination": "book-service.notification.queue",
+            "destination_type": "queue",
+            "routing_key": "notifications.book.subscription.notified"
         },
         {
             "source": "book-service.dlx",

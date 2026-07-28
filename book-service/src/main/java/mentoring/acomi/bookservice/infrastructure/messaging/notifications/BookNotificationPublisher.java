@@ -10,8 +10,10 @@ import org.springframework.stereotype.Component;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import mentoring.acomi.bookservice.application.view.BookSubscriptionView;
 import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.infrastructure.messaging.notifications.mapper.BookNotificationMapper;
+import mentoring.acomi.bookservice.infrastructure.messaging.notifications.payload.BookSubscriptionRequestedPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.notifications.payload.BookUpdatedNotificationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
@@ -46,5 +48,27 @@ public class BookNotificationPublisher {
         rabbitTemplate.convertAndSend(MessagingTopology.NOTIFICATIONS_EXCHANGE, NotificationEventType.BOOK_UPDATED.getRoutingKey(), event);
 
     }
+
+	public void publishBookSubscriptionRequested(BookSubscriptionView subscription, String title, int schemaVersion) {
+	
+		Span span = tracer.currentSpan();
+
+		logger.info("Publishing event {} traceId={} spanId={}", NotificationEventType.BOOK_SUBSCRIPTION_REQUESTED.getRoutingKey(),
+				span != null ? span.context().traceId() : "null", span != null ? span.context().spanId() : "null");
+		
+		NotificationEventEnvelope<?> event = getBookSubscriptionRequested(subscription, title, schemaVersion);
+		
+		rabbitTemplate.convertAndSend(MessagingTopology.NOTIFICATIONS_EXCHANGE, NotificationEventType.BOOK_SUBSCRIPTION_REQUESTED.getRoutingKey(), event);
+		
+	}
+
+	private NotificationEventEnvelope<?> getBookSubscriptionRequested(BookSubscriptionView subscription, String title, int schemaVersion) {
+		
+		BookSubscriptionRequestedPayload payload = new BookSubscriptionRequestedPayload(subscription.id(), subscription.isbn(),
+				subscription.userIdentityId(), subscription.phoneNumber(), title);
+		
+		return new NotificationEventEnvelope<>(UUID.randomUUID().toString(), NotificationEventType.BOOK_SUBSCRIPTION_REQUESTED, "book-service", 
+				Instant.now(), schemaVersion, payload);
+	}
 
 }

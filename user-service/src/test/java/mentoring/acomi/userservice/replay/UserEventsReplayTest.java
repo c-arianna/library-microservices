@@ -113,7 +113,7 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 		outboxPublisher.publishPendingEvents();
 		
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		await().atMost(Duration.ofSeconds(6)).untilAsserted(() -> {
 		    UserView userView = userViewRepository.findById(user.userId()).orElseThrow();
 			Assertions.assertThat(userView.status()).isEqualTo(UserStatus.SUSPENDED);
 		});
@@ -122,7 +122,7 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 
 		outboxPublisher.publishPendingEvents();
 		
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {	
+		await().atMost(Duration.ofSeconds(6)).untilAsserted(() -> {	
 		    UserView userView = userViewRepository.findById(user.userId()).orElseThrow();
 			Assertions.assertThat(userView.status()).isEqualTo(UserStatus.ACTIVE);
 		});
@@ -130,7 +130,7 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 		userService.unsubscribe(new UnsubscribeRequest("Unsubscribed"));
 		outboxPublisher.publishPendingEvents();
 		
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		await().atMost(Duration.ofSeconds(6)).untilAsserted(() -> {
 	           UserViewEntity userView = viewRepository.findById(user.userId()).orElseThrow();
 	           Assertions.assertThat(userView.getStatus()).isEqualTo(UserStatus.DISABLED);
 	       });

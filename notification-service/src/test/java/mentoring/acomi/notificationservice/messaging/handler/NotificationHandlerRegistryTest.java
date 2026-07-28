@@ -9,11 +9,11 @@ import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandlerRegistry;
-import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandler;
-import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.NotificationHandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandlerMetadata;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandlerRegistry;
 
 public class NotificationHandlerRegistryTest {
 

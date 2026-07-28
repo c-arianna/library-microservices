@@ -1,4 +1,4 @@
-package mentoring.acomi.notificationservice.infrastructure.messaging.handlers;
+package mentoring.acomi.sharedcorelibrary.integration.messaging.notifications;
 
 import java.util.HashMap;
 import java.util.List;
@@ -7,11 +7,7 @@ import java.util.Optional;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Component;
 
-import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
-
-@Component
 public class NotificationHandlerRegistry {
 
     private final Map<NotificationHandlerKey, NotificationHandler> handlers;
