@@ -65,7 +65,7 @@ public class LoanEventProcessor {
 		Optional<ProjectionUpdateNotification> notification = handleEvent(event);
 		
 		if(notification.isPresent()) {
-			notificationService.publishLoanUpdated(notification.get().aggregateId(), notification.get().schemaVersion());
+			notificationService.publishLoanUpdated(notification.get().aggregateId());
 		}
 		
 		loanEventRepository.markProcessed(event.eventId(), event.aggregateType());

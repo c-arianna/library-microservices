@@ -22,10 +22,10 @@ public class LoanNotificationService {
 		this.publisher = publisher;
 	}
 	
-	public void publishLoanUpdated(String loanId, int schemaVersion) {
+	public void publishLoanUpdated(String loanId) {
         LoanView loan = loanRepository.findById(loanId).orElseThrow(() -> new LoanNotFound("%s not found".formatted(loanId)));
         UserView user = userRepository.findById(loan.userId()).orElseThrow(() -> new UserNotFound("%s not found".formatted(loan.userId())));
-        publisher.publishLoanUpdated(loan, user.identityProviderId(), user.cardNumber(), schemaVersion);
+        publisher.publishLoanUpdated(loan, user.identityProviderId(), user.cardNumber());
     }
 	
 }

@@ -18,12 +18,12 @@ import tools.jackson.databind.ObjectMapper;
 
 @NotificationHandlerMetadata(notificationEventType = NotificationEventType.LOAN_UPDATED, supportedVersions = {1})
 @Component
-public class LoanUpdatedV1NotificationHandler extends AbstractNotificationHandler {
+public class LoanUpdatedNotificationHandler extends AbstractNotificationHandler {
 	
 	private final ObjectMapper mapper;
 	private final SimpMessagingTemplate messagingTemplate;
 	
-	public LoanUpdatedV1NotificationHandler(ObjectMapper mapper, SimpMessagingTemplate messagingTemplate) {
+	public LoanUpdatedNotificationHandler(ObjectMapper mapper, SimpMessagingTemplate messagingTemplate) {
 		this.mapper = mapper;
 		this.messagingTemplate = messagingTemplate;
 	}
@@ -41,12 +41,15 @@ public class LoanUpdatedV1NotificationHandler extends AbstractNotificationHandle
 		 LocalDate startDate = LocalDate.parse(requiredField(payload, "startDate"));
 		 LocalDate endDate = LocalDate.parse(requiredField(payload, "endDate"));
 		 
+		 boolean overdue = requiredBooleanField(payload, "overdue");
+		 long daysOverdue = requiredLongField(payload, "daysOverdue");
+		 
 		 String cardNumber = optionalField(payload, "cardNumber");
 		 
 		 LoanUpdatedNotificationPayload notificationPayload = 
 	                new LoanUpdatedNotificationPayload(requiredField(payload, "loanId"), requiredField(payload, "isbn"),
 	                		requiredField(payload, "userId"), requiredField(payload, "identityProviderId"), cardNumber,
-	                		 status, startDate, endDate);
+	                		 status, startDate, endDate, overdue, daysOverdue);
 		
 		  EventNotification notificationEvent = new EventNotification(event.eventType(), notificationPayload);
 		  messagingTemplate.convertAndSend("/topic/loans", notificationEvent);

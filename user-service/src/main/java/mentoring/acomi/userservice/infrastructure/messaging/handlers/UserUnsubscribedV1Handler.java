@@ -34,7 +34,7 @@ public class UserUnsubscribedV1Handler extends AbstractEventHandler<UserIntegrat
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.unsubscribeUser(payload.userId(), event.occurredAt());
-		return Optional.of(new ProjectionUpdateNotification(payload.userId(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.userId()));
 	}
 	
 }

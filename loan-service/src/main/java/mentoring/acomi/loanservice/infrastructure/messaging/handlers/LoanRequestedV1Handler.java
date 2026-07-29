@@ -34,7 +34,7 @@ public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIn
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanRequestedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.loanInsert(payload, event.occurredAt());
-		return Optional.of(new ProjectionUpdateNotification(payload.loanId(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 
 }

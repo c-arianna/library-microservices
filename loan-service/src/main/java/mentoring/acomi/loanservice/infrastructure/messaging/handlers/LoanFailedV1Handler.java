@@ -34,7 +34,7 @@ public class LoanFailedV1Handler extends AbstractEventHandler<LoanFailedIntegrat
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanFailedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.failLoan(payload.loanId(), event.occurredAt());
-		return Optional.of(new ProjectionUpdateNotification(payload.loanId(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 
 }

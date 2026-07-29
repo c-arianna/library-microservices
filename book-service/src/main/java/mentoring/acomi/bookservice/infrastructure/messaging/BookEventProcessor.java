@@ -65,10 +65,10 @@ public class BookEventProcessor {
 		Optional<ProjectionUpdateNotification> notification = handleEvent(event);
 		
 		if(notification.isPresent()) {
-			notificationService.publishBookUpdated(notification.get().aggregateId(), notification.get().schemaVersion());
+			notificationService.publishBookUpdated(notification.get().aggregateId());
 		}
 		
-		notificationService.notifyAvailability(notification.get().aggregateId(), notification.get().schemaVersion());
+		notificationService.notifyAvailability(notification.get().aggregateId());
 		
 		bookEventRepository.markProcessed(event.eventId(), event.aggregateType());	
 	}

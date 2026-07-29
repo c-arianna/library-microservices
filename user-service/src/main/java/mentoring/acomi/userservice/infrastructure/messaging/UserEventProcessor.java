@@ -42,7 +42,7 @@ public class UserEventProcessor {
 		Optional<ProjectionUpdateNotification> notification = handleEvent(eventEnvelope);
 		
 		if(notification.isPresent()){
-			notificationService.publishUserUpdated(notification.get().aggregateId(), notification.get().schemaVersion());
+			notificationService.publishUserUpdated(notification.get().aggregateId());
 		}
 		
 		userEventRepository.markProcessed(eventEnvelope.eventId(), eventEnvelope.aggregateType());

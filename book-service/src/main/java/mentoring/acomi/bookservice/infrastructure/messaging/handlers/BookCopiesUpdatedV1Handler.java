@@ -34,7 +34,7 @@ public class BookCopiesUpdatedV1Handler extends AbstractEventHandler<BookCopiesU
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(BookCopiesUpdatedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.updateCopies(payload, event.occurredAt());
-		return Optional.of(new ProjectionUpdateNotification(payload.isbn(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.isbn()));
 	}
 
 }

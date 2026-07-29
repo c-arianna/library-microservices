@@ -32,7 +32,7 @@ public class UserNotificationPublisher {
         this.tracer = tracer;
     }
 
-    public void publishUserUpdated(UserView user, int schemaVersion) {
+    public void publishUserUpdated(UserView user) {
 
     	Span span = tracer.currentSpan();
 
@@ -41,7 +41,7 @@ public class UserNotificationPublisher {
 		
         NotificationEventEnvelope<UserUpdatedNotificationPayload> event =
                 new NotificationEventEnvelope<>(UUID.randomUUID().toString(), NotificationEventType.USER_UPDATED,
-                        "user-service", Instant.now(), schemaVersion, mapper.map(user));
+                        "user-service", Instant.now(), 1, mapper.map(user));
 
         rabbitTemplate.convertAndSend(MessagingTopology.NOTIFICATIONS_EXCHANGE, NotificationEventType.USER_UPDATED.getRoutingKey(), event);
 

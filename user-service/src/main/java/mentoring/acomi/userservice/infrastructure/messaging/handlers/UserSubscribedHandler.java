@@ -50,7 +50,7 @@ public class UserSubscribedHandler extends AbstractEventHandler<UserSubscribedIn
 		
 		projectionOperations.subscribeUser(getSubscriptionData(payload), event.occurredAt());
 	
-		return Optional.of(new ProjectionUpdateNotification(payload.userId(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.userId()));
 		
 	}
 

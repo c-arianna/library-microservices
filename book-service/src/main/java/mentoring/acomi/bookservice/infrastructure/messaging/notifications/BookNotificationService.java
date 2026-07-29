@@ -21,17 +21,17 @@ public class BookNotificationService {
 		this.subscriptionRepository = subscriptionRepository;
 	}
 
-	public void publishBookUpdated(String isbn, int schemaVersion) {
+	public void publishBookUpdated(String isbn) {
         BookView book = queryRepository.findById(isbn).orElseThrow(() -> new BookNotFound(String.format("%s not registered", isbn)));
-        publisher.publishBookUpdated(book, schemaVersion);
+        publisher.publishBookUpdated(book);
     }
 	
-	 public void notifyAvailability(String isbn, int schemaVersion) {
+	 public void notifyAvailability(String isbn) {
 
 		 BookView book = queryRepository.findById(isbn).orElseThrow(() -> new BookNotFound(String.format("%s not registered", isbn)));
 		 
          subscriptionRepository.findSubscriptionsToNotify(isbn)
-               .forEach(subscription -> publisher.publishBookSubscriptionRequested(subscription, book.title(), schemaVersion));
+               .forEach(subscription -> publisher.publishBookSubscriptionRequested(subscription, book.title()));
    }
 
 }

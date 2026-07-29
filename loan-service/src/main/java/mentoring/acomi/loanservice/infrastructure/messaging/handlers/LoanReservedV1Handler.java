@@ -34,7 +34,7 @@ public class LoanReservedV1Handler extends AbstractEventHandler<LoanIntegrationP
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.reserveLoan(payload.loanId(), event.occurredAt());
-		return Optional.of(new ProjectionUpdateNotification(payload.loanId(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 
 }

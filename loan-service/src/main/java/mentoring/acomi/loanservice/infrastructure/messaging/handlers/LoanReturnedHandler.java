@@ -42,7 +42,7 @@ public class LoanReturnedHandler extends AbstractEventHandler<LoanReturnedIntegr
 
 		LocalDate returnedAt = event.schemaVersion() == 1 ? event.occurredAt().atZone(ZoneOffset.UTC).toLocalDate() : payload.returnedAt();
 		projectionOperations.returnLoan(payload.loanId(), event.occurredAt(), returnedAt);
-		return Optional.of(new ProjectionUpdateNotification(payload.loanId(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 
 }

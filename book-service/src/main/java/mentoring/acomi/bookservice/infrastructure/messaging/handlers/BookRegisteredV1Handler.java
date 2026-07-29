@@ -34,7 +34,7 @@ public class BookRegisteredV1Handler extends AbstractEventHandler<BookRegistered
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(BookRegisteredIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.addBook(payload, event.occurredAt());
-		return Optional.of(new ProjectionUpdateNotification(payload.isbn(), event.schemaVersion()));
+		return Optional.of(new ProjectionUpdateNotification(payload.isbn()));
 	}
 
 }

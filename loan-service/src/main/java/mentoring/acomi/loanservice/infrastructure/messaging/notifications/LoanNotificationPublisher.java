@@ -32,7 +32,7 @@ public class LoanNotificationPublisher {
         this.tracer = tracer;
     }
 
-    public void publishLoanUpdated(LoanView loan, String identityProviderId, String cardNumber, int schemaVersion) {
+    public void publishLoanUpdated(LoanView loan, String identityProviderId, String cardNumber) {
 
     	Span span = tracer.currentSpan();
 
@@ -41,7 +41,7 @@ public class LoanNotificationPublisher {
 		
         NotificationEventEnvelope<LoanUpdatedNotificationPayload> event =
                 new NotificationEventEnvelope<>(UUID.randomUUID().toString(), NotificationEventType.LOAN_UPDATED,
-                        "loan-service", Instant.now(), schemaVersion, mapper.map(loan, identityProviderId, cardNumber));
+                        "loan-service", Instant.now(), 1, mapper.map(loan, identityProviderId, cardNumber));
 
         rabbitTemplate.convertAndSend(MessagingTopology.NOTIFICATIONS_EXCHANGE, NotificationEventType.LOAN_UPDATED.getRoutingKey(), event);
 

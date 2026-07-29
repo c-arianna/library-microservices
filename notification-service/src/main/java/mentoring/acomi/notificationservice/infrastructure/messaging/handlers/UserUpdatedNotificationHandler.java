@@ -15,7 +15,7 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-@NotificationHandlerMetadata(notificationEventType = NotificationEventType.USER_UPDATED, supportedVersions = { 1, 2 })
+@NotificationHandlerMetadata(notificationEventType = NotificationEventType.USER_UPDATED, supportedVersions = { 1 })
 @Component
 public class UserUpdatedNotificationHandler extends AbstractNotificationHandler {
 

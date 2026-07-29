@@ -17,9 +17,9 @@ public class UserNotificationService {
 		this.publisher = publisher;
 	}
 	
-	public void publishUserUpdated(String userId, int schemaVersion) {
+	public void publishUserUpdated(String userId) {
         UserView user = userRepository.findById(userId).orElseThrow(() -> new UserNotFound("%s not found".formatted(userId)));
-        publisher.publishUserUpdated(user, schemaVersion);
+        publisher.publishUserUpdated(user);
     }
 	
 }
