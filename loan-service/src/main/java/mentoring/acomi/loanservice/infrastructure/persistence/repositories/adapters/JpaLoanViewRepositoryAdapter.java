@@ -50,7 +50,7 @@ public class JpaLoanViewRepositoryAdapter implements LoanViewRepository, LoanVie
 
 	@Override
 	public List<LoanDto> find(LoanFilter filter) {
-		return repository.findByFilter(filter.isbn(), filter.userId(), filter.status(), filter.cardNumber());
+		return repository.findByFilter(filter.isbn(), filter.userId(), filter.status(), filter.cardNumber(), LocalDate.now());
 	}
 
 	@Override

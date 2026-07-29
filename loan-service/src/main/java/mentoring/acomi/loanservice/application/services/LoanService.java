@@ -1,6 +1,7 @@
 package mentoring.acomi.loanservice.application.services;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.model.Loan;
+import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDetailDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
@@ -192,7 +194,13 @@ public class LoanService {
 
 		LoanUserDto loanUser = new LoanUserDto(user.id(), user.cardNumber());
 		
-		return new LoanDetailDto(loanView.id(), loanView.isbn(), loanView.status(), loanView.start(), loanView.end(), loanUser);
+		LocalDate now = LocalDate.now();
+		
+		boolean overdue = loanView.status() == LoanStatus.CONFIRMED && now.isAfter(loanView.end());
+		long overdueDays = overdue ? Math.max(0, ChronoUnit.DAYS.between(loanView.end(), now)) : 0;
+		
+		return new LoanDetailDto(loanView.id(), loanView.isbn(), loanView.status(), loanView.start(), loanView.end(), loanUser, overdue,
+				overdueDays);
 	}
 	
 	private String resolveUserId(AddLoanRequest request) {

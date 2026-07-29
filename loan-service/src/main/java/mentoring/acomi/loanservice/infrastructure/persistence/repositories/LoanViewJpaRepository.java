@@ -22,18 +22,31 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 	@Query("UPDATE LoanViewEntity l SET l.status = :status, l.updatedAt = :updatedAt WHERE l.id = :id")
 	int updateStatus(@Param("id") String id, @Param("status") LoanStatus status, @Param("updatedAt") Instant updatedAt);
 	@Query("""
-		    SELECT new mentoring.acomi.loanservice.infrastructure.dto.LoanDto(l.id, l.isbn, l.userId, u.cardNumber, l.endDate, l.status)
-				  FROM LoanViewEntity l
-					  LEFT JOIN UserViewEntity u
-					      ON u.id = l.userId
-					    WHERE l.userId = u.id
-						      AND (:isbn IS NULL OR l.isbn = :isbn)
-						      AND (:userId IS NULL OR l.userId = :userId)
-						      AND (:status IS NULL OR l.status = :status)
-						      AND (:cardNumber IS NULL OR u.cardNumber = :cardNumber)
+		    SELECT new mentoring.acomi.loanservice.infrastructure.dto.LoanDto(
+							    l.id,
+							    l.isbn,
+							    l.userId,
+							    u.cardNumber,
+							    l.endDate,
+							    l.status,
+							    CASE
+							        WHEN l.status = mentoring.acomi.loanservice.domain.model.LoanStatus.CONFIRMED
+							             AND l.endDate < :today
+							             AND l.returnedAt IS NULL
+							        THEN true
+							        ELSE false
+							    END
+							)
+							FROM LoanViewEntity l
+							LEFT JOIN UserViewEntity u
+							    ON u.id = l.userId
+							WHERE (:isbn IS NULL OR l.isbn = :isbn)
+							  AND (:userId IS NULL OR l.userId = :userId)
+							  AND (:status IS NULL OR l.status = :status)
+							  AND (:cardNumber IS NULL OR u.cardNumber = :cardNumber)
 		""")
 	List<LoanDto> findByFilter(@Param("isbn") String isbn, @Param("userId") String userId,  @Param("status") LoanStatus status,
-		        @Param("cardNumber") String cardNumber);
+		        @Param("cardNumber") String cardNumber, @Param("today") LocalDate today);
 	
 	@Modifying
 	@Transactional
@@ -45,11 +58,11 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 	void returnLoan(@Param("id") String id, @Param("updatedAt") Instant updatedAt, @Param("returnedAt") LocalDate returnedAt);
 	
 	@Query("""
-		    SELECT new mentoring.acomi.loanservice.infrastructure.dto.LoanDto(l.id, l.isbn, l.userId, u.cardNumber, l.endDate, l.status)
+		    SELECT new mentoring.acomi.loanservice.infrastructure.dto.LoanDto(l.id, l.isbn, l.userId, u.cardNumber, l.endDate, l.status, true)
 				  FROM LoanViewEntity l
 					  LEFT JOIN UserViewEntity u
 					      ON u.id = l.userId
-					    WHERE (l.userId = u.id or u.id is null) AND l.status = :status AND l.endDate < :dueDate AND l.returnedAt IS NULL
+					    WHERE l.status = :status AND l.endDate < :dueDate AND l.returnedAt IS NULL
 		""")
 	List<LoanDto> getLoansOverdue(@Param("dueDate") LocalDate dueDate, @Param("status") LoanStatus status);
 	

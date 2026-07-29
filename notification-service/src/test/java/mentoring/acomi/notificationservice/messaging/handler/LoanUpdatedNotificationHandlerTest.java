@@ -22,7 +22,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNotification;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.LoanStatus;
 import mentoring.acomi.notificationservice.infrastructure.messaging.dto.LoanUpdatedNotificationPayload;
-import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.LoanUpdatedV1NotificationHandler;
+import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.LoanUpdatedNotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
@@ -38,11 +38,11 @@ public class LoanUpdatedNotificationHandlerTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
 	
-	private LoanUpdatedV1NotificationHandler handler;
+	private LoanUpdatedNotificationHandler handler;
 	
 	@BeforeEach
 	void setUp() {
-		handler = new LoanUpdatedV1NotificationHandler(mapper, messagingTemplate);
+		handler = new LoanUpdatedNotificationHandler(mapper, messagingTemplate);
 	}
 	
 	@Test
@@ -97,7 +97,7 @@ public class LoanUpdatedNotificationHandlerTest {
 		LocalDate start = LocalDate.now();
 		LocalDate end = start.plusDays(30);
 		return new LoanUpdatedNotificationPayload(UUID.randomUUID().toString(), "9788804336327", UUID.randomUUID().toString(), 
-				UUID.randomUUID().toString(), CARD_NUMBER, LoanStatus.PENDING, start, end);
+				UUID.randomUUID().toString(), CARD_NUMBER, LoanStatus.PENDING, start, end, false, 0);
 	}
 
 }
