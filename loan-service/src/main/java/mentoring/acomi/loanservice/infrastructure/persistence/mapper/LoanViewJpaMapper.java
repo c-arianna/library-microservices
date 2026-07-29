@@ -18,6 +18,7 @@ public class LoanViewJpaMapper {
 			return null;
 		}
 
-		return new LoanView(entity.getId(),entity.getIsbn(), entity.getUserId(), entity.getStartDate(), entity.getEndDate(), entity.getStatus());
+		return new LoanView(entity.getId(),entity.getIsbn(), entity.getUserId(), entity.getStartDate(), entity.getEndDate(), entity.getStatus(),
+				entity.getReturnedAt());
 	}
 }

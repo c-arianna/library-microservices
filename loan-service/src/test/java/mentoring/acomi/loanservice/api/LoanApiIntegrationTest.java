@@ -38,6 +38,7 @@ import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
+import mentoring.acomi.loanservice.infrastructure.dto.ReturnLoanRequest;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -208,7 +209,7 @@ public class LoanApiIntegrationTest {
 
 		String loanId = response.getBody().loanId();
 		
-		loanViewRepository.insertRequest(new LoanView(loanId, "9788804336327", userId, startDate, endDate, LoanStatus.PENDING), Instant.now());
+		loanViewRepository.insertRequest(new LoanView(loanId, "9788804336327", userId, startDate, endDate, LoanStatus.PENDING, null), Instant.now());
 		
 		return loanId;
 
@@ -235,8 +236,9 @@ public class LoanApiIntegrationTest {
 
 	private ResponseEntity<String> returnLoan(String loanId, String role) {
 		generateToken(role, ADMIN_1);
+		ReturnLoanRequest request = new ReturnLoanRequest(LocalDate.now());
 		return client.post().uri(String.format(RETURN_LOAN_ENDPOINT, loanId)).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
-				.exchange((req, res) -> toEntity(res));
+				.body(request).exchange((req, res) -> toEntity(res));
 	}
 	
 	

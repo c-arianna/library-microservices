@@ -2,6 +2,7 @@ package mentoring.acomi.loanservice.repository;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanViewJpaRepository;
 
@@ -45,7 +47,7 @@ public class LoanViewRepositoryTest {
 		Optional<LoanView> loanView = queryRepository.findById(loanId);
 		Assertions.assertTrue(loanView.isEmpty());
 
-		LoanView loan = new LoanView(loanId, "9788804336327", "user01", LocalDate.now(), null, LoanStatus.PENDING);
+		LoanView loan = new LoanView(loanId, "9788804336327", "user01", LocalDate.now(), null, LoanStatus.PENDING, null);
 		repository.insertRequest(loan, Instant.now());
 		loanView = queryRepository.findById(loanId);
 		
@@ -74,10 +76,66 @@ public class LoanViewRepositoryTest {
 		Assertions.assertEquals(LoanStatus.CONFIRMED, loanView.get().status());
 		
 	}
+	
+	@Test
+	public void shouldUpdateReturnedAt() {
+		
+		String loanId = UUID.randomUUID().toString();
+		insertLoan(loanId);
+		
+		repository.updateStatus(loanId, LoanStatus.CONFIRMED, Instant.now());
+		
+		LocalDate returnedAt = LocalDate.now();
+		repository.returnLoan(loanId, Instant.now(), returnedAt);
+		
+		entityManager.clear();
+		
+		Optional<LoanView> loanView = queryRepository.findById(loanId);;
+		Assertions.assertTrue(loanView.isPresent());
+		Assertions.assertEquals(LoanStatus.RETURNED, loanView.get().status());
+		Assertions.assertEquals(returnedAt, loanView.get().returnedAt());
+		
+	}
 
+	@Test
+	public void shouldReturnsLoansOverdue() {
+		
+		String loanId = UUID.randomUUID().toString();
+		insertLoan(loanId);
+		
+		repository.updateStatus(loanId, LoanStatus.CONFIRMED, Instant.now());
+		
+		LocalDate returnedAt = LocalDate.now();
+		repository.returnLoan(loanId, Instant.now(), returnedAt);
+		
+		loanId = UUID.randomUUID().toString();
+		LocalDate startDate = LocalDate.now().minusDays(10);
+		LocalDate endDate = startDate.plusDays(2);
+		
+		insertLoan(loanId,startDate, endDate);
+		
+		repository.updateStatus(loanId, LoanStatus.CONFIRMED, Instant.now());
+		
+		entityManager.clear();
+		
+		List<LoanDto> loansOverdue = queryRepository.getLoansOverdue();
+		
+		Assertions.assertEquals(1, loansOverdue.size());
+		
+		LoanDto loan = loansOverdue.get(0);
+		
+		Assertions.assertEquals(loanId, loan.id());
+		Assertions.assertEquals(endDate, loan.endDate());
+		Assertions.assertEquals(LoanStatus.CONFIRMED, loan.status());
+		
+	}
+	
 	private void insertLoan(String loanId) {
 		LocalDate startDate = LocalDate.now();
-		LocalDate endDate = startDate.plusDays(30);
+		insertLoan(loanId, startDate, startDate.plusDays(30));
+	}
+	
+	private void insertLoan(String loanId, LocalDate startDate, LocalDate endDate) {
 		LoanViewEntity entity = new LoanViewEntity(loanId, "9788804336327", "user01", startDate, endDate);
 		entity.markCreated(Instant.now());
 		jpaRepository.saveAndFlush(entity);

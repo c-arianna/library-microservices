@@ -1,6 +1,7 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.replay;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -56,6 +57,12 @@ public class LoanViewReplayRepository implements LoanViewRepository, ReplayProje
 	@Override
 	public void deleteAll() {
 		throw new UnsupportedOperationException("Not needed");
+	}
+
+	@Override
+	public void returnLoan(String id, Instant updatedAt, LocalDate returnedAt) {
+		jdbcTemplate.update("UPDATE %s SET status = %s, return_at = ?, updated_at = ? WHERE id = ?".formatted(TABLE_TMP, 
+				LoanStatus.RETURNED.toString()), returnedAt, updatedAt, id);	
 	}
 
 }

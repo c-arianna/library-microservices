@@ -49,8 +49,8 @@ public class LoanSteps {
 		Assertions.assertEquals(result.getStatus().value(), 404);
 	}
 
-	@Given("esiste un prestito dell'utente per il libro ISBN {string} in attesa di conferma")
-	public void createLoan(String isbn) {
+	@Given("esiste un prestito dell'utente per il libro ISBN {string}, con data inizio {string}, in attesa di conferma")
+	public void createLoan(String isbn, String startDate) {
 
 		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
 
@@ -60,9 +60,9 @@ public class LoanSteps {
 				{
 				  "isbn": "%s",
 				  "userId": "%s",
-				  "startDate": "2026-02-23"
+				  "startDate": "%s"
 				}
-				""".formatted(isbn, userId);
+				""".formatted(isbn, userId, startDate);
 
 		var result = client.post().uri("/loans").contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer %s".formatted(accessToken)).body(body).exchange().expectBody()
@@ -142,6 +142,27 @@ public class LoanSteps {
 		}), 7000, 200);
 	}
 	
+	@Given("il prestito del libro è stato reso")
+	public void loanReturn() {
+
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+
+		String loanId = context.get("LOAN_ID", String.class);
+
+		String request = """
+				{
+				  "returnAt": "2026-07-29"				}
+				
+				""";
+		
+		var result = client.post().uri("/loans/%s/return".formatted(loanId)).contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", String.join(" ", "Bearer", accessToken)).body(request).exchange().expectBody()
+				.returnResult();
+		
+		Assertions.assertEquals(204, result.getStatus().value());
+		
+	}
+	
 	/*
 	 * ############################### WHEN #####################################
 	 */
@@ -198,15 +219,15 @@ public class LoanSteps {
 
 	}
 	
-	@When("l'amministratore esegue l'operazione di reso del prestito")
-	public void returnLoan() {
+	@When("l'amministratore esegue l'operazione di reso del prestito con i seguenti dati:")
+	public void returnLoan(DocString body) {
 		
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 
 		String loanId = context.get("LOAN_ID", String.class);
 
 		var result = client.post().uri("/loans/%s/return".formatted(loanId)).contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", String.join(" ", "Bearer", accessToken)).exchange().expectBody()
+				.header("Authorization", String.join(" ", "Bearer", accessToken)).body(body.getContent()).exchange().expectBody()
 				.returnResult();
 
 		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
@@ -247,23 +268,6 @@ public class LoanSteps {
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 		findLoans(rawFilters, accessToken);
 	}
-
-	private void findLoans(Map<String, String> rawFilters, String accessToken) {
-		Map<String, String> filters = new LinkedHashMap<>();
-		rawFilters.forEach((k, v) -> filters.put(k, Helper.normalize(Helper.resolve(v, context))));
-
-		UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/loans");
-		filters.forEach(uri::queryParam);
-
-		context.put(CommonSteps.LAST_QUERY, (Supplier<EntityExchangeResult<byte[]>>) () -> client.get().uri(uri.build().toUri())
-				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult());
-
-		Supplier<EntityExchangeResult<byte[]>> query = context.getTyped(CommonSteps.LAST_QUERY);
-		var result = query.get();
-
-		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
-		context.put(CommonSteps.RESPONSE_BODY, new String(result.getResponseBody(), StandardCharsets.UTF_8));
-	}
 	
 	@When("l'utente visualizza il dettaglio del prestito")
 	public void getLoanDetail() {
@@ -275,6 +279,23 @@ public class LoanSteps {
 	public void getAdminLoanDetail() {
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
         getLoanDetail(accessToken);
+	}
+	
+	@When("l'amministratore visualizza l'elenco dei prestiti scaduti")
+	public void getLoansOverdue() {
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+       
+		var result = client.get().uri("/loans/dashboard/overdue").header("Authorization", "Bearer %s".formatted(accessToken))
+				.exchange().expectBody().returnResult();
+
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		
+		if (result.getResponseBody() != null) {
+			
+			String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+			context.put(CommonSteps.RESPONSE_BODY, response);
+				
+		}
 	}
 	
 	/*
@@ -378,6 +399,23 @@ public class LoanSteps {
 			}
 				
 		}
+	}
+    
+    private void findLoans(Map<String, String> rawFilters, String accessToken) {
+		Map<String, String> filters = new LinkedHashMap<>();
+		rawFilters.forEach((k, v) -> filters.put(k, Helper.normalize(Helper.resolve(v, context))));
+
+		UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/loans");
+		filters.forEach(uri::queryParam);
+
+		context.put(CommonSteps.LAST_QUERY, (Supplier<EntityExchangeResult<byte[]>>) () -> client.get().uri(uri.build().toUri())
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult());
+
+		Supplier<EntityExchangeResult<byte[]>> query = context.getTyped(CommonSteps.LAST_QUERY);
+		var result = query.get();
+
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		context.put(CommonSteps.RESPONSE_BODY, new String(result.getResponseBody(), StandardCharsets.UTF_8));
 	}
 
 }

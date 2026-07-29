@@ -14,6 +14,7 @@ import mentoring.acomi.loanservice.domain.events.LoanReturnedEvent;
 import mentoring.acomi.loanservice.domain.events.payload.LoanFailedPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
+import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
 import mentoring.acomi.sharedcorelibrary.eventstore.EventMapper;
 import tools.jackson.databind.JsonNode;
@@ -66,7 +67,7 @@ public class LoanEventJpaMapper implements EventMapper<LoanEvent, LoanEventEntit
 		}
 		
 		case LoanReturned -> {
-			LoanPayload payload = objectMapper.treeToValue(event.getPayload(), LoanPayload.class);
+			LoanReturnedPayload payload = objectMapper.treeToValue(event.getPayload(), LoanReturnedPayload.class);
 			yield new LoanReturnedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 		}
 		

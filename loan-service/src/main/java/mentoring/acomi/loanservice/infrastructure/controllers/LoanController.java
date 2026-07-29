@@ -18,6 +18,7 @@ import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanDetailDto;
 import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
+import mentoring.acomi.loanservice.infrastructure.dto.ReturnLoanRequest;
 import mentoring.acomi.sharedcodelibrary.common.CardNumberUtils;
 
 @RestController
@@ -53,8 +54,8 @@ public class LoanController {
 	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@PostMapping("/{loanId}/return")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void returnLoan(@PathVariable String loanId) {
-		service.returnLoan(loanId);
+	public void returnLoan(@RequestBody @Valid ReturnLoanRequest request, @PathVariable String loanId) {
+		service.returnLoan(loanId, request.returnAt());
 	}
 	
 	@PreAuthorize("hasAnyRole('READER', 'LIBRARIAN', 'ADMIN')")

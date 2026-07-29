@@ -1,6 +1,7 @@
 package mentoring.acomi.loanservice.infrastructure.persistence.repositories.adapters;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,6 +56,16 @@ public class JpaLoanViewRepositoryAdapter implements LoanViewRepository, LoanVie
 	@Override
 	public void deleteAll() {
 		repository.deleteAll();	
+	}
+
+	@Override
+	public void returnLoan(String id, Instant updatedAt, LocalDate returnedAt) {
+		repository.returnLoan(id, updatedAt, returnedAt);		
+	}
+
+	@Override
+	public List<LoanDto> getLoansOverdue() {
+		return repository.getLoansOverdue(LocalDate.now(), LoanStatus.CONFIRMED);
 	}
 
 }

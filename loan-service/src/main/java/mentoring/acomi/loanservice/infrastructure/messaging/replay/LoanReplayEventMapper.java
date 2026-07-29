@@ -6,10 +6,12 @@ import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.events.payload.LoanFailedPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
+import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.domain.model.DateRange;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanReturnedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -59,9 +61,14 @@ public class LoanReplayEventMapper {
 			yield new LoanRequestedIntegrationPayload(payload.id(), payload.isbn(), payload.userId(), period.getStart(),
 					period.getEnd());
 		}
-		case LoanCanceled, LoanConfirmRequested, LoanConfirmed, LoanReserved, LoanReturned -> {
+		case LoanCanceled, LoanConfirmRequested, LoanConfirmed, LoanReserved -> {
 			LoanPayload payload = mapper.convertValue(eventPayload, LoanPayload.class);
 			yield new LoanIntegrationPayload(payload.id(), payload.isbn(), payload.userId());
+		}
+		
+		case LoanReturned -> {
+			LoanReturnedPayload payload = mapper.convertValue(eventPayload, LoanReturnedPayload.class);
+			yield new LoanReturnedIntegrationPayload(payload.id(), payload.isbn(), payload.userId(), payload.returnedAt());
 		}
 
 		case LoanFailed -> {

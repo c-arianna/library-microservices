@@ -12,7 +12,7 @@ import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanConfirm
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanFailedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanRequestedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReservedV1Handler;
-import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReturnedV1Handler;
+import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReturnedHandler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LibraryCardAssignedHandler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSubscribedHandler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSuspendedV1Handler;
@@ -42,7 +42,7 @@ public class ReplayLoanHandlerFactory {
 				       new LoanFailedV1Handler(loanReplayProjection, mapper),
 				       new LoanRequestedV1Handler(loanReplayProjection, mapper),
 				       new LoanReservedV1Handler(loanReplayProjection, mapper),
-				       new LoanReturnedV1Handler(loanReplayProjection, mapper),
+				       new LoanReturnedHandler(loanReplayProjection, mapper),
 				       new UserSubscribedHandler(userReplayProjection, mapper),
 				       new UserSuspendedV1Handler(userReplayProjection, mapper),
 				       new UserUnsubscribedV1Handler(userReplayProjection, mapper),

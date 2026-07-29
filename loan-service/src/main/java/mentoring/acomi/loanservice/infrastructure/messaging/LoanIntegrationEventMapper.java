@@ -12,10 +12,12 @@ import mentoring.acomi.loanservice.domain.events.LoanRequestedEvent;
 import mentoring.acomi.loanservice.domain.events.LoanReservedEvent;
 import mentoring.acomi.loanservice.domain.events.LoanReturnedEvent;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
+import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.domain.model.DateRange;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanReturnedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
@@ -69,7 +71,9 @@ public class LoanIntegrationEventMapper {
 	}
 
 	private IntegrationEventEnvelope<?> getLoanReturnedIntegrationEvent(LoanReturnedEvent e) {
-		LoanIntegrationPayload payload = new LoanIntegrationPayload(e.payload().id(), e.payload().isbn(), e.payload().userId());
+		LoanReturnedPayload domainPayload = e.payload();
+		LoanReturnedIntegrationPayload payload = new LoanReturnedIntegrationPayload(domainPayload.id(), domainPayload.isbn(), 
+				domainPayload.userId(), domainPayload.returnedAt());
 		return envelope(e, IntegrationEventTypes.LOAN_RETURNED, LoanIntegrationPublisherEventVersions.LOAN_RETURNED, payload);
 	}
 

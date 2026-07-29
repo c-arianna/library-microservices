@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.bookservice.application.reactor.BookEventReactor;
 import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanReturnedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;
@@ -15,24 +15,24 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventE
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
 
-@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_RETURNED, supportedVersions = {1}, mode = HandlerMode.LIVE_ONLY)
+@HandlerMetadata(eventType = IntegrationEventTypes.LOAN_RETURNED, supportedVersions = {1,2}, mode = HandlerMode.LIVE_ONLY)
 @Component
-public class LoanReturnedV1Handler extends AbstractEventHandler<LoanIntegrationPayload> {
+public class LoanReturnedHandler extends AbstractEventHandler<LoanReturnedIntegrationPayload> {
 
 	private final BookEventReactor reactor;
 	
-	public LoanReturnedV1Handler(BookEventReactor reactor, EventPayloadMapper mapper) {
+	public LoanReturnedHandler(BookEventReactor reactor, EventPayloadMapper mapper) {
 		super(mapper);
 		this.reactor = reactor;
 	}
 	
 	@Override
-	protected Class<LoanIntegrationPayload> payloadType() {
-		return LoanIntegrationPayload.class;
+	protected Class<LoanReturnedIntegrationPayload> payloadType() {
+		return LoanReturnedIntegrationPayload.class;
 	}
 	
 	@Override
-	protected Optional<ProjectionUpdateNotification> process(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
+	protected Optional<ProjectionUpdateNotification> process(LoanReturnedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		CommandLoanEvent command = new CommandLoanEvent(payload.loanId(), payload.isbn(), payload.userId());
 		reactor.handleLoanReturned(command);
 		return Optional.empty();

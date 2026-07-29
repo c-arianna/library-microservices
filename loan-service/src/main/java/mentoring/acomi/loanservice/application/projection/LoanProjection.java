@@ -1,6 +1,7 @@
 package mentoring.acomi.loanservice.application.projection;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import org.springframework.stereotype.Component;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
@@ -33,8 +34,8 @@ public class LoanProjection implements LoanProjectionOperations {
 	}
 	
 	@Override
-	public void returnLoan(String loanId, Instant occurredAt) {
-		repository.updateStatus(loanId, LoanStatus.RETURNED, occurredAt);
+	public void returnLoan(String loanId, Instant occurredAt, LocalDate returnedAt) {
+		repository.returnLoan(loanId, occurredAt, returnedAt);
 	}
 	
 	@Override
@@ -48,6 +49,6 @@ public class LoanProjection implements LoanProjectionOperations {
 	}
 	
 	private LoanView getLoan(LoanRequestedIntegrationPayload payload) {
-		return new LoanView(payload.loanId(), payload.isbn(), payload.userId(), payload.start(), payload.end(), LoanStatus.PENDING);
+		return new LoanView(payload.loanId(), payload.isbn(), payload.userId(), payload.start(), payload.end(), LoanStatus.PENDING, null);
 	}
 }

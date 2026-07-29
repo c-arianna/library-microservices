@@ -1,5 +1,6 @@
 package mentoring.acomi.loanservice.application.services;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -88,9 +89,9 @@ public class LoanService {
 	}
 
 	@Transactional
-	public void returnLoan(String loanId) {
+	public void returnLoan(String loanId, LocalDate returnedAt) {
 		LoanAggregate aggregate = aggregateFactory.create(loanId);
-		aggregate.returnLoan();
+		aggregate.returnLoan(returnedAt);
 	}
 
 	public LoansResponse findLoans(LoanFilter filter) {

@@ -39,7 +39,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       Then la risposta ha status code 201
       And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RESERVED", numero tessera "${CARD_NUMBER}"
       
-      Scenario: Creazione di una richiesta di prestito per un libro non presente
+    Scenario: Creazione di una richiesta di prestito per un libro non presente
       Given il catalogo non contiene il libro con isbn "9788804776369"
       And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
       When l'utente crea una richiesta di prestito con i seguenti dati:
@@ -131,7 +131,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
   
     Scenario: Conferma di una richiesta di prestito in stato reserved
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'amministratore conferma la richiesta del prestito
       Then la risposta ha status code 204
@@ -148,7 +148,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       
     Scenario: Conferma di una richiesta di prestito non in stato reserved
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       And il prestito del libro è stato annullato
       And il prestito è in stato "CANCELED"
@@ -163,7 +163,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
     
     Scenario: Annullo di una richiesta di prestito in stato reserved
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'amministratore annulla la richiesta del prestito
       Then la risposta ha status code 204
@@ -171,7 +171,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       
     Scenario: Annullo di una richiesta di prestito non in stato reserved
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       And il prestito del libro è stato confermato
       And il prestito è in stato "CONFIRMED"
@@ -195,19 +195,47 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
   
     Scenario: Registrazione del reso di un prestito confermato
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       And il prestito del libro è stato confermato
       And il prestito è in stato "CONFIRMED"
-      When l'amministratore esegue l'operazione di reso del prestito
+      When l'amministratore esegue l'operazione di reso del prestito con i seguenti dati:
+         """
+        {
+          "returnAt": "2026-03-23"
+        }
+        """
       Then la risposta ha status code 204
       And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "RETURNED", numero tessera "${CARD_NUMBER}"
+    
+    Scenario: Registrazione del reso di un prestito, con dati non validi
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      When l'amministratore esegue l'operazione di reso del prestito con i seguenti dati:
+         """
+        {
+          "returned": "2026-03-23"
+        }
+        """
+      Then la risposta ha status code 400
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "VALIDATION_ERROR" |
+      | type    | "VALIDATION_ERROR" |
       
     Scenario: Conferma restituzione di un libro prestato, con richiesta in stato non "confirmed"
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
-      When l'amministratore esegue l'operazione di reso del prestito
+      When l'amministratore esegue l'operazione di reso del prestito con i seguenti dati:
+         """
+        {
+          "returnAt": "2026-03-23"
+        }
+        """
       Then la risposta ha status code 422
       And la risposta contiene il campo "message"
       And la risposta contiene i seguenti campi:
@@ -216,7 +244,12 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       
     Scenario: Conferma restituzione di un libro prestato, con richiesta di prestito non esistente
       Given il prestito con ID "100" non esiste
-      When l'amministratore esegue l'operazione di reso del prestito
+      When l'amministratore esegue l'operazione di reso del prestito con i seguenti dati:
+         """
+        {
+          "returnAt": "2026-03-23"
+        }
+        """
       Then la risposta ha status code 422
       And la risposta contiene il campo "message"
       And la risposta contiene i seguenti campi:
@@ -234,7 +267,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       
     Scenario: Consultazione elenco prestiti con prestiti presenti, senza applicare filtro di ricerca
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       And il prestito del libro è stato confermato
       And il prestito è in stato "CONFIRMED"
@@ -251,7 +284,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
         
     Scenario: Consultazione elenco prestiti, filtrato per ISBN non presente
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'utente visualizza l'elenco dei prestiti, con filtro di ricerca
       | isbn | "9788804336322" |
@@ -261,9 +294,9 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       
     Scenario: Consultazione elenco prestiti, filtrato per ISBN presente
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788415723356" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'utente visualizza l'elenco dei prestiti, con filtro di ricerca
       | isbn   | "9788804336327"    |
@@ -279,11 +312,11 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
     Scenario: Consultazione elenco prestiti, filtrato per numero tessera
       Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       And esiste l'utente con credenziali "mario.bianchi@mail.it", "MarioBianchi12345678", nome "Mario", cognome "Bianchi"
       And l'utente con credenziali "mario.bianchi@mail.it", "MarioBianchi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788415723356" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'amministratore visualizza l'elenco dei prestiti, con filtro di ricerca
       | cardNumber   | ${CARD_NUMBER}  |
@@ -299,7 +332,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
     Scenario: Consultazione elenco prestiti, un utente può vedere solo i suoi prestiti
       Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
       When l'utente visualizza l'elenco dei prestiti
@@ -311,7 +344,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
   
     Scenario: Dettaglio di un prestito esistente
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'utente visualizza il dettaglio del prestito
       Then la risposta ha status code 200
@@ -330,7 +363,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
      Scenario: Un utente READER può vedere solo il dettaglio dei suoi prestiti
       Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
       And l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
       When l'utente visualizza il dettaglio del prestito
@@ -342,7 +375,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       
      Scenario: L'amministratore può vedere il dettaglio di tutti i prestiti
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'amministratore visualizza il dettaglio del prestito
       Then la risposta ha status code 200
@@ -352,8 +385,40 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
   
     Scenario: Dopo la conferma, il prestito raggiunge lo stato finale "confirmed" e la disponibilità del libro è aggiornata
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
-      And esiste un prestito dell'utente per il libro ISBN "9788804336327" in attesa di conferma
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
       When l'amministratore conferma la richiesta del prestito
       Then il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED", numero tessera "${CARD_NUMBER}"
       And il libro "9788804336327" ha totalCopies = 1, borrowedCopies = 1, reservedCopies = 0
+      
+  Rule: Visualizzazione elenco prestiti scaduti
+    
+    Scenario: Nessun prestito scaduto
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356", con data inizio "2026-02-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      And il prestito del libro è stato reso
+      And il prestito è in stato "RETURNED"
+      When l'amministratore visualizza l'elenco dei prestiti scaduti
+      Then la risposta ha status code 200
+      And la risposta contiene 0 elementi
+      
+    Scenario: Esistono prestiti scaduti
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356", con data inizio "2026-02-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      When l'amministratore visualizza l'elenco dei prestiti scaduti
+      Then la risposta ha status code 200
+      And la risposta contiene 1 elementi
+      And la risposta contiene un elemento con i campi:
+      | loanId      | ${LOAN_ID}      |
+      | isbn        | "9788415723356" |
+      | dueDate     | "2026-03-25"    |

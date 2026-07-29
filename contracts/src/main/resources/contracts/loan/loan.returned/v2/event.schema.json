@@ -1,0 +1,53 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "LoanReturnedEventV2",
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
+		},
+		{
+			"type": "object",
+			"properties": {
+				"eventType": {
+					"const": "LOAN_RETURNED"
+				},
+				"producer": {
+					"const": "loan-service"
+				},
+				"aggregateType": {
+					"const": "LOAN"
+				},
+				"payload": {
+					"properties": {
+						"loanId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"isbn": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"userId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"returnedAt": {
+							"type": "string",
+							"format": "date"
+						}
+					},
+					"required": [
+						"loanId",
+						"isbn",
+						"userId",
+						"returnedAt"
+					]
+				}
+			},
+			"required": [
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
+			]
+		}
+	],
+	"unevaluatedProperties": false
+}

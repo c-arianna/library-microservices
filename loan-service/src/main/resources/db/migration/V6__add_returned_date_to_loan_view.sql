@@ -1,0 +1,1 @@
+ALTER TABLE loan_view ADD COLUMN returned_at date;

@@ -1,6 +1,7 @@
 package mentoring.acomi.loanservice.application.aggregates;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import mentoring.acomi.loanservice.domain.events.LoanReturnedEvent;
 import mentoring.acomi.loanservice.domain.events.payload.LoanFailedPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
+import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.domain.model.Loan;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 
@@ -173,7 +175,7 @@ public class LoanAggregate  {
 
 	}
 
-	public void returnLoan() {
+	public void returnLoan(LocalDate returnedAt) {
 
 		ensureCreated();
 
@@ -181,7 +183,8 @@ public class LoanAggregate  {
 
 			ensureTransitionAllowed(LoanStatus.RETURNED);
 
-			LoanReturnedEvent event = new LoanReturnedEvent(id, getEventId(), nextVersion(), new LoanPayload(id, isbn, userId), Instant.now());
+			LoanReturnedEvent event = new LoanReturnedEvent(id, getEventId(), nextVersion(), new LoanReturnedPayload(id, isbn, userId, returnedAt), 
+					Instant.now());
 			manageEvent(event);
 		}
 

@@ -31,11 +31,13 @@ public class LoanViewEntity {
 	@Enumerated(EnumType.STRING)
 	private LoanStatus status;
 	
+	LocalDate returnedAt;
+	
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 	
 	private Instant updatedAt;
-	    
+	
     public LoanViewEntity(String id, String isbn, String userId, LocalDate startDate, LocalDate endDate) {
     	this.id = id;
     	this.isbn = isbn;

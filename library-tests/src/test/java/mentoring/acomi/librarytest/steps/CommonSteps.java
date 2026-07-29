@@ -319,6 +319,36 @@ public class CommonSteps {
 
 	}
 
+	@Then("la risposta contiene {int} elementi")
+	public void responseListNotEmpty(int size) {
+		String body = context.get(RESPONSE_BODY, String.class);
+		var bodyResponse = JsonPath.parse(body);
+		List<Map<String, Object>> items = bodyResponse.read("$[*]");
+		Assertions.assertEquals(size, items.size(), "Expected %d elements in response', found %d".formatted(size, items.size()));
+	}
+	
+	@Then("la risposta contiene un elemento con i campi:")
+	public void checkContentResponseList(Map<String, String> expectedRaw) {
+
+		Map<String, ExpectedValue> expected = new LinkedHashMap<>();
+		expectedRaw.forEach((k, v) -> {
+			String resolved = Helper.resolve(v, context);
+			expected.put(k, Helper.normalizeExpected(resolved));
+		});
+
+		String body = context.get(RESPONSE_BODY, String.class);
+
+		var bodyResponse = JsonPath.parse(body);
+		
+		List<Map<String, Object>> items = bodyResponse.read("$[*]");
+		
+		
+		boolean found = items.stream().anyMatch(item -> matchesExpectedFields(item, expected));
+		
+		Assertions.assertTrue(found, "Nessun elemento della response contiene i campi attesi: %s, response: ".formatted(expected, body));
+		
+	}
+	
 	/*
 	 * ############################### HELPER METHODS #####################################
 	 */
@@ -355,5 +385,23 @@ public class CommonSteps {
 
 		return initialJson.read("$.totalCopies");
 	}
+	
+	private boolean matchesExpectedFields(Map<String, Object> item, Map<String, ExpectedValue> expected) {
+
+	    return expected.entrySet().stream().allMatch(entry -> {
+
+	                String fieldName = entry.getKey();
+	                ExpectedValue expectedValue = entry.getValue();
+
+	                if (!item.containsKey(fieldName)) {
+	                    return false;
+	                }
+
+	                Object actualValue = item.get(fieldName);
+
+	                return expectedValue.matches(actualValue);
+	            });
+	}
+	
 
 }

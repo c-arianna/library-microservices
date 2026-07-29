@@ -23,6 +23,7 @@ import mentoring.acomi.loanservice.domain.events.LoanReturnedEvent;
 import mentoring.acomi.loanservice.domain.events.payload.LoanFailedPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
+import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.domain.model.DateRange;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationEventMapper;
@@ -44,15 +45,18 @@ public class LoanIntegrationEventMapperTest {
 	private static final String PRODUCER = "loan-service";
 	private final LoanIntegrationEventMapper mapper = new LoanIntegrationEventMapper();
 
+	private static final int VERSION_1 = 1;
+	private static final int VERSION_2 = 2;
+	
 	@ParameterizedTest(name = "[{index}] set correct metadata -> {0}")
 	@MethodSource("eventCases")
-	void shouldSetCorrectMetadata(String name, LoanEvent domainEvent, IntegrationEventTypes eventType) {
+	void shouldSetCorrectMetadata(String name, LoanEvent domainEvent, IntegrationEventTypes eventType, int eventVersion) {
 
 		IntegrationEventEnvelope<?> event = mapper.map(domainEvent);
 
 		Assertions.assertEquals(eventType, event.eventType());
 		Assertions.assertEquals(PRODUCER, event.producer());
-		Assertions.assertEquals(1, event.schemaVersion());
+		Assertions.assertEquals(eventVersion, event.schemaVersion());
 		Assertions.assertNotNull(event.eventId());
 	}
 
@@ -86,13 +90,14 @@ public class LoanIntegrationEventMapperTest {
 	}
 	
 	static Stream<Arguments> eventCases() {
-		return Stream.of(Arguments.of(LOAN_REQUESTED_EVENT_NAME, getLoanRequestedEvent(), IntegrationEventTypes.LOAN_REQUESTED),
-				Arguments.of(LOAN_CONFIRMED_EVENT_NAME, getLoanConfirmedEvent(), IntegrationEventTypes.LOAN_CONFIRMED),
-				Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, getLoanConfirmRequestedEvent(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED),
-				Arguments.of(LOAN_CANCELED_EVENT_NAME, getLoanCanceledEvent(), IntegrationEventTypes.LOAN_CANCELED),
-				Arguments.of(LOAN_RETURNED_EVENT_NAME, getLoanReturnedEvent(), IntegrationEventTypes.LOAN_RETURNED),
-				Arguments.of(LOAN_RESERVED_EVENT_NAME, getLoanReservedEvent(), IntegrationEventTypes.LOAN_RESERVED),
-				Arguments.of(LOAN_FAILED_EVENT_NAME, getLoanFailedEvent(), IntegrationEventTypes.LOAN_FAILED));
+		return Stream.of(Arguments.of(LOAN_REQUESTED_EVENT_NAME, getLoanRequestedEvent(), IntegrationEventTypes.LOAN_REQUESTED, VERSION_1),
+				Arguments.of(LOAN_CONFIRMED_EVENT_NAME, getLoanConfirmedEvent(), IntegrationEventTypes.LOAN_CONFIRMED, VERSION_1),
+				Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, getLoanConfirmRequestedEvent(), IntegrationEventTypes.LOAN_CONFIRM_REQUESTED, 
+						VERSION_1),
+				Arguments.of(LOAN_CANCELED_EVENT_NAME, getLoanCanceledEvent(), IntegrationEventTypes.LOAN_CANCELED, VERSION_1),
+				Arguments.of(LOAN_RETURNED_EVENT_NAME, getLoanReturnedEvent(), IntegrationEventTypes.LOAN_RETURNED, VERSION_2),
+				Arguments.of(LOAN_RESERVED_EVENT_NAME, getLoanReservedEvent(), IntegrationEventTypes.LOAN_RESERVED, VERSION_1),
+				Arguments.of(LOAN_FAILED_EVENT_NAME, getLoanFailedEvent(), IntegrationEventTypes.LOAN_FAILED, VERSION_1));
 	}
 
 	private static LoanFailedEvent getLoanFailedEvent() {
@@ -107,7 +112,8 @@ public class LoanIntegrationEventMapperTest {
 	}
 
 	private static LoanReturnedEvent getLoanReturnedEvent() {
-		LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
+		LoanReturnedPayload payload = new LoanReturnedPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", 
+				"2ce6d405-d3fc-4042-b06e-cf5efc4cc65b", LocalDate.now());
 		return new LoanReturnedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d282a0bd-0bec-4257-861d-c1585e0a0e93", 0, payload, Instant.now());
 	}
 

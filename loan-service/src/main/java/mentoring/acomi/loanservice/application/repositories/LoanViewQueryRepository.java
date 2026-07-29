@@ -10,5 +10,5 @@ import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 public interface LoanViewQueryRepository {
 	 public Optional<LoanView> findById(String id);
 	 public List<LoanDto> find(LoanFilter filter);
-
+	 public List<LoanDto> getLoansOverdue();
 }

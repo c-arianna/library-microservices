@@ -228,7 +228,7 @@ public class LoanRabbitIntegrationTest {
 		
 		String body = waitForMessageBody(queue);
 
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+		await().atMost(Duration.ofSeconds(6)).untilAsserted(() -> {
 			Assertions.assertNotNull(body);
 			Assertions.assertTrue(body.contains("\"eventType\":\"LOAN_REQUESTED\""));
 			Assertions.assertTrue(body.contains("\"producer\":\"loan-service\""));

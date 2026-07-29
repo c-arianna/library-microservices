@@ -27,6 +27,7 @@ import mentoring.acomi.loanservice.domain.events.LoanReturnedEvent;
 import mentoring.acomi.loanservice.domain.events.payload.LoanFailedPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
+import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.domain.model.DateRange;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationEventMapper;
@@ -46,9 +47,12 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	private static final String LOAN_CONFIRMED_EVENT_NAME = IntegrationEventTypes.LOAN_CONFIRMED.eventName;
 	private static final String LOAN_REQUESTED_EVENT_NAME = IntegrationEventTypes.LOAN_REQUESTED.eventName;
 	
-	private static final String SCHEMA_PATH = "contracts/loan/%s/v1/event.schema.json";
-	private static final String SAMPLE_PATH = "contracts/loan/%s/v1/sample.json";
+	private static final String SCHEMA_PATH = "contracts/loan/%s/v%d/event.schema.json";
+	private static final String SAMPLE_PATH = "contracts/loan/%s/v%d/sample.json";
 
+	private static final int SCHEMA_VERSION_1 = 1;
+	private static final int SCHEMA_VERSION_2 = 2;
+	
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private final LoanIntegrationEventMapper mapper = new LoanIntegrationEventMapper();
@@ -73,41 +77,44 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 
 	static Stream<Arguments> validProducerCases() {
         return Stream.of(
-                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCase()),
-                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCase()),
-                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCase()),
-                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCase()),
-                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturned()),
-                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCase()),
-                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCase())              
+                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCaseV1()),
+                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCaseV1()),
+                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCaseV1()),
+                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCaseV1()),
+                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturnedCaseV1()),
+                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCaseV1()),
+                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCaseV1()),
+                Arguments.of("%s V%d".formatted(LOAN_RETURNED_EVENT_NAME, 2), loanReturnedCaseV2())
         );
     }
 
 	static Stream<Arguments> sampleCases() {
     	return Stream.of(
-                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCase()),
-                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCase()),
-                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCase()),
-                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCase()),
-                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturned()),
-                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCase()),
-                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCase())             
+                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCaseV1()),
+                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCaseV1()),
+                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCaseV1()),
+                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCaseV1()),
+                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturnedCaseV1()),
+                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCaseV1()),
+                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCaseV1()),
+                Arguments.of("%s V%d".formatted(LOAN_RETURNED_EVENT_NAME, 2), loanReturnedCaseV2())
         );
     }
 
     static Stream<Arguments> invalidCases() {
     	return Stream.of(
-                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCase()),
-                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCase()),
-                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCase()),
-                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCase()),
-                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturned()),
-                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCase()),
-                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCase())            
+                Arguments.of(LOAN_REQUESTED_EVENT_NAME,loanRequestedCaseV1()),
+                Arguments.of(LOAN_CONFIRMED_EVENT_NAME, loanConfirmedCaseV1()),
+                Arguments.of(LOAN_CONFIRM_REQUESTED_EVENT_NAME, loanConfirmRequestedCaseV1()),
+                Arguments.of(LOAN_CANCELED_EVENT_NAME, loanCanceledCaseV1()),
+                Arguments.of(LOAN_RETURNED_EVENT_NAME, loanReturnedCaseV1()),
+                Arguments.of(LOAN_RESERVED_EVENT_NAME, loanReservedCaseV1()),
+                Arguments.of(LOAN_FAILED_EVENT_NAME, loanFailedCaseV1()),
+                Arguments.of("%s V%d".formatted(LOAN_RETURNED_EVENT_NAME, 2), loanReturnedCaseV2())
         );
     }
     
-    private static LoanContractCase loanFailedCase() {
+    private static LoanContractCase loanFailedCaseV1() {
     	LoanFailedPayload payload = new LoanFailedPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", LoanFailedReason.BOOK_NOT_FOUND);
     	LoanFailedEvent event = new LoanFailedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d4cc156e-04f8-4fa8-866e-359515bcc104", 0, payload, Instant.now());
 		
@@ -125,10 +132,10 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	            }
 	            """;
     	
-    	return getLoanContractCase(LOAN_FAILED_EVENT_NAME, event, invalidJson);
+    	return getLoanContractCase(LOAN_FAILED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_1);
 	}
 
-	private static LoanContractCase loanReservedCase() {
+	private static LoanContractCase loanReservedCaseV1() {
     	LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
     	LoanReservedEvent event = new LoanReservedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "f1972050-5803-47e8-9c4c-1f8d46716600", 0, payload, Instant.now());
 		
@@ -147,11 +154,12 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	            }
 	            """;
     	
-    	return getLoanContractCase(LOAN_RESERVED_EVENT_NAME, event, invalidJson);
+    	return getLoanContractCase(LOAN_RESERVED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_1);
 	}
 
-	private static LoanContractCase loanReturned() {
-    	LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
+	private static LoanContractCase loanReturnedCaseV1() {
+		LoanReturnedPayload payload = new LoanReturnedPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", 
+				"2ce6d405-d3fc-4042-b06e-cf5efc4cc65b", null);
     	LoanReturnedEvent event = new LoanReturnedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d282a0bd-0bec-4257-861d-c1585e0a0e93", 0, payload, Instant.now());
 		
     	String invalidJson = """
@@ -169,10 +177,33 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	            }
 	            """;
     	
-    	return getLoanContractCase(LOAN_RETURNED_EVENT_NAME, event, invalidJson);
+    	return getLoanContractCase(LOAN_RETURNED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_1);
+	}
+	
+	private static LoanContractCase loanReturnedCaseV2() {
+		LoanReturnedPayload payload = new LoanReturnedPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", 
+				"2ce6d405-d3fc-4042-b06e-cf5efc4cc65b", LocalDate.now());
+    	LoanReturnedEvent event = new LoanReturnedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "d282a0bd-0bec-4257-861d-c1585e0a0e93", 0, payload, Instant.now());
+		
+    	String invalidJson = """
+	            {
+	              "eventId": "d282a0bd-0bec-4257-861d-c1585e0a0e93",
+	              "eventType": "LOAN_RETURNED",
+	              "producer": "loan-service",
+	              "aggregateId": "1b21387f-12a8-40a0-8e6a-605890bda1b0",
+	              "occurredAt": "2026-06-09T10:00:00Z",
+	              "schemaVersion": 1,
+	              "payload": {
+	              	"loanId": "1b21387f-12a8-40a0-8e6a-605890bda1b0",
+	                "isbn": "9788828606819"
+	              }
+	            }
+	            """;
+    	
+    	return getLoanContractCase(LOAN_RETURNED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_2);
 	}
 
-	private static LoanContractCase loanCanceledCase() {
+	private static LoanContractCase loanCanceledCaseV1() {
     	LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
     	LoanCanceledEvent event = new LoanCanceledEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "046f099d-41f9-4c05-8da9-470b789f6a3b", 0, payload, Instant.now());
 		
@@ -191,10 +222,10 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	            }
 	            """;
     	
-    	return getLoanContractCase(LOAN_CANCELED_EVENT_NAME, event, invalidJson);
+    	return getLoanContractCase(LOAN_CANCELED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_1);
 	}
 
-	private static LoanContractCase loanConfirmRequestedCase() {
+	private static LoanContractCase loanConfirmRequestedCaseV1() {
     	LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
     	LoanConfirmRequestedEvent event = new LoanConfirmRequestedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "355d2c7b-dc0d-4b8a-b27f-acc8375eeaee", 0, 
     			payload, Instant.now());
@@ -214,10 +245,10 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	            }
 	            """;
     	
-    	return getLoanContractCase(LOAN_CONFIRM_REQUESTED_EVENT_NAME, event, invalidJson);
+    	return getLoanContractCase(LOAN_CONFIRM_REQUESTED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_1);
 	}
 
-	private static LoanContractCase loanConfirmedCase() {
+	private static LoanContractCase loanConfirmedCaseV1() {
     	LoanPayload payload = new LoanPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b");
     	LoanConfirmedEvent event = new LoanConfirmedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "ebe0e803-afb9-4998-beb0-200773e7c764", 0, payload, Instant.now());
 		
@@ -236,10 +267,10 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	            }
 	            """;
     	
-    	return getLoanContractCase(LOAN_CONFIRMED_EVENT_NAME, event, invalidJson);
+    	return getLoanContractCase(LOAN_CONFIRMED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_1);
 	}
     
-	private static LoanContractCase loanRequestedCase() {
+	private static LoanContractCase loanRequestedCaseV1() {
 		LoanRequestPayload payload = new LoanRequestPayload("1b21387f-12a8-40a0-8e6a-605890bda1b0", "9788828606819", "2ce6d405-d3fc-4042-b06e-cf5efc4cc65b", 
 				new DateRange(LocalDate.now(), null, Clock.systemUTC()), LoanStatus.PENDING);
 		LoanRequestedEvent event = new LoanRequestedEvent("1b21387f-12a8-40a0-8e6a-605890bda1b0", "3d209d01-4b1d-4d64-991f-d0a63a7ddecd", 0, payload, Instant.now());
@@ -259,11 +290,11 @@ public class LoanEventProducerContractTest extends JsonSchemaSupport {
 	            }
 	            """;
 		
-		return getLoanContractCase(LOAN_REQUESTED_EVENT_NAME, event, invalidJson);
+		return getLoanContractCase(LOAN_REQUESTED_EVENT_NAME, event, invalidJson, SCHEMA_VERSION_1);
 	}
 
-	private static LoanContractCase getLoanContractCase(String eventName, LoanEvent event, String invalidJson) {
-		return new LoanContractCase(eventName, String.format(SCHEMA_PATH, eventName), String.format(SAMPLE_PATH, eventName), invalidJson, event);
+	private static LoanContractCase getLoanContractCase(String eventName, LoanEvent event, String invalidJson, int schemaVersion) {
+		return new LoanContractCase(eventName, SCHEMA_PATH.formatted(eventName, schemaVersion), SAMPLE_PATH.formatted(eventName, schemaVersion), invalidJson, event);
 	}
 
 	private void validateSchema(String eventSchema, LoanEvent loanEvent) {

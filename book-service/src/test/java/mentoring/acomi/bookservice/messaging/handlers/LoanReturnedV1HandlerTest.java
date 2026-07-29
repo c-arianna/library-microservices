@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import mentoring.acomi.bookservice.application.reactor.BookEventReactor;
 import mentoring.acomi.bookservice.application.reactor.command.CommandLoanEvent;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
-import mentoring.acomi.bookservice.infrastructure.messaging.handlers.LoanReturnedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.LoanReturnedHandler;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateNotification;
@@ -33,11 +33,11 @@ public class LoanReturnedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Mock
 	private BookEventReactor reactor;
-	private LoanReturnedV1Handler handler;
+	private LoanReturnedHandler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanReturnedV1Handler(reactor, mapper);
+		handler = new LoanReturnedHandler(reactor, mapper);
 	}
 
 
