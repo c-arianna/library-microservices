@@ -6,9 +6,13 @@ import org.springframework.context.annotation.Configuration;
 
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjection;
+import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.UserProjection;
 import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
+import mentoring.acomi.loanservice.application.repositories.UserLoanStatisticRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 
 @Configuration
@@ -32,6 +36,18 @@ public class LoanProjectionConfiguration {
 	@Bean("replayUserProjection")
 	UserProjectionOperations replayUserProjection(@Qualifier("userReplayRepo") UserViewRepository repository) {
 		return new UserProjection(repository);
+	}
+	
+	@Bean("liveUserLoanStatisticProjection")
+	UserLoanStatisticProjectionOperations liveUserLoanStatisticProjection(UserLoanStatisticRepository statisticRepository, 
+			LoanViewQueryRepository loanQueryRepository) {
+		return new UserLoanStatisticProjection(statisticRepository, loanQueryRepository);
+	}
+
+	@Bean("replayUserLoanStatisticProjection")
+	UserLoanStatisticProjectionOperations replayUserLoanStatisticProjection(@Qualifier("replayStatisticRepo") UserLoanStatisticRepository 
+			statisticRepository, LoanViewQueryRepository loanQueryRepository) {
+		return new UserLoanStatisticProjection(statisticRepository, loanQueryRepository);
 	}
 	
 }

@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReturnedHandler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanReturnedIntegrationPayload;
@@ -35,11 +36,15 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 	
 	@Mock
 	private LoanProjectionOperations projectionOperations;
+	
+	@Mock
+	private UserLoanStatisticProjectionOperations statisticProjectionOperations;
+	
 	private LoanReturnedHandler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanReturnedHandler(projectionOperations, mapper);
+		handler = new LoanReturnedHandler(projectionOperations, statisticProjectionOperations, mapper);
 	}
 
 	@Override
@@ -59,6 +64,7 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 		Assertions.assertTrue(notification.isPresent());
 		LocalDate returnedAt = event.occurredAt().atZone(ZoneOffset.UTC).toLocalDate();
 		verify(projectionOperations, times(1)).returnLoan(event.payload().loanId(), event.occurredAt(), returnedAt);
+		verify(statisticProjectionOperations, times(1)).registerOverdueLoan(event.payload().userId(), event.payload().loanId(), returnedAt);
 	}
 	
 	@Test
@@ -68,6 +74,7 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
 		verify(projectionOperations, times(1)).returnLoan(event.payload().loanId(), event.occurredAt(), event.payload().returnedAt());
+		verify(statisticProjectionOperations, times(1)).registerOverdueLoan(event.payload().userId(), event.payload().loanId(), event.payload().returnedAt());
 	}
 
 	@Test

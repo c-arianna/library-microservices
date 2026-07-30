@@ -11,8 +11,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import mentoring.acomi.loanservice.application.dto.LoanDto;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 
 @Repository
@@ -22,7 +22,7 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 	@Query("UPDATE LoanViewEntity l SET l.status = :status, l.updatedAt = :updatedAt WHERE l.id = :id")
 	int updateStatus(@Param("id") String id, @Param("status") LoanStatus status, @Param("updatedAt") Instant updatedAt);
 	@Query("""
-		    SELECT new mentoring.acomi.loanservice.infrastructure.dto.LoanDto(
+		    SELECT new mentoring.acomi.loanservice.application.dto.LoanDto(
 							    l.id,
 							    l.isbn,
 							    l.userId,
@@ -58,7 +58,7 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 	void returnLoan(@Param("id") String id, @Param("updatedAt") Instant updatedAt, @Param("returnedAt") LocalDate returnedAt);
 	
 	@Query("""
-		    SELECT new mentoring.acomi.loanservice.infrastructure.dto.LoanDto(l.id, l.isbn, l.userId, u.cardNumber, l.endDate, l.status, true)
+		    SELECT new mentoring.acomi.loanservice.application.dto.LoanDto(l.id, l.isbn, l.userId, u.cardNumber, l.endDate, l.status, true)
 				  FROM LoanViewEntity l
 					  LEFT JOIN UserViewEntity u
 					      ON u.id = l.userId

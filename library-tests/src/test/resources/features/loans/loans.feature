@@ -391,9 +391,9 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       Then il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED", numero tessera "${CARD_NUMBER}"
       And il libro "9788804336327" ha totalCopies = 1, borrowedCopies = 1, reservedCopies = 0
       
-  Rule: Visualizzazione elenco prestiti scaduti
+  Rule: Dashboard amministrativa
     
-    Scenario: Nessun prestito scaduto
+    Scenario: Visualizzazione prestiti scaduti, con nessun prestito scaduto
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
       And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
@@ -401,13 +401,13 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito è in stato "RESERVED"
       And il prestito del libro è stato confermato
       And il prestito è in stato "CONFIRMED"
-      And il prestito del libro è stato reso
+      And il prestito del libro è stato reso in data "2026-03-20"
       And il prestito è in stato "RETURNED"
       When l'amministratore visualizza l'elenco dei prestiti scaduti
       Then la risposta ha status code 200
       And la risposta contiene 0 elementi
       
-    Scenario: Esistono prestiti scaduti
+    Scenario: Visualizzazione prestiti scaduti quando esistono prestiti scaduti
       Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
       And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-02-23", in attesa di conferma
       And il prestito è in stato "RESERVED"
@@ -422,3 +422,24 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       | loanId      | ${LOAN_ID}      |
       | isbn        | "9788415723356" |
       | dueDate     | "2026-03-25"    |
+      
+    Scenario: Visualizzazione statistiche utenti-prestiti
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-06-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356", con data inizio "2026-04-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      And il prestito del libro è stato reso in data "2026-05-30"
+      And il prestito è in stato "RETURNED"
+      When l'amministratore visualizza la dashboard statistiche utenti-prestiti
+      Then la risposta ha status code 200
+      And la risposta contiene 1 elementi
+      And la risposta contiene un elemento con i campi:
+      | userId                  | ${USER_ID}   |
+      | overdueLoansCount       | 1            |
+      | activeOverdueLoansCount | 1            |
+      | lastOverdueDate         | "2026-05-30" |

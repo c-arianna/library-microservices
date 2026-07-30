@@ -28,14 +28,14 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
+import mentoring.acomi.loanservice.application.dto.LoanResponse;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.config.RabbitMQConfigTest;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
-import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 import mentoring.acomi.loanservice.infrastructure.messaging.replay.LoanReplayService;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanViewJpaRepository;

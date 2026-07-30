@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.loanservice.application.LoanFilter;
+import mentoring.acomi.loanservice.application.dto.LoanDto;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.mapper.LoanViewJpaMapper;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanViewJpaRepository;

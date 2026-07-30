@@ -15,6 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregateFactory;
+import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
+import mentoring.acomi.loanservice.application.dto.LoanDetailDto;
+import mentoring.acomi.loanservice.application.dto.LoanDto;
+import mentoring.acomi.loanservice.application.dto.LoanResponse;
+import mentoring.acomi.loanservice.application.dto.LoanUserDto;
+import mentoring.acomi.loanservice.application.dto.LoansResponse;
 import mentoring.acomi.loanservice.application.errors.InvalidUser;
 import mentoring.acomi.loanservice.application.errors.LoanNotFound;
 import mentoring.acomi.loanservice.application.errors.UserNotFound;
@@ -28,12 +34,6 @@ import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.model.Loan;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanDetailDto;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanUserDto;
-import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @Service

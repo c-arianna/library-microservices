@@ -6,17 +6,21 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import mentoring.acomi.loanservice.application.dto.LoanDto;
+import mentoring.acomi.loanservice.application.dto.LoanOverdueDto;
+import mentoring.acomi.loanservice.application.dto.OverdueStatisticDto;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanDto;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanOverdueDto;
+import mentoring.acomi.loanservice.application.repositories.UserLoanStatisticQueryRepository;
 
 @Service
 public class DashBoardService {
 
 	private final LoanViewQueryRepository repository;
-
-	public DashBoardService(LoanViewQueryRepository repository) {
+    private final UserLoanStatisticQueryRepository statisticRepository;
+    
+	public DashBoardService(LoanViewQueryRepository repository, UserLoanStatisticQueryRepository statisticRepository) {
 		this.repository = repository;
+		this.statisticRepository = statisticRepository;
 	}
 	
 	public List<LoanOverdueDto> getLoansOverdue(){
@@ -29,4 +33,8 @@ public class DashBoardService {
 		return new LoanOverdueDto(loan.id(), loan.isbn(), loan.userId(), loan.cardNumber(), loan.endDate(), daysOverdue);
 	}
 	
+	public List<OverdueStatisticDto> getOverdueStatistics() {
+		return statisticRepository.getOverdueStatistics(LocalDate.now());
+	}
+		
 }

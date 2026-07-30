@@ -142,8 +142,8 @@ public class LoanSteps {
 		}), 7000, 200);
 	}
 	
-	@Given("il prestito del libro è stato reso")
-	public void loanReturn() {
+	@Given("il prestito del libro è stato reso in data {string}")
+	public void loanReturn(String returnedAt) {
 
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
 
@@ -151,9 +151,9 @@ public class LoanSteps {
 
 		String request = """
 				{
-				  "returnAt": "2026-07-29"				}
+				  "returnAt": "%s"				}
 				
-				""";
+				""".formatted(returnedAt);
 		
 		var result = client.post().uri("/loans/%s/return".formatted(loanId)).contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", String.join(" ", "Bearer", accessToken)).body(request).exchange().expectBody()
@@ -286,6 +286,23 @@ public class LoanSteps {
 		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
        
 		var result = client.get().uri("/loans/dashboard/overdue").header("Authorization", "Bearer %s".formatted(accessToken))
+				.exchange().expectBody().returnResult();
+
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		
+		if (result.getResponseBody() != null) {
+			
+			String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+			context.put(CommonSteps.RESPONSE_BODY, response);
+				
+		}
+	}
+	
+	@When("l'amministratore visualizza la dashboard statistiche utenti-prestiti")
+	public void getUserLoanStatistics() {
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+       
+		var result = client.get().uri("/loans/dashboard/overdue/statistics").header("Authorization", "Bearer %s".formatted(accessToken))
 				.exchange().expectBody().returnResult();
 
 		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());

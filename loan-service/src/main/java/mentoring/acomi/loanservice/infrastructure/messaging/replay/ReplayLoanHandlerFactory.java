@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanCanceledV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanConfirmedV1Handler;
@@ -26,12 +27,16 @@ public class ReplayLoanHandlerFactory {
 
     private final LoanProjectionOperations loanReplayProjection;
     private final UserProjectionOperations userReplayProjection;
+    private final UserLoanStatisticProjectionOperations userLoanStatisticReplayProjection;
 	private final EventPayloadMapper mapper;
 
 	public ReplayLoanHandlerFactory(@Qualifier("replayLoanProjection") LoanProjectionOperations loanReplayProjection, 
-			@Qualifier("replayUserProjection") UserProjectionOperations userReplayProjection, EventPayloadMapper mapper) {
+			@Qualifier("replayUserProjection") UserProjectionOperations userReplayProjection, 
+			@Qualifier("replayUserLoanStatisticProjection") UserLoanStatisticProjectionOperations userLoanStatisticReplayProjection,
+			EventPayloadMapper mapper) {
 		this.loanReplayProjection = loanReplayProjection;
 		this.userReplayProjection = userReplayProjection;
+		this.userLoanStatisticReplayProjection = userLoanStatisticReplayProjection;
 		this.mapper = mapper;
 	}
 
@@ -42,7 +47,7 @@ public class ReplayLoanHandlerFactory {
 				       new LoanFailedV1Handler(loanReplayProjection, mapper),
 				       new LoanRequestedV1Handler(loanReplayProjection, mapper),
 				       new LoanReservedV1Handler(loanReplayProjection, mapper),
-				       new LoanReturnedHandler(loanReplayProjection, mapper),
+				       new LoanReturnedHandler(loanReplayProjection, userLoanStatisticReplayProjection, mapper),
 				       new UserSubscribedHandler(userReplayProjection, mapper),
 				       new UserSuspendedV1Handler(userReplayProjection, mapper),
 				       new UserUnsubscribedV1Handler(userReplayProjection, mapper),

@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import mentoring.acomi.loanservice.application.LoanFilter;
+import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
+import mentoring.acomi.loanservice.application.dto.LoanDetailDto;
+import mentoring.acomi.loanservice.application.dto.LoanResponse;
+import mentoring.acomi.loanservice.application.dto.LoansResponse;
+import mentoring.acomi.loanservice.application.dto.ReturnLoanRequest;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanDetailDto;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
-import mentoring.acomi.loanservice.infrastructure.dto.LoansResponse;
-import mentoring.acomi.loanservice.infrastructure.dto.ReturnLoanRequest;
 import mentoring.acomi.sharedcodelibrary.common.CardNumberUtils;
 
 @RestController

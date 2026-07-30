@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanReturnedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
@@ -22,10 +23,14 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 public class LoanReturnedHandler extends AbstractEventHandler<LoanReturnedIntegrationPayload> {
 
 	private final LoanProjectionOperations projectionOperations;
+	private final UserLoanStatisticProjectionOperations statisticProjectionOperations;
 	
-	public LoanReturnedHandler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public LoanReturnedHandler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, 
+		@Qualifier("liveUserLoanStatisticProjection") UserLoanStatisticProjectionOperations statisticProjectionOperations, 
+		EventPayloadMapper mapper) {
 		super(mapper);
 		this.projectionOperations = projectionOperations;
+		this.statisticProjectionOperations = statisticProjectionOperations;
 	}
 
 	@Override
@@ -42,6 +47,7 @@ public class LoanReturnedHandler extends AbstractEventHandler<LoanReturnedIntegr
 
 		LocalDate returnedAt = event.schemaVersion() == 1 ? event.occurredAt().atZone(ZoneOffset.UTC).toLocalDate() : payload.returnedAt();
 		projectionOperations.returnLoan(payload.loanId(), event.occurredAt(), returnedAt);
+		statisticProjectionOperations.registerOverdueLoan(payload.userId(), payload.loanId(), returnedAt);
 		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 

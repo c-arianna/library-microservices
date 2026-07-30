@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.reflections.Reflections;
 
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.loanservice.infrastructure.messaging.replay.ReplayLoanHandlerFactory;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
@@ -29,13 +30,16 @@ public class ReplayLoanHandlerFactoryTest {
     private UserProjectionOperations userReplayProjection;
 
     @Mock
+	private UserLoanStatisticProjectionOperations statisticProjectionOperations;
+    
+    @Mock
     private EventPayloadMapper mapper;
 
     private ReplayLoanHandlerFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new ReplayLoanHandlerFactory(loanReplayProjection, userReplayProjection, mapper);
+        factory = new ReplayLoanHandlerFactory(loanReplayProjection, userReplayProjection, statisticProjectionOperations, mapper);
     }
 
     @Test

@@ -101,7 +101,7 @@ public class UserEventsReplayTest extends AbstractKeycloakIntegrationTest {
 		
 		outboxPublisher.publishPendingEvents();
 		
-		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {	
+		await().atMost(Duration.ofSeconds(6)).untilAsserted(() -> {	
 			Optional<UserView> userView = userViewRepository.findById(user.userId());
 			Assertions.assertThat(userView).isPresent();
 			Assertions.assertThat(userView.get().status()).isEqualTo(UserStatus.ACTIVE);

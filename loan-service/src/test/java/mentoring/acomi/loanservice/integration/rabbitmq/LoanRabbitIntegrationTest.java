@@ -44,6 +44,8 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventT
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
+import mentoring.acomi.loanservice.application.dto.LoanResponse;
 import mentoring.acomi.loanservice.application.outbox.OutboxPublisher;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
@@ -56,8 +58,6 @@ import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.loanservice.infrastructure.dto.AddLoanRequest;
-import mentoring.acomi.loanservice.infrastructure.dto.LoanResponse;
 
 @SpringBootTest
 @Testcontainers

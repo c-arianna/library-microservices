@@ -1,4 +1,4 @@
-package mentoring.acomi.loanservice.infrastructure.dto;
+package mentoring.acomi.loanservice.application.dto;
 
 import java.util.List;
 
