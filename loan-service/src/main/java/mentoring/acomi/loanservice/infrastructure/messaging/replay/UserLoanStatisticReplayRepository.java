@@ -56,9 +56,9 @@ public class UserLoanStatisticReplayRepository implements UserLoanStatisticRepos
 			            overdue_loans_count,
 			            total_days_overdue,
 			            last_overdue_date
-			        FROM user_loan_stats u
+			        FROM %s
 			        WHERE user_id = ?
-			        """;
+			        """.formatted(TABLE_TMP);
 		 
 		 List<UserLoanStatisticView> results = jdbcTemplate.query(query,
 				 (rs, rowNum) -> new UserLoanStatisticView(
@@ -85,6 +85,11 @@ public class UserLoanStatisticReplayRepository implements UserLoanStatisticRepos
 	@Override
 	public void dropTempTable() {
 		replayTableManager.dropTempTable(TABLE_TMP);		
+	}
+
+	@Override
+	public void deleteAll() {
+		throw new UnsupportedOperationException("Not needed");		
 	}
 
 }

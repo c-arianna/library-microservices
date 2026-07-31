@@ -9,4 +9,5 @@ public interface UserLoanStatisticRepository {
 	void insert(UserLoanStatisticView view);
 	void statisticUpdate(String userId, long totalDaysOverdue, LocalDate lastOverdueDate);
 	Optional<UserLoanStatisticView> getUserLoanStatistic(String userId);
+	void deleteAll();
 }

@@ -48,5 +48,10 @@ public class JpaUserLoanStatisticRepositoryAdapter implements UserLoanStatisticR
 	public List<OverdueStatisticDto> getOverdueStatistics(LocalDate today) {
 		return repository.getOverdueStatistics(today);
 	}
+
+	@Override
+	public void deleteAll() {
+		repository.deleteAll();		
+	}
 	
 }

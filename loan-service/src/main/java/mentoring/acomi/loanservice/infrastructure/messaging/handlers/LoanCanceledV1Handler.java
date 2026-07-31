@@ -1,11 +1,14 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
@@ -20,10 +23,14 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 public class LoanCanceledV1Handler extends AbstractEventHandler<LoanIntegrationPayload> {
 
 	private final LoanProjectionOperations projectionOperations;
+	private final DailyLoanStatisticProjectionOperations dailyLoanStatisticProjectionOperation;
 	
-	public LoanCanceledV1Handler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public LoanCanceledV1Handler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, 
+			@Qualifier("liveDailyLoanStatisticProjection") DailyLoanStatisticProjectionOperations dailyLoanStatisticProjectionOperation,
+			EventPayloadMapper mapper) {
 		super(mapper);
 		this.projectionOperations = projectionOperations;
+		this.dailyLoanStatisticProjectionOperation = dailyLoanStatisticProjectionOperation;
 	}
 	
 	@Override
@@ -34,6 +41,10 @@ public class LoanCanceledV1Handler extends AbstractEventHandler<LoanIntegrationP
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.cancelLoan(payload.loanId(), event.occurredAt());
+		
+		LocalDate statisticDate = event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
+		dailyLoanStatisticProjectionOperation.registerLoanCanceled(statisticDate);
+		
 		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 

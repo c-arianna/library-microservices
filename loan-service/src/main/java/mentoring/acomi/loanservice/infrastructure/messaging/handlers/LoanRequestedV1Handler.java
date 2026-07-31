@@ -1,11 +1,14 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanRequestedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
@@ -20,10 +23,14 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIntegrationPayload> {
 
 	private final LoanProjectionOperations projectionOperations;
-		
-	public LoanRequestedV1Handler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	private final DailyLoanStatisticProjectionOperations dailyLoanStatisticProjectionOperation;
+	
+	public LoanRequestedV1Handler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, 
+			@Qualifier("liveDailyLoanStatisticProjection") DailyLoanStatisticProjectionOperations dailyLoanStatisticProjectionOperation, 
+			EventPayloadMapper mapper) {
 		super(mapper);
 		this.projectionOperations = projectionOperations;
+		this.dailyLoanStatisticProjectionOperation = dailyLoanStatisticProjectionOperation;
 	}
 
 	@Override
@@ -34,6 +41,10 @@ public class LoanRequestedV1Handler extends AbstractEventHandler<LoanRequestedIn
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanRequestedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
 		projectionOperations.loanInsert(payload, event.occurredAt());
+		
+		LocalDate statisticDate = event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
+		dailyLoanStatisticProjectionOperation.registerLoanCreated(statisticDate);
+		
 		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 

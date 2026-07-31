@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanRequestedV1Handler;
@@ -33,6 +35,11 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Mock
 	private LoanProjectionOperations projectionOperations;
+	
+	@Mock
+	private DailyLoanStatisticProjectionOperations dailyStatisticOperation;
+	
+	
 	private LoanRequestedV1Handler handler;
 
 	private LocalDate start = LocalDate.now();
@@ -40,7 +47,7 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanRequestedV1Handler(projectionOperations, mapper);
+		handler = new LoanRequestedV1Handler(projectionOperations, dailyStatisticOperation, mapper);
 	}
 
 	@Override
@@ -59,6 +66,9 @@ public class LoanRequestedV1HandlerTest extends AbstractEventHandlerTest {
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
 		verify(projectionOperations, times(1)).loanInsert(event.payload(), event.occurredAt());
+		
+		LocalDate statisticDate = event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
+		verify(dailyStatisticOperation, times(1)).registerLoanCreated(statisticDate);
 	}
 
 	@TestFactory

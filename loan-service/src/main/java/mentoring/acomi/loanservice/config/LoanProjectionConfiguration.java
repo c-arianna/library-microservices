@@ -4,12 +4,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjection;
 import mentoring.acomi.loanservice.application.projection.LoanProjection;
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjection;
 import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.UserProjection;
 import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.repositories.DailyLoanStatisticRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.repositories.UserLoanStatisticRepository;
@@ -48,6 +51,17 @@ public class LoanProjectionConfiguration {
 	UserLoanStatisticProjectionOperations replayUserLoanStatisticProjection(@Qualifier("replayStatisticRepo") UserLoanStatisticRepository 
 			statisticRepository, LoanViewQueryRepository loanQueryRepository) {
 		return new UserLoanStatisticProjection(statisticRepository, loanQueryRepository);
+	}
+	
+	@Bean("liveDailyLoanStatisticProjection")
+	DailyLoanStatisticProjectionOperations liveDailyLoanStatisticProjection(DailyLoanStatisticRepository statisticRepository) {
+		return new DailyLoanStatisticProjection(statisticRepository);
+	}
+
+	@Bean("replayDailyLoanStatisticProjection")
+	DailyLoanStatisticProjectionOperations replayDailyLoanStatisticProjection(@Qualifier("replayDailyLoanStatisticRepo") DailyLoanStatisticRepository 
+			statisticRepository) {
+		return new DailyLoanStatisticProjection(statisticRepository);
 	}
 	
 }

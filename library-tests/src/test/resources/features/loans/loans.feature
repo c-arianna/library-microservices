@@ -443,3 +443,32 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       | overdueLoansCount       | 1            |
       | activeOverdueLoansCount | 1            |
       | lastOverdueDate         | "2026-05-30" |
+      
+    Scenario: Statistiche giornaliere dei prestiti
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-06-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356", con data inizio "2026-04-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      And il prestito del libro è stato reso in data "2026-05-30"
+      And il prestito è in stato "RETURNED"
+      When l'amministratore visualizza le statistiche giornaliere dei prestiti degli ultimi 30 giorni
+      Then la risposta ha status code 200
+      And la risposta contiene 1 elementi
+      And la risposta contiene un elemento con i campi:
+      | loansCreated    | 2            |
+      | loansConfirmed  | 2            |
+      | loansCanceled   | 0            |
+      | loansReturned   | 1            |
+      
+    Scenario: Statistiche giornaliere dei prestiti con intervallo date non valido
+      When l'amministratore visualizza le statistiche giornaliere dei prestiti, per il periodo "2026-07-30"-"2026-07-28"
+      Then la risposta ha status code 400
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "INVALID_DATE_RANGE" |
+      | type    | "VALIDATION_ERROR" |

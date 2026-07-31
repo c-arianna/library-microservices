@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import mentoring.acomi.loanservice.application.errors.InvalidStatisticDateRange;
 import mentoring.acomi.loanservice.application.errors.InvalidUser;
 import mentoring.acomi.loanservice.application.errors.LoanNotFound;
 import mentoring.acomi.loanservice.application.errors.UserNotFound;
@@ -84,6 +85,12 @@ public class ApplicationExceptionHandler {
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorResponse handleLoanNotFoundError(LoanNotFound e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "APPLICATION_ERROR");
+	}
+	
+	@ExceptionHandler(InvalidStatisticDateRange.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ErrorResponse handleInvalidStatisticDateRangeError(InvalidStatisticDateRange e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "VALIDATION_ERROR");
 	}
 	
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

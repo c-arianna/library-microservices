@@ -6,21 +6,28 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import mentoring.acomi.loanservice.application.dto.DailyLoanStatisticsDto;
 import mentoring.acomi.loanservice.application.dto.LoanDto;
 import mentoring.acomi.loanservice.application.dto.LoanOverdueDto;
 import mentoring.acomi.loanservice.application.dto.OverdueStatisticDto;
+import mentoring.acomi.loanservice.application.errors.InvalidStatisticDateRange;
+import mentoring.acomi.loanservice.application.repositories.DailyLoanStatisticQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserLoanStatisticQueryRepository;
+import mentoring.acomi.loanservice.application.view.DailyLoanStatisticView;
 
 @Service
 public class DashBoardService {
 
 	private final LoanViewQueryRepository repository;
-    private final UserLoanStatisticQueryRepository statisticRepository;
+    private final UserLoanStatisticQueryRepository userLoanStatisticRepository;
+    private final DailyLoanStatisticQueryRepository dailyStatisticsRepository;
     
-	public DashBoardService(LoanViewQueryRepository repository, UserLoanStatisticQueryRepository statisticRepository) {
+	public DashBoardService(LoanViewQueryRepository repository, UserLoanStatisticQueryRepository userLoanStatisticRepository,
+			DailyLoanStatisticQueryRepository dailyStatisticsRepository) {
 		this.repository = repository;
-		this.statisticRepository = statisticRepository;
+		this.userLoanStatisticRepository = userLoanStatisticRepository;
+		this.dailyStatisticsRepository = dailyStatisticsRepository;
 	}
 	
 	public List<LoanOverdueDto> getLoansOverdue(){
@@ -34,7 +41,24 @@ public class DashBoardService {
 	}
 	
 	public List<OverdueStatisticDto> getOverdueStatistics() {
-		return statisticRepository.getOverdueStatistics(LocalDate.now());
+		return userLoanStatisticRepository.getOverdueStatistics(LocalDate.now());
+	}
+
+	public List<DailyLoanStatisticsDto> findDailyStatistics(LocalDate from, LocalDate to) {
+		
+		LocalDate effectiveTo = to != null ? to : LocalDate.now();
+		LocalDate effectiveFrom = from != null ? from : effectiveTo.minusDays(30);
+		 
+		if (effectiveFrom.isAfter(effectiveTo)) {
+		    throw new InvalidStatisticDateRange("from must be before to");
+		}
+		
+		return dailyStatisticsRepository.findStatistics(effectiveFrom, effectiveTo).stream().map(this::DailyLoanStatisticsDto).toList();
+	}
+	
+	private DailyLoanStatisticsDto DailyLoanStatisticsDto(DailyLoanStatisticView view) {
+		return new DailyLoanStatisticsDto(view.statisticsDate(), view.loansCreated(), view.loansConfirmed(), view.loansCanceled(),
+				view.loansReturned());
 	}
 		
 }

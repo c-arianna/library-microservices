@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
 import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
@@ -40,11 +42,14 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 	@Mock
 	private UserLoanStatisticProjectionOperations statisticProjectionOperations;
 	
+	@Mock
+	private DailyLoanStatisticProjectionOperations dailyStatisticOperation;
+	
 	private LoanReturnedHandler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanReturnedHandler(projectionOperations, statisticProjectionOperations, mapper);
+		handler = new LoanReturnedHandler(projectionOperations, statisticProjectionOperations, dailyStatisticOperation, mapper);
 	}
 
 	@Override
@@ -65,6 +70,9 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 		LocalDate returnedAt = event.occurredAt().atZone(ZoneOffset.UTC).toLocalDate();
 		verify(projectionOperations, times(1)).returnLoan(event.payload().loanId(), event.occurredAt(), returnedAt);
 		verify(statisticProjectionOperations, times(1)).registerOverdueLoan(event.payload().userId(), event.payload().loanId(), returnedAt);
+		
+		LocalDate statisticDate = event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
+		verify(dailyStatisticOperation, times(1)).registerLoanReturned(statisticDate);
 	}
 	
 	@Test
