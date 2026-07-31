@@ -33,12 +33,5 @@ public interface UserEventJpaRepository extends BaseEventJpaRepository<UserEvent
 			    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
 			""")
 	void markProcessed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
-
-	@Query("""
-			    SELECT e
-			    FROM UserEventEntity e
-			    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
-			""")
-	List<UserEventEntity> findAllOrderByAggregateAndVersion();
 	
 }

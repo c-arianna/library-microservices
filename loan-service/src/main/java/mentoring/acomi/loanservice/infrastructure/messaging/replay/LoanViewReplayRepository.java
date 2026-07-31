@@ -61,8 +61,8 @@ public class LoanViewReplayRepository implements LoanViewRepository, ReplayProje
 
 	@Override
 	public void returnLoan(String id, Instant updatedAt, LocalDate returnedAt) {
-		jdbcTemplate.update("UPDATE %s SET status = %s, return_at = ?, updated_at = ? WHERE id = ?".formatted(TABLE_TMP, 
-				LoanStatus.RETURNED.toString()), returnedAt, updatedAt, id);	
+		jdbcTemplate.update("UPDATE %s SET status = ?, returned_at = ?, updated_at = ? WHERE id = ?".formatted(TABLE_TMP), 
+				LoanStatus.RETURNED.toString(), returnedAt, updatedAt, id);	
 	}
 
 }

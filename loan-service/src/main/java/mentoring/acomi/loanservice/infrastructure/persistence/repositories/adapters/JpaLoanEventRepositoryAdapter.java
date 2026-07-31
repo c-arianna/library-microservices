@@ -22,7 +22,7 @@ public class JpaLoanEventRepositoryAdapter extends AbstractJpaEventRepositoryAda
 
 	@Override
 	public List<LoanEventEntity> findAllEvents() {
-		return repository.findAllOrderByAggregateAndVersion();
+		return repository.findAllByOrderByIdAsc();
 	}
 
 }

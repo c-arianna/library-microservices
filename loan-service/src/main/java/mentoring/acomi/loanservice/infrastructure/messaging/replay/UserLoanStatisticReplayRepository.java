@@ -38,10 +38,10 @@ public class UserLoanStatisticReplayRepository implements UserLoanStatisticRepos
 		jdbcTemplate.update("""
 				      UPDATE %s 
 				      SET overdue_loans_count = overdue_loans_count +1 ,
-				          total_days_overdue = total_days_overdue + ?
+				          total_days_overdue = total_days_overdue + ?,
 				          last_overdue_date =  
 				              CASE
-				               	WHEN last_overdue_date IS NULL OR ? >last_overdue_date THEN ?
+				               	WHEN last_overdue_date IS NULL OR last_overdue_date < ? THEN ?
 				               	ELSE last_overdue_date
 				           		END
 					  WHERE user_id= ?

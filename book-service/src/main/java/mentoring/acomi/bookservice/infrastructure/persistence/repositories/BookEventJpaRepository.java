@@ -34,11 +34,4 @@ public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEvent
 			""")
 	void markProcessed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
 
-	@Query("""
-			    SELECT e
-			    FROM BookEventEntity e
-			    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
-			""")
-	List<BookEventEntity> findAllOrderByAggregateAndVersion();
-
 }

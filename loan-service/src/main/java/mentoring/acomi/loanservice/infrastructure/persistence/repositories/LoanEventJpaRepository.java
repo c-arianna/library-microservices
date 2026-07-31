@@ -33,13 +33,4 @@ public interface LoanEventJpaRepository extends BaseEventJpaRepository<LoanEvent
 			    WHERE e.aggregateType = :aggregateType AND e.eventId = :eventId
 			""")
 	void markProcessed(@Param("eventId") String eventId, @Param("aggregateType") String aggregateType);
-	
-	
-	@Query("""
-		    SELECT e
-		    FROM LoanEventEntity e
-		    ORDER BY e.aggregateType, e.aggregateId, e.eventVersion
-		""")
-     List<LoanEventEntity> findAllOrderByAggregateAndVersion();
-
 }
