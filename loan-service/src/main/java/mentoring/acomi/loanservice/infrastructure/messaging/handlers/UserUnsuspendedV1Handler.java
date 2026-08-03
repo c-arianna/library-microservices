@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
@@ -19,11 +19,11 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 @Component
 public class UserUnsuspendedV1Handler extends AbstractEventHandler<UserIntegrationPayload> {
 
-	private final UserProjectionOperations projectionOperations;
+	private final ProjectionDispatcher dispatcher;
 	
-	public UserUnsuspendedV1Handler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public UserUnsuspendedV1Handler(@Qualifier("liveDispatcher")ProjectionDispatcher dispatcher, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projectionOperations = projectionOperations;
+		this.dispatcher = dispatcher;
 	}
 	
 	@Override
@@ -33,7 +33,7 @@ public class UserUnsuspendedV1Handler extends AbstractEventHandler<UserIntegrati
 	
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(UserIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.handleUpdateUserStatus(payload.userId(), payload.status(), event.occurredAt());
+		dispatcher.dispatch(event, payload);
 		return Optional.empty();
 	}
 

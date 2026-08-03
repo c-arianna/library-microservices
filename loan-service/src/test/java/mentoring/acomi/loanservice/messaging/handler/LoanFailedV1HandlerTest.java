@@ -1,6 +1,5 @@
 package mentoring.acomi.loanservice.messaging.handler;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
@@ -18,7 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanFailedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
@@ -31,12 +30,13 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventT
 public class LoanFailedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	@Mock
-	private LoanProjectionOperations projectionOperations;	
+	private ProjectionDispatcher dispatcher;
+	
 	private LoanFailedV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanFailedV1Handler(projectionOperations, mapper);
+		handler = new LoanFailedV1Handler(dispatcher, mapper);
 	}
 
 	@Override
@@ -54,13 +54,13 @@ public class LoanFailedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanFailedIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).failLoan(event.payload().loanId(), event.occurredAt());
+		verify(dispatcher).dispatch(event, event.payload());	
 	}
 
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
-				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projectionOperations))).toList();
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), dispatcher))).toList();
 	
 	}
 	

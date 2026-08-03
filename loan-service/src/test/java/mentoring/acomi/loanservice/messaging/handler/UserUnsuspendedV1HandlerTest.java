@@ -1,6 +1,5 @@
 package mentoring.acomi.loanservice.messaging.handler;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
@@ -18,7 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserUnsuspendedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserIntegrationPayload;
@@ -32,12 +31,13 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 public class UserUnsuspendedV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Mock
-	private UserProjectionOperations projectionOperations;
+	private ProjectionDispatcher dispatcher;
+	
 	private UserUnsuspendedV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new UserUnsuspendedV1Handler(projectionOperations, mapper);
+		handler = new UserUnsuspendedV1Handler(dispatcher, mapper);
 	}
 	
 	@Override
@@ -55,13 +55,13 @@ public class UserUnsuspendedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isEmpty());
-		verify(projectionOperations, times(1)).handleUpdateUserStatus(event.payload().userId(), event.payload().status(), event.occurredAt());
+		verify(dispatcher).dispatch(event, event.payload());	
 	}
 	
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
-				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projectionOperations))).toList();
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), dispatcher))).toList();
 	}
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {

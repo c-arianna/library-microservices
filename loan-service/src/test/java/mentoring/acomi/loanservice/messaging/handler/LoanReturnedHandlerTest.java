@@ -1,13 +1,10 @@
 package mentoring.acomi.loanservice.messaging.handler;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -22,9 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanReturnedHandler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanReturnedIntegrationPayload;
@@ -37,19 +32,13 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventT
 public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 	
 	@Mock
-	private LoanProjectionOperations projectionOperations;
-	
-	@Mock
-	private UserLoanStatisticProjectionOperations statisticProjectionOperations;
-	
-	@Mock
-	private DailyLoanStatisticProjectionOperations dailyStatisticOperation;
+	private ProjectionDispatcher dispatcher;
 	
 	private LoanReturnedHandler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanReturnedHandler(projectionOperations, statisticProjectionOperations, dailyStatisticOperation, mapper);
+		handler = new LoanReturnedHandler(dispatcher, mapper);
 	}
 
 	@Override
@@ -67,12 +56,7 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanReturnedIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		LocalDate returnedAt = event.occurredAt().atZone(ZoneOffset.UTC).toLocalDate();
-		verify(projectionOperations, times(1)).returnLoan(event.payload().loanId(), event.occurredAt(), returnedAt);
-		verify(statisticProjectionOperations, times(1)).registerOverdueLoan(event.payload().userId(), event.payload().loanId(), returnedAt);
-		
-		LocalDate statisticDate = event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
-		verify(dailyStatisticOperation, times(1)).registerLoanReturned(statisticDate);
+		verify(dispatcher).dispatch(event, event.payload());	
 	}
 	
 	@Test
@@ -81,8 +65,7 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 				UUID.randomUUID().toString(), LocalDate.now(), 2);
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).returnLoan(event.payload().loanId(), event.occurredAt(), event.payload().returnedAt());
-		verify(statisticProjectionOperations, times(1)).registerOverdueLoan(event.payload().userId(), event.payload().loanId(), event.payload().returnedAt());
+		verify(dispatcher).dispatch(event, event.payload());	
 	}
 
 	@Test
@@ -93,14 +76,14 @@ public class LoanReturnedHandlerTest extends AbstractEventHandlerTest {
 		
 		Assertions.assertThrows(IllegalStateException.class, () -> handler.handleEvent(event));
 		
-		verifyNoInteractions(projectionOperations);
+		verifyNoInteractions(dispatcher);
 		
 	}
 	
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
-				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projectionOperations))).toList();
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), dispatcher))).toList();
 	
 	}
 	

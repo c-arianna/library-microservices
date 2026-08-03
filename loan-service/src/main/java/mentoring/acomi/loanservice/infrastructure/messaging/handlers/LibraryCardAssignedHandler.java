@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.LibraryCardAssignedIntegrationPayload;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
@@ -19,11 +19,11 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 @Component
 public class LibraryCardAssignedHandler extends AbstractEventHandler<LibraryCardAssignedIntegrationPayload> {
 
-	private final UserProjectionOperations projectionOperations;
+	private final ProjectionDispatcher dispatcher;
 
-	public LibraryCardAssignedHandler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public LibraryCardAssignedHandler(@Qualifier("liveDispatcher") ProjectionDispatcher dispatcher, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projectionOperations = projectionOperations;
+		this.dispatcher = dispatcher;
 	}
 	
 	@Override
@@ -33,7 +33,7 @@ public class LibraryCardAssignedHandler extends AbstractEventHandler<LibraryCard
 	
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LibraryCardAssignedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.assignCardNumber(payload.userId(), payload.cardNumber(), event.occurredAt());
+		dispatcher.dispatch(event, payload);
 		return Optional.empty();
 	}
 

@@ -1,11 +1,8 @@
 package mentoring.acomi.loanservice.messaging.handler;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanCanceledV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
@@ -34,16 +30,13 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventT
 public class LoanCanceledV1HandlerTest extends AbstractEventHandlerTest {
 
 	@Mock
-	private LoanProjectionOperations projectionOperations;
-	
-	@Mock
-	private DailyLoanStatisticProjectionOperations dailyLoanStatisticProjectionOperation;
-	
+	private ProjectionDispatcher dispatcher;
+		
 	private LoanCanceledV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new LoanCanceledV1Handler(projectionOperations, dailyLoanStatisticProjectionOperation, mapper);
+		handler = new LoanCanceledV1Handler(dispatcher, mapper);
 	}
 
 	@Override
@@ -61,17 +54,13 @@ public class LoanCanceledV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<LoanIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).cancelLoan(event.payload().loanId(), event.occurredAt());
-		
-		LocalDate statisticDate = event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
-		verify(dailyLoanStatisticProjectionOperation, times(1)).registerLoanCanceled(statisticDate);
-		
+		verify(dispatcher).dispatch(event, event.payload());			
 	}
 
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
-				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projectionOperations))).toList();
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), dispatcher))).toList();
 	
 	}
 	

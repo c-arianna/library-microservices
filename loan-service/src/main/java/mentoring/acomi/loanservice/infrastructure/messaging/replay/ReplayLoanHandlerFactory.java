@@ -5,10 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanConfirmedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanFailedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.LoanRequestedV1Handler;
@@ -26,40 +23,30 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 @Component
 public class ReplayLoanHandlerFactory {
 
-    private final LoanProjectionOperations loanReplayProjection;
-    private final UserProjectionOperations userReplayProjection;
-    private final UserLoanStatisticProjectionOperations userLoanStatisticReplayProjection;
-    private final DailyLoanStatisticProjectionOperations dailyLoanStatisticReplayProjection;
-    
+    private final ProjectionDispatcher replayDispatcher;
+        
 	private final EventPayloadMapper mapper;
 
-	public ReplayLoanHandlerFactory(@Qualifier("replayLoanProjection") LoanProjectionOperations loanReplayProjection, 
-			@Qualifier("replayUserProjection") UserProjectionOperations userReplayProjection, 
-			@Qualifier("replayUserLoanStatisticProjection") UserLoanStatisticProjectionOperations userLoanStatisticReplayProjection,
-			@Qualifier("replayDailyLoanStatisticProjection") DailyLoanStatisticProjectionOperations dailyLoanStatisticReplayProjection,
-			EventPayloadMapper mapper) {
-		this.loanReplayProjection = loanReplayProjection;
-		this.userReplayProjection = userReplayProjection;
-		this.userLoanStatisticReplayProjection = userLoanStatisticReplayProjection;
-		this.dailyLoanStatisticReplayProjection = dailyLoanStatisticReplayProjection;
+	public ReplayLoanHandlerFactory(@Qualifier("replayDispatcher") ProjectionDispatcher replayDispatcher, EventPayloadMapper mapper) {
+		this.replayDispatcher = replayDispatcher;
 		this.mapper = mapper;
 	}
 
 	public List<EventHandler> createHandlers() {
 
-		return List.of(new LoanCanceledV1Handler(loanReplayProjection, dailyLoanStatisticReplayProjection, mapper),
-				   	   new LoanConfirmedV1Handler(loanReplayProjection, dailyLoanStatisticReplayProjection, mapper),
-				       new LoanFailedV1Handler(loanReplayProjection, mapper),
-				       new LoanRequestedV1Handler(loanReplayProjection, dailyLoanStatisticReplayProjection, mapper),
-				       new LoanReservedV1Handler(loanReplayProjection, mapper),
-				       new LoanReturnedHandler(loanReplayProjection, userLoanStatisticReplayProjection, dailyLoanStatisticReplayProjection, 
-				    		   mapper),
-				       new UserSubscribedHandler(userReplayProjection, mapper),
-				       new UserSuspendedV1Handler(userReplayProjection, mapper),
-				       new UserUnsubscribedV1Handler(userReplayProjection, mapper),
-				       new UserUnsuspendedV1Handler(userReplayProjection, mapper),
-				       new LibraryCardAssignedHandler(userReplayProjection, mapper)
+		return List.of(new LoanCanceledV1Handler(replayDispatcher, mapper),
+				   	   new LoanConfirmedV1Handler(replayDispatcher, mapper),
+				       new LoanFailedV1Handler(replayDispatcher, mapper),
+				       new LoanRequestedV1Handler(replayDispatcher, mapper),
+				       new LoanReservedV1Handler(replayDispatcher, mapper),
+				       new LoanReturnedHandler(replayDispatcher, mapper),
+				       new UserSubscribedHandler(replayDispatcher, mapper),
+				       new UserSuspendedV1Handler(replayDispatcher, mapper),
+				       new UserUnsubscribedV1Handler(replayDispatcher, mapper),
+				       new UserUnsuspendedV1Handler(replayDispatcher, mapper),
+				       new LibraryCardAssignedHandler(replayDispatcher, mapper)
 				       
 		);
 	}
+	
 }

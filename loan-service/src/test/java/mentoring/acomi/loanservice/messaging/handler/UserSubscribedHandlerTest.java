@@ -1,6 +1,5 @@
 package mentoring.acomi.loanservice.messaging.handler;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -19,7 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSubscribedHandler;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
@@ -38,12 +37,13 @@ public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 	private static final String LASTNAME = "Test";
 	
 	@Mock
-	private UserProjectionOperations projectionOperations;
+	private ProjectionDispatcher dispatcher;
+
 	private UserSubscribedHandler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new UserSubscribedHandler(projectionOperations, mapper);
+		handler = new UserSubscribedHandler(dispatcher, mapper);
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<UserSubscribedIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isEmpty());
-		verify(projectionOperations, times(1)).handleSubscribeUser(event.payload(), event.occurredAt());
+		verify(dispatcher).dispatch(event, event.payload());	
 	}
 
 	@Test
@@ -76,7 +76,7 @@ public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 
 	    Assertions.assertTrue(notification.isEmpty());
 
-	    verify(projectionOperations, times(1)).handleSubscribeUser(event.payload(), event.occurredAt());
+	    verify(dispatcher).dispatch(event, event.payload());	
 	}
 	
 	@Test
@@ -88,7 +88,7 @@ public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 
 	    Assertions.assertThrows(IllegalStateException.class, () -> handler.handleEvent(event));
 
-	    verifyNoInteractions(projectionOperations);
+	    verifyNoInteractions(dispatcher);
 	}
 	
 	@Test
@@ -100,13 +100,13 @@ public class UserSubscribedHandlerTest extends AbstractEventHandlerTest {
 
 	    Assertions.assertThrows(IllegalStateException.class, () -> handler.handleEvent(event));
 
-	    verifyNoInteractions(projectionOperations);
+	    verifyNoInteractions(dispatcher);
 	}
 	
 	@TestFactory
 	Collection<DynamicTest> shouldRejectInvalidPayloads() {
 		return invalidPayloads().stream().map(scenario -> DynamicTest.dynamicTest(scenario.description(), 
-				     () -> assertInvalidPayload(scenario.event(), scenario.field(), projectionOperations))).toList();
+				     () -> assertInvalidPayload(scenario.event(), scenario.field(), dispatcher))).toList();
 	
 	}
 	

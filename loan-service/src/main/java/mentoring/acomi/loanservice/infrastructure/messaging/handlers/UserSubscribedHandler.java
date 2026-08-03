@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.loanservice.application.projection.UserProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
@@ -21,11 +21,11 @@ import mentoring.acomi.sharedcorelibrary.model.UserRole;
 @Component
 public class UserSubscribedHandler extends AbstractEventHandler<UserSubscribedIntegrationPayload> {
 
-	private final UserProjectionOperations projectionOperations;
+	private final ProjectionDispatcher dispatcher;
 
-	public UserSubscribedHandler(@Qualifier("liveUserProjection") UserProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public UserSubscribedHandler(@Qualifier("liveDispatcher") ProjectionDispatcher dispatcher, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projectionOperations = projectionOperations;
+		this.dispatcher = dispatcher;
 	}
 	
 	@Override
@@ -47,7 +47,7 @@ public class UserSubscribedHandler extends AbstractEventHandler<UserSubscribedIn
 			}
 		}
 		
-		projectionOperations.handleSubscribeUser(payload, event.occurredAt());
+		dispatcher.dispatch(event, payload);
 		return Optional.empty();
 	}
 

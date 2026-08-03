@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
@@ -19,11 +19,11 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 @Component
 public class LoanReservedV1Handler extends AbstractEventHandler<LoanIntegrationPayload> {
 
-	private final LoanProjectionOperations projectionOperations;
+	private final ProjectionDispatcher dispatcher;
 		
-	public LoanReservedV1Handler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public LoanReservedV1Handler(@Qualifier("liveDispatcher") ProjectionDispatcher dispatcher, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projectionOperations = projectionOperations;
+		this.dispatcher = dispatcher;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class LoanReservedV1Handler extends AbstractEventHandler<LoanIntegrationP
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.reserveLoan(payload.loanId(), event.occurredAt());
+		dispatcher.dispatch(event, payload);	
 		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 

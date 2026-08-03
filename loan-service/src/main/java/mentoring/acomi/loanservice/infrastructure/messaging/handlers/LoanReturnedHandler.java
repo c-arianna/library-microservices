@@ -1,16 +1,11 @@
 package mentoring.acomi.loanservice.infrastructure.messaging.handlers;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
-import mentoring.acomi.loanservice.application.projection.UserLoanStatisticProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanReturnedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
@@ -23,18 +18,11 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 @Component
 public class LoanReturnedHandler extends AbstractEventHandler<LoanReturnedIntegrationPayload> {
 
-	private final LoanProjectionOperations projectionOperations;
-	private final UserLoanStatisticProjectionOperations statisticProjectionOperations;
-	private final DailyLoanStatisticProjectionOperations dailyLoanStatisticProjectionOperation;
+	private final ProjectionDispatcher dispatcher;
 	
-	public LoanReturnedHandler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, 
-		@Qualifier("liveUserLoanStatisticProjection") UserLoanStatisticProjectionOperations statisticProjectionOperations,
-		@Qualifier("liveDailyLoanStatisticProjection") DailyLoanStatisticProjectionOperations dailyLoanStatisticProjectionOperation,
-		EventPayloadMapper mapper) {
+	public LoanReturnedHandler(@Qualifier("liveDispatcher") ProjectionDispatcher dispatcher, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projectionOperations = projectionOperations;
-		this.statisticProjectionOperations = statisticProjectionOperations;
-		this.dailyLoanStatisticProjectionOperation = dailyLoanStatisticProjectionOperation;
+		this.dispatcher = dispatcher;
 	}
 
 	@Override
@@ -49,13 +37,7 @@ public class LoanReturnedHandler extends AbstractEventHandler<LoanReturnedIntegr
 				throw new IllegalStateException("invalid field returnedAt for schema version 2");
 		}
 
-		LocalDate returnedAt = event.schemaVersion() == 1 ? event.occurredAt().atZone(ZoneOffset.UTC).toLocalDate() : payload.returnedAt();
-		projectionOperations.returnLoan(payload.loanId(), event.occurredAt(), returnedAt);
-		statisticProjectionOperations.registerOverdueLoan(payload.userId(), payload.loanId(), returnedAt);
-		
-		LocalDate statisticDate = event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
-		dailyLoanStatisticProjectionOperation.registerLoanReturned(statisticDate);
-		
+		dispatcher.dispatch(event, payload);
 		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 

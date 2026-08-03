@@ -3,72 +3,118 @@ package mentoring.acomi.loanservice.projection;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.UUID;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import mentoring.acomi.loanservice.application.projection.DailyLoanStatisticProjection;
 import mentoring.acomi.loanservice.application.repositories.DailyLoanStatisticRepository;
+import mentoring.acomi.loanservice.domain.events.AggregateType;
+import mentoring.acomi.loanservice.infrastructure.projection.DailyLoanStatisticProjection;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 
 @ExtendWith(MockitoExtension.class)
 public class DailyLoanStatisticsProjectionTest {
 
 	@Mock
-    private DailyLoanStatisticRepository repository;
+	private DailyLoanStatisticRepository repository;
 
-    private DailyLoanStatisticProjection projection;
+	private DailyLoanStatisticProjection projection;
 
-    @BeforeEach
-    void setUp() {
-        projection = new DailyLoanStatisticProjection(repository);
-    }
+	@BeforeEach
+	void setUp() {
+		projection = new DailyLoanStatisticProjection(repository);
+	}
 
-    @Test
-    void shouldRegisterLoanCreated() {
+	@Test
+	void shouldSupportLoanRequestedEvent() {
+		Assertions.assertTrue(projection.supports(IntegrationEventTypes.LOAN_REQUESTED));
+	}
 
-        LocalDate today = LocalDate.now();
+	@Test
+	void shouldSupportLoanConfirmedEvent() {
+		Assertions.assertTrue(projection.supports(IntegrationEventTypes.LOAN_CONFIRMED));
+	}
 
-        projection.registerLoanCreated(today);
+	@Test
+	void shouldSupportLoanCanceledEvent() {
+		Assertions.assertTrue(projection.supports(IntegrationEventTypes.LOAN_CANCELED));
+	}
 
-        verify(repository).registerLoanCreated(today);
-        verifyNoMoreInteractions(repository);
-    }
+	@Test
+	void shouldSupportLoanReturnedEvent() {
+		Assertions.assertTrue(projection.supports(IntegrationEventTypes.LOAN_RETURNED));
+	}
 
-    @Test
-    void shouldRegisterLoanConfirmed() {
+	@Test
+	void shouldNotSupportUserEvents() {
+		Assertions.assertFalse(projection.supports(IntegrationEventTypes.USER_SUBSCRIBED));
+	}
 
-        LocalDate today = LocalDate.now();
+	@Test
+	void shouldRegisterLoanCreated() {
 
-        projection.registerLoanConfirmed(today);
+		IntegrationEventEnvelope<?> event = event(IntegrationEventTypes.LOAN_REQUESTED);
 
-        verify(repository).registerLoanConfirmed(today);
-        verifyNoMoreInteractions(repository);
-    }
+		projection.project(event);
 
-    @Test
-    void shouldRegisterLoanCanceled() {
+		verify(repository).registerLoanCreated(expectedDate(event));
 
-        LocalDate today = LocalDate.now();
+		verifyNoMoreInteractions(repository);
+	}
 
-        projection.registerLoanCanceled(today);
+	@Test
+	void shouldRegisterLoanConfirmed() {
 
-        verify(repository).registerLoanCanceled(today);
-        verifyNoMoreInteractions(repository);
-    }
+		IntegrationEventEnvelope<?> event = event(IntegrationEventTypes.LOAN_CONFIRMED);
 
-    @Test
-    void shouldRegisterLoanReturned() {
+		projection.project(event);
 
-        LocalDate today = LocalDate.now();
+		verify(repository).registerLoanConfirmed(expectedDate(event));
 
-        projection.registerLoanReturned(today);
+		verifyNoMoreInteractions(repository);
+	}
 
-        verify(repository).registerLoanReturned(today);
-        verifyNoMoreInteractions(repository);
-    }
+	@Test
+	void shouldRegisterLoanCanceled() {
 
+		IntegrationEventEnvelope<?> event = event(IntegrationEventTypes.LOAN_CANCELED);
+
+		projection.project(event);
+
+		verify(repository).registerLoanCanceled(expectedDate(event));
+
+		verifyNoMoreInteractions(repository);
+	}
+
+	@Test
+	void shouldRegisterLoanReturned() {
+
+		IntegrationEventEnvelope<?> event = event(IntegrationEventTypes.LOAN_RETURNED);
+
+		projection.project(event);
+
+		verify(repository).registerLoanReturned(expectedDate(event));
+
+		verifyNoMoreInteractions(repository);
+	}
+
+	private IntegrationEventEnvelope<?> event(IntegrationEventTypes eventType) {
+
+		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), eventType, "projection-test", UUID.randomUUID().toString(), 
+				AggregateType.LOAN.name(), 1, Instant.now(), 1, null);
+	}
+
+	private LocalDate expectedDate(IntegrationEventEnvelope<?> event) {
+
+		return event.occurredAt().atZone(ZoneId.of("Europe/Rome")).toLocalDate();
+	}
 }

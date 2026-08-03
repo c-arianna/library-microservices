@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.loanservice.application.projection.LoanProjectionOperations;
+import mentoring.acomi.loanservice.application.projection.ProjectionDispatcher;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
@@ -19,11 +19,11 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.ProjectionUpdateN
 @Component
 public class LoanFailedV1Handler extends AbstractEventHandler<LoanFailedIntegrationPayload> {
 
-	private final LoanProjectionOperations projectionOperations;
+	private final ProjectionDispatcher dispatcher;
 		
-	public LoanFailedV1Handler(@Qualifier("liveLoanProjection") LoanProjectionOperations projectionOperations, EventPayloadMapper mapper) {
+	public LoanFailedV1Handler(@Qualifier("liveDispatcher") ProjectionDispatcher dispatcher, EventPayloadMapper mapper) {
 		super(mapper);
-		this.projectionOperations = projectionOperations;
+		this.dispatcher = dispatcher;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class LoanFailedV1Handler extends AbstractEventHandler<LoanFailedIntegrat
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(LoanFailedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.failLoan(payload.loanId(), event.occurredAt());
+		dispatcher.dispatch(event, payload);
 		return Optional.of(new ProjectionUpdateNotification(payload.loanId()));
 	}
 
