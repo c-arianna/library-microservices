@@ -22,7 +22,7 @@ public class JpaUserEventRepositoryAdapter extends AbstractJpaEventRepositoryAda
 	
 	@Override
 	public List<UserEventEntity> findAllEvents(){
-		return repository.findAllByOrderByIdAsc();
+		return repository.findAllByOrderByOccurredAtAscIdAsc();
 	}
 
 }

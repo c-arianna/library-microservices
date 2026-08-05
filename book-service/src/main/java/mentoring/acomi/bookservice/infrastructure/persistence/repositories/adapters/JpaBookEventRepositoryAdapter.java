@@ -23,7 +23,7 @@ public class JpaBookEventRepositoryAdapter extends AbstractJpaEventRepositoryAda
 	
 	@Override
 	public List<BookEventEntity> findAllEvents(){
-		return repository.findAllByOrderByIdAsc();
+		return repository.findAllByOrderByOccurredAtAscIdAsc();
 	}
 
 }

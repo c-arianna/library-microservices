@@ -40,7 +40,7 @@ public class LoanIntegrationEventListener {
 			case LOAN_REQUESTED, LOAN_CONFIRMED, LOAN_CANCELED, LOAN_RETURNED, LOAN_RESERVED, LOAN_FAILED, LOAN_CONFIRM_REQUESTED -> eventProcessor.processProducerEvent(eventEnvelope);			
 			
 			case BOOK_RESERVED, BOOK_RESERVATION_REJECTED, BOOK_BORROWED, BOOK_BORROW_REJECTED, USER_SUBSCRIBED, USER_UNSUBSCRIBED, USER_SUSPENDED, 
-				 USER_UNSUSPENDED, LIBRARY_CARD_ASSIGNED -> eventProcessor.processConsumerEvent(eventEnvelope);
+				 USER_UNSUSPENDED, LIBRARY_CARD_ASSIGNED, BOOK_REGISTERED -> eventProcessor.processConsumerEvent(eventEnvelope);
 
 			default ->
 				throw new NonRetryableEventException(String.format("Unexpected value: %s", eventEnvelope.eventType()));

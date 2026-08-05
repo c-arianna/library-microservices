@@ -37,6 +37,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationConsumerEventVersions;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookBorrowRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookLoanIntegrationPayload;
+import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookRegisteredIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.BookReservationRejectedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
@@ -47,6 +48,7 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.application.dto.LoanResponse;
 import mentoring.acomi.loanservice.application.outbox.OutboxPublisher;
+import mentoring.acomi.loanservice.application.repositories.BookViewRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewQueryRepository;
@@ -98,6 +100,9 @@ public class LoanRabbitIntegrationTest {
 	
 	@Autowired
 	private UserViewQueryRepository userViewQueryRepository;
+	
+	@Autowired
+	private BookViewRepository repository;
 	
 	@Autowired
 	private OutboxPublisher outboxPublisher;
@@ -164,6 +169,16 @@ public class LoanRabbitIntegrationTest {
 	void shouldConsumeBookBorrowedAndConfirmLoan() {
 
 		String isbn = "0988262509";
+		
+		publishBookRegistered(isbn);
+		
+		outboxPublisher.publishPendingEvents();
+		
+		await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {	
+			var book = repository.findByIsbn(isbn);
+			Assertions.assertTrue(book.isPresent());
+		});
+		
 		String loanId = createLoan(isbn);
 		publishBookReserved(loanId, isbn);
 
@@ -339,6 +354,15 @@ public class LoanRabbitIntegrationTest {
 		return response.loanId();
 	}
 
+	private void publishBookRegistered(String isbn) {
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_REGISTERED, 
+				"book-service", isbn, AggregateType.BOOK.name(), 0, Instant.now(), 1,
+				new BookRegisteredIntegrationPayload(isbn, "Italo Calvino", "Il visconte dimezzato", ""));
+
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.BOOK_REGISTERED.getRoutingKey(), event);
+	}
+	
 	private void publishBookReserved(String loanId, String isbn) {
 		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_RESERVED, 
 				"book-service", isbn, AggregateType.BOOK.name(), 1, Instant.now(), 1,

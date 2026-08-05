@@ -323,6 +323,23 @@ public class LoanSteps {
 		getDailyLoanStatistics(from, to);
 	}
 
+	@When("l'amministratore visualizza l'elenco dei libri con più prestiti")
+	public void getMostPopularBooks() {
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+
+		var result = client.get().uri("/loans/dashboard/popularBooks")
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+
+		if (result.getResponseBody() != null) {
+
+			String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+			context.put(CommonSteps.RESPONSE_BODY, response);
+
+		}
+	}
+	
 	/*
 	 * ############################### THEN #####################################
 	 */
@@ -339,7 +356,7 @@ public class LoanSteps {
 		Helper.awaitAndAssert(query, json -> Assertions.assertAll(() -> {
 			Assertions.assertEquals(200, query.get().getStatus().value());
 		}, () -> {
-			String responseIsbn = json.read("$.isbn");
+			String responseIsbn = json.read("$.book.isbn");
 			Assertions.assertEquals(isbn, responseIsbn);
 		}, () -> {
 			String responseUserId = json.read("$.user.id");
@@ -358,8 +375,7 @@ public class LoanSteps {
 	}
 
 	/*
-	 * ############################### HELPER METHODS
-	 * #####################################
+	 * ############################### HELPER METHODS #####################################
 	 */
 
 	private String resolveDocString(String docString) {

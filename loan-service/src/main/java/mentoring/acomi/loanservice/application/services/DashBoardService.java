@@ -10,11 +10,14 @@ import mentoring.acomi.loanservice.application.dto.DailyLoanStatisticsDto;
 import mentoring.acomi.loanservice.application.dto.LoanDto;
 import mentoring.acomi.loanservice.application.dto.LoanOverdueDto;
 import mentoring.acomi.loanservice.application.dto.OverdueStatisticDto;
+import mentoring.acomi.loanservice.application.dto.PopularBookDto;
 import mentoring.acomi.loanservice.application.errors.InvalidStatisticDateRange;
 import mentoring.acomi.loanservice.application.repositories.DailyLoanStatisticQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
+import mentoring.acomi.loanservice.application.repositories.PopularBookViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserLoanStatisticQueryRepository;
 import mentoring.acomi.loanservice.application.view.DailyLoanStatisticView;
+import mentoring.acomi.loanservice.application.view.PopularBookView;
 
 @Service
 public class DashBoardService {
@@ -22,12 +25,14 @@ public class DashBoardService {
 	private final LoanViewQueryRepository repository;
     private final UserLoanStatisticQueryRepository userLoanStatisticRepository;
     private final DailyLoanStatisticQueryRepository dailyStatisticsRepository;
+    private final PopularBookViewQueryRepository popularBookViewRepository;
     
 	public DashBoardService(LoanViewQueryRepository repository, UserLoanStatisticQueryRepository userLoanStatisticRepository,
-			DailyLoanStatisticQueryRepository dailyStatisticsRepository) {
+			DailyLoanStatisticQueryRepository dailyStatisticsRepository, PopularBookViewQueryRepository popularBookViewRepository) {
 		this.repository = repository;
 		this.userLoanStatisticRepository = userLoanStatisticRepository;
 		this.dailyStatisticsRepository = dailyStatisticsRepository;
+		this.popularBookViewRepository = popularBookViewRepository;
 	}
 	
 	public List<LoanOverdueDto> getLoansOverdue(){
@@ -53,12 +58,20 @@ public class DashBoardService {
 		    throw new InvalidStatisticDateRange("from must be before to");
 		}
 		
-		return dailyStatisticsRepository.findStatistics(effectiveFrom, effectiveTo).stream().map(this::DailyLoanStatisticsDto).toList();
+		return dailyStatisticsRepository.findStatistics(effectiveFrom, effectiveTo).stream().map(this::toDailyLoanStatisticsDto).toList();
 	}
 	
-	private DailyLoanStatisticsDto DailyLoanStatisticsDto(DailyLoanStatisticView view) {
+	private DailyLoanStatisticsDto toDailyLoanStatisticsDto(DailyLoanStatisticView view) {
 		return new DailyLoanStatisticsDto(view.statisticsDate(), view.loansCreated(), view.loansConfirmed(), view.loansCanceled(),
 				view.loansReturned());
 	}
+
+	public List<PopularBookDto> findMostPopularBooks(int limit) {
+		limit = Math.min(Math.max(limit, 1), 100);
+		return popularBookViewRepository.findMostPopularBooks(limit).stream().map(this::toPopularBookDto).toList();
+	}
 		
+	private PopularBookDto toPopularBookDto(PopularBookView view) {
+		return new PopularBookDto(view.isbn(), view.author(), view.title(), view.loanCount());
+	}
 }

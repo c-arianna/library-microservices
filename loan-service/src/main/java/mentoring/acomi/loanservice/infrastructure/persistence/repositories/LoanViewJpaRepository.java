@@ -25,6 +25,8 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 		    SELECT new mentoring.acomi.loanservice.application.dto.LoanDto(
 							    l.id,
 							    l.isbn,
+							    b.author, 
+							    b.title,
 							    l.userId,
 							    u.cardNumber,
 							    l.endDate,
@@ -40,6 +42,8 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 							FROM LoanViewEntity l
 							LEFT JOIN UserViewEntity u
 							    ON u.id = l.userId
+							LEFT JOIN BookViewEntity b 
+							    ON l.isbn = b.isbn
 							WHERE (:isbn IS NULL OR l.isbn = :isbn)
 							  AND (:userId IS NULL OR l.userId = :userId)
 							  AND (:status IS NULL OR l.status = :status)
@@ -58,12 +62,15 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 	void returnLoan(@Param("id") String id, @Param("updatedAt") Instant updatedAt, @Param("returnedAt") LocalDate returnedAt);
 	
 	@Query("""
-		    SELECT new mentoring.acomi.loanservice.application.dto.LoanDto(l.id, l.isbn, l.userId, u.cardNumber, l.endDate, l.status, true)
+		    SELECT new mentoring.acomi.loanservice.application.dto.LoanDto(l.id, l.isbn, b.author, b.title,l.userId, u.cardNumber, l.endDate, 
+		    l.status, true)
 				  FROM LoanViewEntity l
 					  LEFT JOIN UserViewEntity u
 					      ON u.id = l.userId
+					  LEFT JOIN BookViewEntity b 
+							    ON l.isbn = b.isbn
 					    WHERE l.status = :status AND l.endDate < :dueDate AND l.returnedAt IS NULL
 		""")
 	List<LoanDto> getLoansOverdue(@Param("dueDate") LocalDate dueDate, @Param("status") LoanStatus status);
-	
+		
 }

@@ -24,6 +24,7 @@ public class BookEventConsumerContractTest extends JsonSchemaSupport {
 	private static final String BOOK_RESERVATION_REJECTED_EVENT_NAME =IntegrationEventTypes.BOOK_RESERVATION_REJECTED.eventName;
 	private static final String BOOK_RESERVED_EVENT_NAME = IntegrationEventTypes.BOOK_RESERVED.eventName;
 	private static final String BOOK_BORROWED_EVENT_NAME = IntegrationEventTypes.BOOK_BORROWED.eventName;
+	private static final String BOOK_REGISTERED_EVENT_NAME = IntegrationEventTypes.BOOK_REGISTERED.eventName;
 	
 	private static final String BOOK_SCHEMA_PATH = "contracts/book/%s/v1/event.schema.json";
 	private static final String BOOK_SAMPLE_PATH = "contracts/book/%s/v1/sample.json";
@@ -73,6 +74,16 @@ public class BookEventConsumerContractTest extends JsonSchemaSupport {
 		
 	}
 	
+	@Test
+	void shouldDeserializeBookRegisteredEvent() throws Exception {
+		JsonNode json = objectMapper.readTree(loadResource(String.format(BOOK_SAMPLE_PATH, BOOK_REGISTERED_EVENT_NAME)));
+		
+		IntegrationEventEnvelope<?> event = objectMapper.treeToValue(json, IntegrationEventEnvelope.class);
+
+		Assertions.assertEquals("BOOK_REGISTERED", event.eventType().toString());
+		
+	}
+	
 	private void validateSample(String samplePath, String eventSchema) throws Exception {
 		JsonNode sample = objectMapper.readTree(loadResource(samplePath));
 		Schema schema = loadSchema(eventSchema);
@@ -85,7 +96,8 @@ public class BookEventConsumerContractTest extends JsonSchemaSupport {
 		return Stream.of(Arguments.of(BOOK_BORROWED_EVENT_NAME, getBookContractCase(BOOK_BORROWED_EVENT_NAME)),
 				Arguments.of(BOOK_RESERVED_EVENT_NAME, getBookContractCase(BOOK_RESERVED_EVENT_NAME)),
 				Arguments.of(BOOK_RESERVATION_REJECTED_EVENT_NAME, getBookContractCase(BOOK_RESERVATION_REJECTED_EVENT_NAME)),
-				Arguments.of(BOOK_BORROW_REJECTED_EVENT_NAME, getBookContractCase(BOOK_BORROW_REJECTED_EVENT_NAME))
+				Arguments.of(BOOK_BORROW_REJECTED_EVENT_NAME, getBookContractCase(BOOK_BORROW_REJECTED_EVENT_NAME),
+				Arguments.of(BOOK_REGISTERED_EVENT_NAME, getBookContractCase(BOOK_REGISTERED_EVENT_NAME)))
 
 		);
 	}

@@ -20,7 +20,7 @@ public interface BaseEventJpaRepository<ENTITY extends BaseEventEntity> extends 
 
 	void markProcessed(String eventId, String aggregateType);
 
-	List<ENTITY> findAllByOrderByIdAsc();
+	List<ENTITY> findAllByOrderByOccurredAtAscIdAsc();
 	
 	 Optional<ENTITY> getByEventIdAndAggregateType(String eventId, String aggregateType);
 		

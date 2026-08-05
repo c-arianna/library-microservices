@@ -16,6 +16,7 @@ import mentoring.acomi.loanservice.application.LoanFilter;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregate;
 import mentoring.acomi.loanservice.application.aggregates.LoanAggregateFactory;
 import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
+import mentoring.acomi.loanservice.application.dto.BookDto;
 import mentoring.acomi.loanservice.application.dto.LoanDetailDto;
 import mentoring.acomi.loanservice.application.dto.LoanDto;
 import mentoring.acomi.loanservice.application.dto.LoanResponse;
@@ -24,9 +25,11 @@ import mentoring.acomi.loanservice.application.dto.LoansResponse;
 import mentoring.acomi.loanservice.application.errors.InvalidUser;
 import mentoring.acomi.loanservice.application.errors.LoanNotFound;
 import mentoring.acomi.loanservice.application.errors.UserNotFound;
+import mentoring.acomi.loanservice.application.repositories.BookViewRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewQueryRepository;
+import mentoring.acomi.loanservice.application.view.BookView;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
@@ -42,14 +45,16 @@ public class LoanService {
 	private final LoanEventRepository loanEventRepository;
 	private final LoanViewQueryRepository loanViewRepository;
 	private final UserViewQueryRepository userViewRepository;
+	private final BookViewRepository bookRepository;
 	
 	private final LoanAggregateFactory aggregateFactory;
 	
 	public LoanService(LoanEventRepository eventRepository, LoanViewQueryRepository loanViewRepository,
-			UserViewQueryRepository userViewRepository, LoanAggregateFactory aggregateFactory) {
+			UserViewQueryRepository userViewRepository, BookViewRepository bookRepository, LoanAggregateFactory aggregateFactory) {
 		this.loanEventRepository = eventRepository;
 		this.loanViewRepository = loanViewRepository;
 		this.userViewRepository = userViewRepository;
+		this.bookRepository = bookRepository;
 		this.aggregateFactory = aggregateFactory;
 	}
 
@@ -194,12 +199,19 @@ public class LoanService {
 
 		LoanUserDto loanUser = new LoanUserDto(user.id(), user.cardNumber());
 		
+		Optional<BookView> book = bookRepository.findByIsbn(loanView.isbn());
+		
+		String title = book.isEmpty() ? "" : book.get().title();
+		String author = book.isEmpty() ? "" : book.get().author();
+
+		BookDto bookDto = new BookDto(loanView.isbn(), author, title);
+		
 		LocalDate now = LocalDate.now();
 		
 		boolean overdue = loanView.status() == LoanStatus.CONFIRMED && now.isAfter(loanView.end());
 		long overdueDays = overdue ? Math.max(0, ChronoUnit.DAYS.between(loanView.end(), now)) : 0;
 		
-		return new LoanDetailDto(loanView.id(), loanView.isbn(), loanView.status(), loanView.start(), loanView.end(), loanUser, overdue,
+		return new LoanDetailDto(loanView.id(), bookDto, loanView.status(), loanView.start(), loanView.end(), loanUser, overdue,
 				overdueDays);
 	}
 	

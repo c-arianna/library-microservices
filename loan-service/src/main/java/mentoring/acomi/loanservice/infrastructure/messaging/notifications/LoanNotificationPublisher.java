@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import mentoring.acomi.loanservice.application.view.BookView;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.infrastructure.messaging.notifications.mapper.LoanNotificationMapper;
 import mentoring.acomi.loanservice.infrastructure.messaging.notifications.payload.LoanUpdatedNotificationPayload;
@@ -32,7 +33,7 @@ public class LoanNotificationPublisher {
         this.tracer = tracer;
     }
 
-    public void publishLoanUpdated(LoanView loan, String identityProviderId, String cardNumber) {
+    public void publishLoanUpdated(LoanView loan, BookView book, String identityProviderId, String cardNumber) {
 
     	Span span = tracer.currentSpan();
 
@@ -41,7 +42,7 @@ public class LoanNotificationPublisher {
 		
         NotificationEventEnvelope<LoanUpdatedNotificationPayload> event =
                 new NotificationEventEnvelope<>(UUID.randomUUID().toString(), NotificationEventType.LOAN_UPDATED,
-                        "loan-service", Instant.now(), 1, mapper.map(loan, identityProviderId, cardNumber));
+                        "loan-service", Instant.now(), 1, mapper.map(loan, book, identityProviderId, cardNumber));
 
         rabbitTemplate.convertAndSend(MessagingTopology.NOTIFICATIONS_EXCHANGE, NotificationEventType.LOAN_UPDATED.getRoutingKey(), event);
 

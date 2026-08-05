@@ -17,7 +17,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
      """
 
      """
-    And l'amministratore aggiunge 1 copie del libro "9788804336327"
+    And l'amministratore aggiunge 2 copie del libro "9788804336327"
     And l'amministratore aggiunge un libro con isbn "9788415723356", autore "Italo Calvino", titolo "Il visconte dimezzato" e descrizione
      """
 
@@ -69,17 +69,17 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       | type    | "VALIDATION_ERROR" |
       
     Scenario: Creazione di una richiesta di prestito per un libro non disponibile
-      Given l'amministratore rimuove una copia del libro "9788804336327"
+      Given l'amministratore rimuove una copia del libro "9788415723356"
       And l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
       When l'utente crea una richiesta di prestito con i seguenti dati:
         """
         {
-          "isbn": "9788804336327",
+          "isbn": "9788415723356",
           "startDate": "2026-02-23"
         }
         """
       Then la risposta ha status code 201
-      And il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "FAILED", numero tessera "${CARD_NUMBER}"
+      And il prestito ha isbn "9788415723356", userId "${USER_ID}", stato "FAILED", numero tessera "${CARD_NUMBER}"
   
     Scenario: L'utente READER può creare prestiti solo per sè stesso
       Given esiste l'utente con credenziali "mario.verdi@mail.it", "MarioVerdi12345678", nome "Mario", cognome "Verdi"
@@ -389,7 +389,7 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And il prestito è in stato "RESERVED"
       When l'amministratore conferma la richiesta del prestito
       Then il prestito ha isbn "9788804336327", userId "${USER_ID}", stato "CONFIRMED", numero tessera "${CARD_NUMBER}"
-      And il libro "9788804336327" ha totalCopies = 1, borrowedCopies = 1, reservedCopies = 0
+      And il libro "9788804336327" ha totalCopies = 2, borrowedCopies = 1, reservedCopies = 0
       
   Rule: Dashboard amministrativa
     
@@ -472,3 +472,32 @@ Feature: Gestione dei prestiti dei libri tramite l'applicazione
       And la risposta contiene i seguenti campi:
       | code    | "INVALID_DATE_RANGE" |
       | type    | "VALIDATION_ERROR" |
+      
+    Scenario: Visualizzazione libri con più prestiti
+      Given l'utente con credenziali "mario.rossi@mail.it", "MarioRossi12345678" è autenticato
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-06-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      And esiste un prestito dell'utente per il libro ISBN "9788804336327", con data inizio "2026-07-23", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      And esiste un prestito dell'utente per il libro ISBN "9788415723356", con data inizio "2026-07-25", in attesa di conferma
+      And il prestito è in stato "RESERVED"
+      And il prestito del libro è stato confermato
+      And il prestito è in stato "CONFIRMED"
+      When l'amministratore visualizza l'elenco dei libri con più prestiti
+      Then la risposta ha status code 200
+      And la risposta contiene 2 elementi
+      And la risposta contiene un elemento con i campi:
+      | isbn      | "9788804336327"       |
+      | author    | "Italo Calvino"       |
+      | title     | "Il barone rampante"  |
+      | loanCount | 2                     |
+      And la risposta contiene un elemento con i campi:
+      | isbn      | "9788415723356"          |
+      | author    | "Italo Calvino"          |
+      | title     | "Il visconte dimezzato"  |
+      | loanCount | 1                        |
+      

@@ -45,6 +45,7 @@ public class RabbitMQConfigTest {
 				BindingBuilder.bind(loanQueue).to(eventsExchange).with(IntegrationEventTypes.BOOK_RESERVATION_REJECTED.getRoutingKey()),
 				BindingBuilder.bind(loanQueue).to(eventsExchange).with(IntegrationEventTypes.BOOK_BORROWED.getRoutingKey()),
 				BindingBuilder.bind(loanQueue).to(eventsExchange).with(IntegrationEventTypes.BOOK_BORROW_REJECTED.getRoutingKey()),
+				BindingBuilder.bind(loanQueue).to(eventsExchange).with(IntegrationEventTypes.BOOK_REGISTERED.getRoutingKey()),
 				BindingBuilder.bind(loanQueue).to(eventsExchange).with(IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey()),
 				BindingBuilder.bind(loanQueue).to(eventsExchange).with(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey()),
 				BindingBuilder.bind(loanQueue).to(eventsExchange).with(IntegrationEventTypes.USER_SUSPENDED.getRoutingKey()),

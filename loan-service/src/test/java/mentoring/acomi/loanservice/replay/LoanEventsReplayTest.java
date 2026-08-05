@@ -30,9 +30,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
 import mentoring.acomi.loanservice.application.dto.LoanResponse;
+import mentoring.acomi.loanservice.application.repositories.BookViewRepository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewQueryRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.services.LoanService;
+import mentoring.acomi.loanservice.application.view.BookView;
 import mentoring.acomi.loanservice.application.view.UserView;
 import mentoring.acomi.loanservice.config.RabbitMQConfigTest;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
@@ -78,6 +80,9 @@ public class LoanEventsReplayTest {
 	private LoanViewJpaRepository viewRepository;
 	
 	@Autowired
+	private BookViewRepository bookViewRepository;
+	
+	@Autowired
 	private LoanReplayService replayService;
 	
 	@Autowired
@@ -101,6 +106,9 @@ public class LoanEventsReplayTest {
 		userViewRepository.add(new UserView(USER_ID, String.format("test%s@gmail.com", USER_ID), "Harry", "Potter", "LIB-000001", 
 				USER_IDENTITY_PROVIDER_ID, UserStatus.ACTIVE), Instant.now());
 		setAuthenticatedUser(USER_ID, "READER");
+		
+		BookView view = new BookView(ISBN, "Italo Calvino", "Il visconte dimezzato");
+		bookViewRepository.insert(view);
 		
 		String loanId = createLoan();
 		
