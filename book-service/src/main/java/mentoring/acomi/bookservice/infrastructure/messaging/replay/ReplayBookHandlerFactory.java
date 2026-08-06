@@ -6,10 +6,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.application.projection.BookProjectionOperations;
+import mentoring.acomi.bookservice.application.projection.BookRequestProjectionOperations;
+import mentoring.acomi.bookservice.application.projection.BookRequestVoteProjectionOperations;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookBorrowedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookCopiesUpdatedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRegisteredV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReleasedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestAddedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestApprovedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestRejectedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestVotedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReservedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReturnedV1Handler;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
@@ -19,10 +25,17 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 public class ReplayBookHandlerFactory {
 
     private final BookProjectionOperations replayProjection;
+    private final BookRequestProjectionOperations replayBookRequestProjection;
+	private final BookRequestVoteProjectionOperations replayBookRequestVoteProjection;
 	private final EventPayloadMapper mapper;
 
-	public ReplayBookHandlerFactory(@Qualifier("replayBookProjection") BookProjectionOperations replayProjection, EventPayloadMapper mapper) {
+	public ReplayBookHandlerFactory(@Qualifier("replayBookProjection") BookProjectionOperations replayProjection, 
+			@Qualifier("replayBookRequestProjection") BookRequestProjectionOperations replayBookRequestProjection, 
+			@Qualifier("replayBookRequestVoteProjection") BookRequestVoteProjectionOperations replayBookRequestVoteProjection,
+			EventPayloadMapper mapper) {
 		this.replayProjection = replayProjection;
+		this.replayBookRequestProjection = replayBookRequestProjection;
+		this.replayBookRequestVoteProjection = replayBookRequestVoteProjection;
 		this.mapper = mapper;
 	}
 
@@ -33,7 +46,12 @@ public class ReplayBookHandlerFactory {
 				       new BookRegisteredV1Handler(replayProjection, mapper),
 				       new BookReleasedV1Handler(replayProjection, mapper),
 				       new BookReservedV1Handler(replayProjection, mapper),
-				       new BookReturnedV1Handler(replayProjection, mapper)
+				       new BookReturnedV1Handler(replayProjection, mapper),
+				       new BookRequestAddedV1Handler(replayBookRequestProjection, replayBookRequestVoteProjection, mapper),
+				       new BookRequestApprovedV1Handler(replayBookRequestProjection, mapper),
+				       new BookRequestRejectedV1Handler(replayBookRequestProjection, mapper),
+				       new BookRequestVotedV1Handler(replayBookRequestProjection, replayBookRequestVoteProjection, mapper)
+				       
 		);
 	}
 }

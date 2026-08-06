@@ -1,0 +1,15 @@
+package mentoring.acomi.bookservice.domain.events.book;
+
+import java.time.Instant;
+
+import mentoring.acomi.bookservice.domain.events.book.payload.BookCopiesRemovedPayload;
+
+public record BookCopiesRemovedEvent(
+	    String aggregateId,
+	    String eventId,
+	    int eventVersion,
+	    BookCopiesRemovedPayload payload,
+        Instant occurredAt
+        )implements BookStateEvent {
+    @Override public BookEventType type() { return BookEventType.BookCopiesRemoved; }
+}

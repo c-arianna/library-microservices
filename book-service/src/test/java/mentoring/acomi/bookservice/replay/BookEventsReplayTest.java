@@ -25,7 +25,7 @@ import mentoring.acomi.bookservice.application.repositories.BookViewQueryReposit
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
-import mentoring.acomi.bookservice.domain.events.BookEventType;
+import mentoring.acomi.bookservice.domain.events.book.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;

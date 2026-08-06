@@ -2,11 +2,13 @@ package mentoring.acomi.bookservice.infrastructure.messaging.replay;
 
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.springframework.stereotype.Service;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
-import mentoring.acomi.bookservice.domain.events.BookEventType;
+import mentoring.acomi.bookservice.domain.events.AggregateType;
+import mentoring.acomi.bookservice.domain.events.ProducerEventType;
+import mentoring.acomi.bookservice.domain.events.book.BookEventType;
+import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEventType;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
 import mentoring.acomi.sharedcodelibrary.eventstore.replay.AbstractReplayService;
 import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
@@ -43,13 +45,31 @@ public class BookReplayService extends AbstractReplayService<BookEventEntity> {
             		            entity.getSchemaVersion(), entity.getPayload());
         }
 
-        BookEventType bookEventType = BookEventType.valueOf(entity.getEventType());
+        return getIntegrationProducerEvent(entity);
+      
+    }
 
-        Object payload = replayMapper.toIntegrationPayload(bookEventType, entity.getPayload());
+    private IntegrationEventEnvelope<?> getIntegrationProducerEvent(BookEventEntity entity) {
 
-        IntegrationEventTypes integrationType = replayMapper.toIntegrationEventType(bookEventType);
+        ProducerEventType producerEventType = getProducerEventType(entity);
 
-        return new IntegrationEventEnvelope<>(entity.getEventId(), integrationType, "", entity.getAggregateId(), entity.getAggregateType(),
-                				entity.getEventVersion(), entity.getOccurredAt(), entity.getSchemaVersion(), payload);
+        Object payload = replayMapper.toIntegrationPayload(producerEventType, entity.getPayload());
+
+        IntegrationEventTypes integrationType = replayMapper.toIntegrationEventType(producerEventType);
+
+        return new IntegrationEventEnvelope<>(entity.getEventId(), integrationType, "", entity.getAggregateId(),
+                entity.getAggregateType(), entity.getEventVersion(), entity.getOccurredAt(), entity.getSchemaVersion(), payload);
+    }
+    
+    private ProducerEventType getProducerEventType(BookEventEntity entity) {
+
+        return switch (AggregateType.valueOf(entity.getAggregateType())) {
+
+            case BOOK -> BookEventType.valueOf(entity.getEventType());
+
+            case BOOK_REQUEST -> BookRequestEventType.valueOf(entity.getEventType());
+
+            default -> throw new IllegalStateException();
+        };
     }
 }

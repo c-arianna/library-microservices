@@ -1,0 +1,19 @@
+{
+  "eventId": "c9320254-1617-424e-a08f-f0c92b07cdbe",
+  "eventType": "BOOK_REQUEST_ADDED",
+  "producer": "book-service",
+  "aggregateId": "9eaeae1e-fc67-4ba0-90d9-eca279666953",
+  "aggregateType": "BOOK_REQUEST",
+  "eventVersion": 0,
+  "occurredAt": "2026-06-09T14:40:00Z",
+  "schemaVersion": 1,
+
+  "payload": {
+    "requestId": "9eaeae1e-fc67-4ba0-90d9-eca279666953",
+	"author": "Italo Calvino",
+	"title": "Il barone rampante",
+    "requesterUserId": "0138e59f-a16a-4368-a3dd-58b03382fc46",
+    "isbn": "",
+    "notes": "Test"
+  }
+}

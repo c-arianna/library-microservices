@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
-import mentoring.acomi.bookservice.domain.events.BookEvent;
+import mentoring.acomi.bookservice.application.repositories.BookRequestEventRepository;
+import mentoring.acomi.bookservice.domain.events.AggregateType;
+import mentoring.acomi.bookservice.domain.events.book.BookEvent;
+import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEvent;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxEvent;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxRepository;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxStatus;
@@ -22,16 +25,18 @@ public class OutboxPublisher {
 	private final OutboxRepository outboxRepository;
 	private final BookEventRepository bookEventRepository;
 	private final EventDispatcher eventDispatcher;
+	private final BookRequestEventRepository bookRequestEventRepository;
 
 	private final Logger logger = LogManager.getLogger(OutboxPublisher.class);
 
 	private static final int MAX_RETRY = 50;
 	
 	public OutboxPublisher(OutboxRepository outboxRepository, BookEventRepository bookEventRepository,
-			EventDispatcher eventDispatcher) {
+			BookRequestEventRepository bookRequestEventRepository, EventDispatcher eventDispatcher) {
 		this.outboxRepository = outboxRepository;
 		this.bookEventRepository = bookEventRepository;
 		this.eventDispatcher = eventDispatcher;
+		this.bookRequestEventRepository = bookRequestEventRepository;
 	}
 
 	@Scheduled(fixedDelayString = "${outbox.publisher.delay:5000}")
@@ -62,7 +67,25 @@ public class OutboxPublisher {
 	}
 
 	private void publish(OutboxEvent outbox) {
+		
+		if(AggregateType.BOOK.name().equals(outbox.aggregateType())) {
+			publishBookEvent(outbox);
+		}
+		
+		if(AggregateType.BOOK_REQUEST.name().equals(outbox.aggregateType())) {
+			publishBookRequestEvent(outbox);
+		}
+	}
+
+	private void publishBookEvent(OutboxEvent outbox) {
 		BookEvent event = bookEventRepository.getEventByEventIdAndAggregateType(outbox.eventId(), outbox.aggregateType())
+				.orElseThrow(() -> new IllegalStateException("Event not found: %s".formatted(outbox.eventId())));
+		eventDispatcher.dispatch(event);
+		outboxRepository.published(outbox.eventId(), Instant.now());
+	}
+	
+	private void publishBookRequestEvent(OutboxEvent outbox) {
+		BookRequestEvent event = bookRequestEventRepository.getEventByEventIdAndAggregateType(outbox.eventId(), outbox.aggregateType())
 				.orElseThrow(() -> new IllegalStateException("Event not found: %s".formatted(outbox.eventId())));
 		eventDispatcher.dispatch(event);
 		outboxRepository.published(outbox.eventId(), Instant.now());

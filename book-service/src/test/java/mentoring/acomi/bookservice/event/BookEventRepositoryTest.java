@@ -16,12 +16,12 @@ import jakarta.persistence.EntityManager;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
-import mentoring.acomi.bookservice.domain.events.BookEvent;
-import mentoring.acomi.bookservice.domain.events.BookEventType;
-import mentoring.acomi.bookservice.domain.events.BookRegisteredEvent;
-import mentoring.acomi.bookservice.domain.events.BookReservedEvent;
-import mentoring.acomi.bookservice.domain.events.payload.BookLoanPayload;
-import mentoring.acomi.bookservice.domain.events.payload.BookRegisteredPayload;
+import mentoring.acomi.bookservice.domain.events.book.BookEvent;
+import mentoring.acomi.bookservice.domain.events.book.BookEventType;
+import mentoring.acomi.bookservice.domain.events.book.BookRegisteredEvent;
+import mentoring.acomi.bookservice.domain.events.book.BookReservedEvent;
+import mentoring.acomi.bookservice.domain.events.book.payload.BookLoanPayload;
+import mentoring.acomi.bookservice.domain.events.book.payload.BookRegisteredPayload;
 
 @SpringBootTest
 @Transactional

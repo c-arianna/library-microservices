@@ -35,7 +35,7 @@ import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
-import mentoring.acomi.bookservice.domain.events.BookEventType;
+import mentoring.acomi.bookservice.domain.events.book.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
 import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationConsumerEventVersions;
@@ -48,7 +48,7 @@ import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology
 @SpringBootTest
 @Testcontainers
 @Import({ RabbitMQConfigTest.class, SecurityTestConfig.class })
-class BookRabbitIntegrationTest {
+public class BookRabbitIntegrationTest {
 
 	@Container
 	private static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");

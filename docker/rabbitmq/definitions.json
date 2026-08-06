@@ -201,6 +201,34 @@
         {
             "source": "events.exchange",
             "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.request.added"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.request.voted"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.request.approved"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
+            "destination": "book-service.queue",
+            "destination_type": "queue",
+            "routing_key": "book.request.rejected"
+        },
+        {
+            "source": "events.exchange",
+            "vhost": "/",
             "destination": "loan-service.queue",
             "destination_type": "queue",
             "routing_key": "book.reserved"

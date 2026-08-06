@@ -18,6 +18,8 @@ import mentoring.acomi.bookservice.application.errors.InvalidUser;
 import mentoring.acomi.bookservice.application.errors.UserNotFound;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.errors.BookNotRegistered;
+import mentoring.acomi.bookservice.domain.errors.BookRequestNotExist;
+import mentoring.acomi.bookservice.domain.errors.BookRequestVoteNotAllowed;
 import mentoring.acomi.bookservice.domain.errors.CannotRemoveBookCopies;
 import mentoring.acomi.bookservice.domain.errors.InvalidQuantity;
 import mentoring.acomi.bookservice.domain.errors.ValidationDomain;
@@ -96,6 +98,18 @@ public class ApplicationExceptionHandler {
 		return handleException(e, e.getCode(), e.getMessage(), "LOAN_INVALID_USER");
 	}
 	
+	@ExceptionHandler(BookRequestNotExist.class)
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+	public ErrorResponse handleBookRequestNotExistError(BookRequestNotExist e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+	
+	@ExceptionHandler(BookRequestVoteNotAllowed.class)
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+	public ErrorResponse handleBookRequestVoteNotAllowedError(BookRequestVoteNotAllowed e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+		
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(Exception.class)
 	public ErrorResponse handleGenericException(Exception e) throws Exception {

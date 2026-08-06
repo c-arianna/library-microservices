@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
-import mentoring.acomi.bookservice.domain.events.BookEvent;
+import mentoring.acomi.bookservice.domain.events.book.BookEvent;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
 import mentoring.acomi.bookservice.infrastructure.persistence.mapper.BookEventJpaMapper;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookEventJpaRepository;

@@ -58,7 +58,7 @@ public class BookEventProcessor {
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void processProducerEvent( IntegrationEventEnvelope<?> event) {
 		
-		if (bookEventRepository.existsEventProcessed(event.eventId(), AggregateType.BOOK.name())) {
+		if (bookEventRepository.existsEventProcessed(event.eventId(), event.aggregateId())) {
 			return;
 		}
 		

@@ -1,0 +1,45 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "BookRequestRejectedEventV1",
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
+		},
+		{
+			"type": "object",
+			"properties": {
+				"eventType": {
+					"const": "BOOK_REQUEST_REJECTED"
+				},
+				"producer": {
+					"const": "book-service"
+				},
+				"aggregateType": {
+					"const": "BOOK_REQUEST"
+				},
+				"payload": {
+					"type": "object",
+					"properties": {
+						"requestId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"reason": {
+						    "type": "string"
+						}
+					},
+					"required": [
+						"requestId",
+						"reason"
+					]
+				}
+			},
+			"required": [
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
+			]
+		}
+	],
+	"unevaluatedProperties": false
+}

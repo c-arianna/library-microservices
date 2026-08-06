@@ -7,9 +7,9 @@ import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
-import mentoring.acomi.bookservice.domain.events.BookEvent;
-import mentoring.acomi.bookservice.domain.events.BookEventType;
-import mentoring.acomi.bookservice.domain.model.ISBN;
+import mentoring.acomi.bookservice.domain.book.model.ISBN;
+import mentoring.acomi.bookservice.domain.events.book.BookEvent;
+import mentoring.acomi.bookservice.domain.events.book.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationConsumerEventVersions;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxEvent;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxRepository;

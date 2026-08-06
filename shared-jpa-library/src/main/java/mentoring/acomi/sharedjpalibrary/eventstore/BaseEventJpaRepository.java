@@ -8,7 +8,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface BaseEventJpaRepository<ENTITY extends BaseEventEntity> extends JpaRepository<ENTITY, Long> {
-    List<ENTITY> findByAggregateIdAndEventCategoryOrderByEventVersion(String aggregateId, String eventCategory);
+    List<ENTITY> findByAggregateIdAndAggregateTypeAndEventCategoryOrderByEventVersion(String aggregateId, String aggregateType, String eventCategory);
 
     boolean existsByAggregateIdAndAggregateType(String aggregateId, String aggregateType);
 

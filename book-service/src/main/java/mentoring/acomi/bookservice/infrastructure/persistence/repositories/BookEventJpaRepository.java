@@ -17,10 +17,10 @@ public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEvent
 	@Query("""
 			    select e
 			    from BookEventEntity e
-			    where e.aggregateId = :aggregateId
+			    where e.aggregateId = :aggregateId and e.aggregateType = :aggregateType
 			    order by e.eventVersion asc
 			""")
-	List<BookEventEntity> findEventsForAggregate(@Param("aggregateId") String aggregateId);
+	List<BookEventEntity> findEventsForAggregate(@Param("aggregateId") String aggregateId, @Param("aggregateType") String aggregateType);
 
 	boolean existsByAggregateId(String aggregateId);
 
