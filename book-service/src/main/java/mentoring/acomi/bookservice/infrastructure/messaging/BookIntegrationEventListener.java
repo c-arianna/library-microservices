@@ -40,7 +40,8 @@ public class BookIntegrationEventListener {
 
 			switch (eventEnvelope.eventType()) {
 
-			case LOAN_REQUESTED, LOAN_CONFIRM_REQUESTED, LOAN_CANCELED, LOAN_RETURNED -> {
+			case LOAN_REQUESTED, LOAN_CONFIRM_REQUESTED, LOAN_CANCELED, LOAN_RETURNED,
+			USER_SUBSCRIBED, USER_UNSUBSCRIBED -> {
 				eventProcessor.processConsumerEvent(eventEnvelope,
 						mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class));
 			}

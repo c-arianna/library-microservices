@@ -86,7 +86,13 @@ public class RabbitMQConfigTest {
 						.with(IntegrationEventTypes.BOOK_REQUEST_REJECTED.getRoutingKey()),
 
 				BindingBuilder.bind(bookQueue).to(eventsExchange)
-						.with(IntegrationEventTypes.BOOK_REQUEST_VOTED.getRoutingKey())
+						.with(IntegrationEventTypes.BOOK_REQUEST_VOTED.getRoutingKey()),
+
+				BindingBuilder.bind(bookQueue).to(eventsExchange)
+						.with(IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey()),
+
+				BindingBuilder.bind(bookQueue).to(eventsExchange)
+						.with(IntegrationEventTypes.USER_UNSUBSCRIBED.getRoutingKey())
 
 		);
 	}

@@ -66,7 +66,7 @@ public class UserUnsubscribedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {
 	    return List.of(new InvalidPayloadScenario("blank userId", "userId", getUserUnsubscribedEvent("", UserStatus.DISABLED, 1)),
-	    		       new InvalidPayloadScenario("null sfatus", "status", getUserUnsubscribedEvent(UUID.randomUUID().toString(), null,  1)));
+	    		       new InvalidPayloadScenario("null status", "status", getUserUnsubscribedEvent(UUID.randomUUID().toString(), null,  1)));
 	}
 				
 	private IntegrationEventEnvelope<UserIntegrationPayload> getUserUnsubscribedEvent(String userId, UserStatus status, int schemaVersion){

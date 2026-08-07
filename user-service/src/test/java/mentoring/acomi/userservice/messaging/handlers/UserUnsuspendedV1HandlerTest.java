@@ -66,7 +66,7 @@ public class UserUnsuspendedV1HandlerTest extends AbstractEventHandlerTest {
 	
 	private List<InvalidPayloadScenario> invalidPayloads() {
 	    return List.of(new InvalidPayloadScenario("blank userId", "userId", getUserUnsuspendedEvent("", UserStatus.ACTIVE, 1)),
-	    		       new InvalidPayloadScenario("null sfatus", "status", getUserUnsuspendedEvent(UUID.randomUUID().toString(), null,  1)));
+	    		       new InvalidPayloadScenario("null status", "status", getUserUnsuspendedEvent(UUID.randomUUID().toString(), null,  1)));
 	}
 				
 	private IntegrationEventEnvelope<UserIntegrationPayload> getUserUnsuspendedEvent(String userId, UserStatus status, int schemaVersion){

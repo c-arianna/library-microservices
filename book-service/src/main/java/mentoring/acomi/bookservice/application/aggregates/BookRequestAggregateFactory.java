@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.springframework.stereotype.Component;
+
 import mentoring.acomi.bookservice.application.repositories.BookRequestEventRepository;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEventType;
@@ -12,7 +14,9 @@ import mentoring.acomi.sharedcorelibrary.outbox.OutboxEvent;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxRepository;
 import mentoring.acomi.sharedcorelibrary.outbox.OutboxStatus;
 
+@Component
 public class BookRequestAggregateFactory {
+	
 	private final BookRequestEventRepository bookRequestEventRepository;
 	private final OutboxRepository outboxRepository;
 

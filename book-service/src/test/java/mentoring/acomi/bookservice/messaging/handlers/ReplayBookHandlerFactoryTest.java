@@ -14,6 +14,7 @@ import org.reflections.Reflections;
 import mentoring.acomi.bookservice.application.projection.BookProjectionOperations;
 import mentoring.acomi.bookservice.application.projection.BookRequestProjectionOperations;
 import mentoring.acomi.bookservice.application.projection.BookRequestVoteProjectionOperations;
+import mentoring.acomi.bookservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.bookservice.infrastructure.messaging.replay.ReplayBookHandlerFactory;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
@@ -33,13 +34,17 @@ public class ReplayBookHandlerFactoryTest {
     private BookRequestVoteProjectionOperations replayBookRequestVoteProjection;
     
     @Mock
+    private UserProjectionOperations replayUserProjection;
+    
+    @Mock
     private EventPayloadMapper mapper;
 
     private ReplayBookHandlerFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new ReplayBookHandlerFactory(replayProjection, replayBookRequestProjection, replayBookRequestVoteProjection, mapper);
+        factory = new ReplayBookHandlerFactory(replayProjection, replayBookRequestProjection, replayBookRequestVoteProjection, 
+        		replayUserProjection, mapper);
     }
 
     @Test

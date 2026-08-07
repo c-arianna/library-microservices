@@ -17,7 +17,7 @@ public class UserProjectionConfiguration {
     }
 
     @Bean("replayUserProjection")
-    UserProjectionOperations replayuserProjection(@Qualifier("replayRepo") UserViewRepository repository) {
+    UserProjectionOperations replayUserProjection(@Qualifier("replayRepo") UserViewRepository repository) {
         return new UserProjection(repository);
     }
 
