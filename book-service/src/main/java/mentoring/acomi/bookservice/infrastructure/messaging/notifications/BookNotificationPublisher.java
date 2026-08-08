@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import mentoring.acomi.bookservice.application.view.BookRequestView;
 import mentoring.acomi.bookservice.application.view.BookSubscriptionView;
 import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.infrastructure.messaging.notifications.mapper.BookNotificationMapper;
+import mentoring.acomi.bookservice.infrastructure.messaging.notifications.payload.BookRequestUpdatedNotificationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.notifications.payload.BookSubscriptionRequestedPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.notifications.payload.BookUpdatedNotificationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
@@ -69,6 +71,27 @@ public class BookNotificationPublisher {
 		
 		return new NotificationEventEnvelope<>(UUID.randomUUID().toString(), NotificationEventType.BOOK_SUBSCRIPTION_REQUESTED, "book-service", 
 				Instant.now(), 1, payload);
+	}
+	
+	public void publishBookRequestUpdated(BookRequestView bookRequest) {
+
+    	Span span = tracer.currentSpan();
+
+		logger.info("Publishing event {} traceId={} spanId={}", NotificationEventType.BOOK_REQUEST_UPDATED.getRoutingKey(),
+				span != null ? span.context().traceId() : "null", span != null ? span.context().spanId() : "null");
+		
+        NotificationEventEnvelope<BookRequestUpdatedNotificationPayload> event =
+                new NotificationEventEnvelope<>(UUID.randomUUID().toString(), NotificationEventType.BOOK_REQUEST_UPDATED,
+                        "book-service", Instant.now(), 1, getBookRequestUpdateNotificationPayload(bookRequest));
+
+        rabbitTemplate.convertAndSend(MessagingTopology.NOTIFICATIONS_EXCHANGE, NotificationEventType.BOOK_REQUEST_UPDATED.getRoutingKey(), 
+        		event);
+
+    }
+
+	private BookRequestUpdatedNotificationPayload getBookRequestUpdateNotificationPayload(BookRequestView view) {
+		return new BookRequestUpdatedNotificationPayload(view.requestId(), view.author(), view.title(), view.isbn(), view.votes(),
+				view.status());
 	}
 
 }

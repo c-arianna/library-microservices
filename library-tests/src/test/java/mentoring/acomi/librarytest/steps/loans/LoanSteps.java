@@ -40,17 +40,6 @@ public class LoanSteps {
 	 * ############################### GIVEN #####################################
 	 */
 
-	@Given("il catalogo non contiene il libro con isbn {string}")
-	public void bookNotExist(String isbn) {
-
-		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
-
-		var result = client.get().uri("/books/%s".formatted(isbn))
-				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
-
-		Assertions.assertEquals(result.getStatus().value(), 404);
-	}
-
 	@Given("esiste un prestito dell'utente per il libro ISBN {string}, con data inizio {string}, in attesa di conferma")
 	public void createLoan(String isbn, String startDate) {
 

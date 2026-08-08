@@ -27,7 +27,7 @@ import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.book.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
 import mentoring.acomi.bookservice.infrastructure.messaging.replay.BookReplayService;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookViewEntity;
@@ -88,7 +88,7 @@ public class BookEventsReplayTest {
 	@Test
 	void shouldRebuildProjectionsFromEventsReplay() {
 
-		bookService.addBook(new AddBookRequest(ISBN, "Italo Calvino", "Il barone rampante", ""));
+		bookService.addBook(new AddBookDto(ISBN, "Italo Calvino", "Il barone rampante", ""));
 		
 		await().untilAsserted(() -> {
 			Assertions.assertThat(

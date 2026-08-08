@@ -55,7 +55,7 @@ public class BookEventProcessor {
 	}
 	
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void processProducerEvent( IntegrationEventEnvelope<?> event) {
+	public void processProducerBookEvent( IntegrationEventEnvelope<?> event) {
 		
 		if (bookEventRepository.existsEventProcessed(event.eventId(), event.aggregateId())) {
 			return;
@@ -71,7 +71,23 @@ public class BookEventProcessor {
 		
 		bookEventRepository.markProcessed(event.eventId(), event.aggregateType());	
 	}
-		     
+		  
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void processProducerBookRquestEvent( IntegrationEventEnvelope<?> event) {
+		
+		if (bookEventRepository.existsEventProcessed(event.eventId(), event.aggregateId())) {
+			return;
+		}
+		
+		Optional<ProjectionUpdateNotification> notification = handleEvent(event);
+		
+		if(notification.isPresent()) {
+			notificationService.publishBookRequestUpdated(notification.get().aggregateId());
+		}
+		
+		bookEventRepository.markProcessed(event.eventId(), event.aggregateType());	
+	}
+	
     private Optional<ProjectionUpdateNotification> handleEvent(IntegrationEventEnvelope<?> eventEnvelope) {
 
     	IntegrationEventTypes eventType = eventEnvelope.eventType();

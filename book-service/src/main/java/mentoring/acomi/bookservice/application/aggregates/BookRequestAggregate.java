@@ -10,7 +10,9 @@ import java.util.function.Consumer;
 import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequest;
 import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus;
 import mentoring.acomi.bookservice.domain.errors.BookRequestNotExist;
-import mentoring.acomi.bookservice.domain.errors.BookRequestVoteNotAllowed;
+import mentoring.acomi.bookservice.domain.errors.UserAlreadyVoted;
+import mentoring.acomi.bookservice.domain.errors.UserRequesterCannotVote;
+import mentoring.acomi.bookservice.domain.errors.BookRequestAlreadyClosed;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestAddedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestApprovedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEvent;
@@ -28,7 +30,7 @@ public class BookRequestAggregate {
 	private String requestId;
 	private boolean isCreated = false;
 	private BookRequestStatus status;
-	private String requestUserId;
+	private String requesterUserId;
 	Set<String> voters = new HashSet<>();
 	
 	private int version = -1;
@@ -64,10 +66,10 @@ public class BookRequestAggregate {
 	}
 
 	private void applyBookRequestAdded(BookRequestAddedEvent e) {
-		requestUserId = e.payload().requesterUserId();
+		requesterUserId = e.payload().requesterUserId();
 		status = BookRequestStatus.PENDING;
 		isCreated = true;
-		voters.add(requestUserId);
+		voters.add(requesterUserId);
 	}
 	
 	private void applyBookRequestVoted(BookRequestVotedEvent e) {
@@ -98,15 +100,15 @@ public class BookRequestAggregate {
 		ensureCreated();
 		
 		if (status != BookRequestStatus.PENDING) {
-			throw new BookRequestVoteNotAllowed("Request is already close");
+			throw new BookRequestAlreadyClosed("Request is already close");
+		}
+		
+		if(requesterUserId.equals(userId)) {
+			throw new UserRequesterCannotVote("User requester cannot vote");
 		}
 		
 		if (voters.contains(userId)) {
-		    throw new BookRequestVoteNotAllowed("User already voted");
-		}
-		
-		if(requestUserId.equals(userId)) {
-			throw new BookRequestVoteNotAllowed("User request cannot vote");
+		    throw new UserAlreadyVoted("User already voted");
 		}
 		
 		BookRequestVotedPayload payload = new BookRequestVotedPayload(requestId, userId);
@@ -138,7 +140,7 @@ public class BookRequestAggregate {
 		
 	}
 	
-	private void ensureCreated() {
+	public void ensureCreated() {
 		if (!isCreated) {
 			throw new BookRequestNotExist("Book request not exist, ID: %s".formatted(requestId));
 		}
@@ -156,6 +158,11 @@ public class BookRequestAggregate {
 
 	private int nextVersion() {
 		return version + 1;
+	}
+	
+	public boolean isPending() {
+		return BookRequestStatus.PENDING == status;
+		
 	}
 
 }

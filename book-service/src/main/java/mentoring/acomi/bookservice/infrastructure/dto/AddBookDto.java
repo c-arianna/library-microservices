@@ -3,7 +3,7 @@ package mentoring.acomi.bookservice.infrastructure.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record AddBookRequest(
+public record AddBookDto(
 
 		@NotBlank(message = "ISBN required")
 		String isbn,

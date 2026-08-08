@@ -29,7 +29,7 @@ import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -167,7 +167,7 @@ public class BookApiIntegrationTest {
 		
 		generateToken(role);
 		
-		AddBookRequest request = new AddBookRequest(isbn, "Italo Calvino", "Il barone rampante", "");
+		AddBookDto request = new AddBookDto(isbn, "Italo Calvino", "Il barone rampante", "");
 		return client.post().uri("/").contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, String.join(" ", "Bearer", TOKEN_VALUE))
 				.body(request).exchange((req, res) -> toEntity(res));
 	}

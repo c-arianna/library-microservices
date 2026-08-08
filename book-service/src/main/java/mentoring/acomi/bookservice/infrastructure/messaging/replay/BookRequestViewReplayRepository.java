@@ -45,7 +45,7 @@ public class BookRequestViewReplayRepository implements BookRequestViewRepositor
 		jdbcTemplate.update("""
 				INSERT INTO %s(request_id, requester_user_id, title, author, isbn, notes, status, votes, created_at, updated_at)
 				VALUES (?,?,?,?,?,?,?,?,?,?)""".formatted(TABLE_TMP),
-				view.requestId(), view.requestUserId(), view.title(), view.author(), view.isbn(), view.notes(), view.status(), view.votes(),
+				view.requestId(), view.requesterUserId(), view.title(), view.author(), view.isbn(), view.notes(), view.status().name(), view.votes(),
 				view.createdAt(), view.updatedAt());
 	}
 

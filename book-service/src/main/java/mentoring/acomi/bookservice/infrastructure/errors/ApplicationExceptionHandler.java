@@ -13,15 +13,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import mentoring.acomi.bookservice.application.errors.BookAlreadyRegistered;
 import mentoring.acomi.bookservice.application.errors.BookNotFound;
+import mentoring.acomi.bookservice.application.errors.BookRequestAlreadyExists;
+import mentoring.acomi.bookservice.application.errors.BookRequestNotFound;
 import mentoring.acomi.bookservice.application.errors.InvalidUser;
 import mentoring.acomi.bookservice.application.errors.UserNotFound;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.errors.BookNotRegistered;
 import mentoring.acomi.bookservice.domain.errors.BookRequestNotExist;
-import mentoring.acomi.bookservice.domain.errors.BookRequestVoteNotAllowed;
+import mentoring.acomi.bookservice.domain.errors.BookRequestAlreadyClosed;
 import mentoring.acomi.bookservice.domain.errors.CannotRemoveBookCopies;
+import mentoring.acomi.bookservice.domain.errors.InvalidBookRequestStateTransition;
 import mentoring.acomi.bookservice.domain.errors.InvalidQuantity;
+import mentoring.acomi.bookservice.domain.errors.UserAlreadyVoted;
+import mentoring.acomi.bookservice.domain.errors.UserRequesterCannotVote;
 import mentoring.acomi.bookservice.domain.errors.ValidationDomain;
 import mentoring.acomi.sharedcorelibrary.model.ErrorResponse;
 
@@ -104,12 +110,48 @@ public class ApplicationExceptionHandler {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
 	}
 	
-	@ExceptionHandler(BookRequestVoteNotAllowed.class)
+	@ExceptionHandler(BookRequestAlreadyClosed.class)
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
-	public ErrorResponse handleBookRequestVoteNotAllowedError(BookRequestVoteNotAllowed e) throws Exception {
+	public ErrorResponse handleBookRequestAlreadyClosedError(BookRequestAlreadyClosed e) throws Exception {
 		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
 	}
-		
+	
+	@ExceptionHandler(UserRequesterCannotVote.class)
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+	public ErrorResponse handleUserRequesterCannotVoteError(UserRequesterCannotVote e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+	
+	@ExceptionHandler(UserAlreadyVoted.class)
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+	public ErrorResponse handleUserAlreadyVotedError(UserAlreadyVoted e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+	
+	@ExceptionHandler(BookAlreadyRegistered.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorResponse handleBookAlreadyRegisteredError(BookAlreadyRegistered e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "CONFLICT");
+	}
+	
+	@ExceptionHandler(BookRequestAlreadyExists.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorResponse handleBookRequestAlreadyExistsError(BookRequestAlreadyExists e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "CONFLICT");
+	}
+	
+	@ExceptionHandler(InvalidBookRequestStateTransition.class)
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+	public ErrorResponse handleInvalidBookRequestStateTransitionError(InvalidBookRequestStateTransition e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "AGGREGATE_INVARIANT_FAILED");
+	}
+	
+	@ExceptionHandler(BookRequestNotFound.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleBookRequestNotFoundError(BookRequestNotFound e) throws Exception {
+		return handleException(e, e.getCode(), e.getMessage(), "APPLICATION_ERROR");
+	}
+	
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(Exception.class)
 	public ErrorResponse handleGenericException(Exception e) throws Exception {

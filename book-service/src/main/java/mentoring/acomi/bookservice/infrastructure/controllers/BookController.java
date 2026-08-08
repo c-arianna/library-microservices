@@ -15,7 +15,7 @@ import mentoring.acomi.bookservice.application.BookFilter;
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.application.services.SubscriptionService;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.AddSubscriptionRequest;
 import mentoring.acomi.bookservice.infrastructure.dto.BookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.BookResponse;
@@ -37,7 +37,7 @@ public class BookController {
 	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
 	@PostMapping("/")
 	@ResponseStatus(HttpStatus.CREATED)
-	public BookResponse addBook(@RequestBody @Valid AddBookRequest request) {
+	public BookResponse addBook(@RequestBody @Valid AddBookDto request) {
 		return service.addBook(request);
 	}
 	

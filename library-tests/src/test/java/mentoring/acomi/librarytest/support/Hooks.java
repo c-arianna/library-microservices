@@ -1,5 +1,8 @@
 package mentoring.acomi.librarytest.support;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import io.cucumber.java.After;
@@ -14,14 +17,39 @@ public class Hooks {
 	public Hooks(TestContext context) {
 		this.context = context;
 	}
-
+	
 	@After
 	public void cleanup() {
-		client.post().uri("/test/reset").exchange().expectStatus().isOk().expectBody().isEmpty();
-		
-		for(String userIdentityProviderId : context.userProviderIdToDelete) {
-			client.post().uri(String.format("/test/reset/user/%s", userIdentityProviderId)).exchange().expectStatus().isOk().expectBody().isEmpty();
-		}
-	}
 
+	    List<Exception> errors = new ArrayList<>();
+
+	    try {
+	        client.post().uri("/test/reset").exchange().expectStatus().isOk().expectBody().isEmpty();
+	    } catch (Exception ex) {
+	        errors.add(ex);
+	    }
+
+	    List<String> usersToDelete = new ArrayList<>(context.userProviderIdToDelete);
+
+	    for (String userIdentityProviderId : usersToDelete) {
+
+	        try {
+	            
+	        	client.post().uri("/test/reset/user/%s".formatted(userIdentityProviderId))
+	            	.exchange().expectStatus().isOk().expectBody().isEmpty();
+
+	        } catch (Exception ex) {
+	            errors.add(ex);
+	        }
+	    }
+
+	    context.userProviderIdToDelete.clear();
+
+	    if (!errors.isEmpty()) {
+	        RuntimeException cleanupException = new RuntimeException("Errors occurred during test cleanup");
+	        errors.forEach(cleanupException::addSuppressed);
+	        throw cleanupException;
+	    }
+	}
+	
 }

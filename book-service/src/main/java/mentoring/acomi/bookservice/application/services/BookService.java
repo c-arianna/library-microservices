@@ -17,7 +17,7 @@ import mentoring.acomi.bookservice.domain.book.model.Book;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.BookDto;
 import mentoring.acomi.bookservice.infrastructure.dto.BookResponse;
 import mentoring.acomi.bookservice.infrastructure.dto.BooksResponse;
@@ -38,7 +38,7 @@ public class BookService {
 	}
 
 	@Transactional
-	public BookResponse addBook(AddBookRequest request) {
+	public BookResponse addBook(AddBookDto request) {
 
 		String isbn = request.isbn();
 
@@ -70,7 +70,7 @@ public class BookService {
 		aggregate.removeCopies(request.quantity(), request.reason());
 	}
 	
-	private Book getBook(AddBookRequest request) {
+	private Book getBook(AddBookDto request) {
 		return Book.create(request.isbn(), request.author(), request.title(), request.description());
 	}
 

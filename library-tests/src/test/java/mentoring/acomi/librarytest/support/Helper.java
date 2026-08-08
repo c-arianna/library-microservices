@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.client.EntityExchangeResult;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 
 public class Helper {
 
@@ -89,7 +90,9 @@ public class Helper {
 				return;
 
 			} catch (AssertionError e) {
-				lastError = e;
+			    lastError = e;
+			} catch (PathNotFoundException e) {
+			    lastError = new AssertionError(e);
 			}
 
 			try {

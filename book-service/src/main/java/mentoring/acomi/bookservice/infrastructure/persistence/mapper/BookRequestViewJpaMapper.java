@@ -9,7 +9,7 @@ import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookRequest
 public class BookRequestViewJpaMapper {
 	
 	public BookRequestViewEntity toEntity(BookRequestView view) {
-		return new BookRequestViewEntity(view.requestId(), view.requestUserId(), view.author(), view.title(), view.isbn(),
+		return new BookRequestViewEntity(view.requestId(), view.requesterUserId(), view.author(), view.title(), view.isbn(),
 				view.notes(), view.votes(), view.status(), view.createdAt(), view.updatedAt());
 	}
 	
@@ -19,7 +19,7 @@ public class BookRequestViewJpaMapper {
 			return null;
 		}
 		
-		return new BookRequestView(entity.getRequestId(), entity.getRequestUserId(), entity.getAuthor(), entity.getTitle(),
+		return new BookRequestView(entity.getRequestId(), entity.getRequesterUserId(), entity.getAuthor(), entity.getTitle(),
 				entity.getIsbn(), entity.getNotes(), entity.getVotes(), entity.getStatus(), entity.getCreatedAt(), entity.getUpdatedAt());	
 	}
 

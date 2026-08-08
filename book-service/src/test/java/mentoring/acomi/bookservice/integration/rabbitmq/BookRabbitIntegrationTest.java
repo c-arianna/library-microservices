@@ -31,19 +31,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import mentoring.acomi.bookservice.application.outbox.OutboxPublisher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewQueryRepository;
+import mentoring.acomi.bookservice.application.repositories.UserViewQueryRepository;
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.book.BookEventType;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequest;
+import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
 import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationConsumerEventVersions;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanRequestedIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.UserSubscribedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @SpringBootTest
 @Testcontainers
@@ -82,13 +86,16 @@ public class BookRabbitIntegrationTest {
 	@Autowired
 	private OutboxPublisher outboxPublisher;
 
+	@Autowired
+	private UserViewQueryRepository userViewQueryRepository;
+	
 	private static final String ISBN = "9788804336327";
 	private static final String USER_ID = "user-1";
 	private static final String LOAN_ID = "loan-1";
 
 	@BeforeEach
 	void setupBook() {
-		bookService.addBook(new AddBookRequest(ISBN, "Italo Calvino", "Il barone rampante", ""));
+		bookService.addBook(new AddBookDto(ISBN, "Italo Calvino", "Il barone rampante", ""));
 		bookService.addBookCopies(new AddBookCopiesRequest(3), ISBN);
 
 		await().atMost(Duration.ofSeconds(100)).untilAsserted(() -> {
@@ -206,6 +213,19 @@ public class BookRabbitIntegrationTest {
 		});
 
 	}
+	
+	@Test
+	void shouldConsumeUserSubscribed() {
+		
+		String userId = UUID.randomUUID().toString();
+		
+		publishUserSubscribed(userId);
+
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+			Assertions.assertTrue(userViewQueryRepository.findById(userId).isPresent());
+		});
+		
+	}
 
 	@Test
 	void shouldRejectNotSupportedSchemaVersion() {
@@ -320,6 +340,18 @@ public class BookRabbitIntegrationTest {
 			return null;
 		}
 		return new String(message.getBody(), StandardCharsets.UTF_8);
+	}
+	
+	private void publishUserSubscribed(String userId) {
+		
+		var event = new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.USER_SUBSCRIBED, 
+				"user-service", userId, AggregateType.USER.name(), 1, Instant.now(), 1, 
+				new UserSubscribedIntegrationPayload(userId, "test.%s@test.com".formatted(userId), "Test", "Test", "1234", 
+						"LIB-000001", UserStatus.ACTIVE, UserRole.READER));
+		
+		rabbitTemplate.convertAndSend(MessagingTopology.EVENTS_EXCHANGE,
+				IntegrationEventTypes.USER_SUBSCRIBED.getRoutingKey(), event);
+		
 	}
 
 }

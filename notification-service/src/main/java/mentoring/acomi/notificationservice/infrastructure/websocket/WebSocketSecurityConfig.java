@@ -17,6 +17,7 @@ public class WebSocketSecurityConfig {
     AuthorizationManager<Message<?>> authorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
 
         return messages.simpSubscribeDestMatchers("/topic/books").authenticated()
+        		        .simpSubscribeDestMatchers("/topic/bookRequests").authenticated()
                 	    .simpSubscribeDestMatchers("/topic/loans").hasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")
                 	    .simpSubscribeDestMatchers("/topic/users").hasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")
                         .simpSubscribeDestMatchers("/user/**").authenticated()

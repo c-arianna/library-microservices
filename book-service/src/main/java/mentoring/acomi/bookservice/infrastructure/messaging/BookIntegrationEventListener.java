@@ -47,11 +47,14 @@ public class BookIntegrationEventListener {
 			}
 
 			case BOOK_REGISTERED , BOOK_COPIES_UPDATED, BOOK_RESERVED, BOOK_BORROWED, BOOK_RELEASED, BOOK_RETURNED, BOOK_BORROW_REJECTED,
-			    BOOK_RESERVATION_REJECTED,
-			    BOOK_REQUEST_ADDED, BOOK_REQUEST_APPROVED, BOOK_REQUEST_REJECTED, BOOK_REQUEST_VOTED -> {
-				eventProcessor.processProducerEvent(eventEnvelope);
+			    BOOK_RESERVATION_REJECTED -> {
+				eventProcessor.processProducerBookEvent(eventEnvelope);
 			}
 
+			case BOOK_REQUEST_ADDED, BOOK_REQUEST_APPROVED, BOOK_REQUEST_REJECTED, BOOK_REQUEST_VOTED -> {
+				eventProcessor.processProducerBookRquestEvent(eventEnvelope);
+			}
+			
 			default ->
 				throw new NonRetryableEventException(String.format("Unknown event type: %s", eventEnvelope.eventType()));
 			}

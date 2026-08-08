@@ -8,7 +8,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
   Gli utenti possono
   - visualizzare i libri presenti nel catalogo
   - visualizzare il dettaglio dei libri
-   
+  
   Rule: Inserimento di un nuovo libro nel catalogo
 
     Scenario: Aggiunta di un nuovo libro con successo
@@ -25,7 +25,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       And la risposta contiene il campo "isbn"
 	  And il libro "9788804336327" ha totalCopies = 0, borrowedCopies = 0, reservedCopies = 0
 	  
-	 Scenario: Aggiunta di un libro con richiesta non conforme al contratto API
+	Scenario: Aggiunta di un libro con richiesta non conforme al contratto API
 	  Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
       When l'amministratore aggiunge un libro al catalogo con i seguenti dati:
         """
@@ -52,12 +52,12 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       Then la risposta ha status code 400
       And la risposta contiene il campo "message"
       And la risposta contiene i seguenti campi:
-      | code    | "VALIDATION_ERROR"     |
+      | code    | "VALIDATION_ERROR" |
       | type    | "VALIDATION_ERROR" |
       
      Scenario: Aggiunta di un libro già presente nel catalogo
       Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
-      Given l'amministratore aggiunge un libro con isbn "9788804772729", autore "Italo Calvino", titolo "Il visconte dimezzato" e descrizione
+      And l'amministratore aggiunge un libro con isbn "9788804772729", autore "Italo Calvino", titolo "Il visconte dimezzato" e descrizione
         """
         Il visconte dimezzato (1952) è il primo libro della trilogia I nostri antenati
         """
@@ -78,7 +78,9 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
   Rule: Consultazione del catalogo libri
   
     Scenario: Consultazione del catalogo vuoto
-      Given l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il catalogo dei libri
       Then la risposta ha status code 200
       And la risposta contiene il campo "books"
@@ -95,6 +97,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         """
 
         """
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"  
       And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il catalogo dei libri
       Then la risposta ha status code 200
@@ -117,6 +120,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         """
         Il barone rampante (1957) è il secondo libro della trilogia I nostri antenati
         """
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
       And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il catalogo dei libri, con filtro di ricerca
         | author | "Shakespeare" |
@@ -130,6 +134,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         """
         Il barone rampante (1957) è il secondo libro della trilogia I nostri antenati
         """
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
       And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il catalogo dei libri, con filtro di ricerca
         | author | Italo Calvino |
@@ -155,6 +160,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         """
       And l'amministratore aggiunge 1 copie del libro "9788804776369"
       And l'amministratore rimuove una copia del libro "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
       And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il catalogo dei libri, con filtro di ricerca
         | author        | Italo Calvino |
@@ -296,6 +302,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
 
         """
       And l'amministratore aggiunge 3 copie del libro "9788804336327"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
       And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il dettaglio del libro isbn "9788804336327"
       Then la risposta ha status code 200
@@ -310,7 +317,9 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       | available      | true                    |
       
     Scenario: Dettaglio di un libro non presente nel catalogo
-      Given l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       When l'utente visualizza il dettaglio del libro isbn "9788804336327"
       Then la risposta ha status code 404
       And la risposta contiene il campo "message"
@@ -326,6 +335,7 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
         """
         Il barone rampante (1957) è il secondo libro della trilogia I nostri antenati
         """
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
       And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
       And l'utente si sottoscrive alla disponibilità del libro ISBN "9788804336327"
       When l'amministratore aggiunge una copia del libro "9788804336327", con i seguenti dati:
@@ -337,5 +347,316 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       Then la risposta ha status code 204
       And il libro "9788804336327" ha totalCopies = 1, borrowedCopies = 0, reservedCopies = 0
       And eventualmente la sottoscrizione con ISBN "9788804336327" risulta notificata
+      
+  Rule: Creazione richiesta libri
   
+    Scenario: Inserimento di una richiesta con successo
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      When l'utente crea una richiesta per un libro, con i seguenti dati:
+     	"""
+        {
+          "isbn": "9788804776369",
+          "author": "Italo Calvino",
+          "title": "Il visconte dimezzato",
+          "notes": ""
+        }
+        """
+      Then la risposta ha status code 201
+      And la richiesta ha ISBN "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato", stato "PENDING", voti 1
+    
+    Scenario: Inserimento di una richiesta con dati non validi
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And l'amministratore aggiunge un libro con isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante" e descrizione
+        """
+        Il barone rampante (1957) è il secondo libro della trilogia I nostri antenati
+        """
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      When l'utente crea una richiesta per un libro, con i seguenti dati:
+     	"""
+        {
+          "isbn": "",
+          "author": "",
+          "title": "Il barone rampante",
+          "notes": ""
+        }
+        """
+      Then la risposta ha status code 400
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "VALIDATION_ERROR" |
+      | type    | "VALIDATION_ERROR" |
+      
+    Scenario: Inserimento di una richiesta per un libro già presente nel catalogo
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And l'amministratore aggiunge un libro con isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante" e descrizione
+        """
+        Il barone rampante (1957) è il secondo libro della trilogia I nostri antenati
+        """
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      When l'utente crea una richiesta per un libro, con i seguenti dati:
+     	"""
+        {
+          "isbn": "",
+          "author": "Italo Calvino",
+          "title": "Il barone rampante",
+          "notes": ""
+        }
+        """
+      Then la risposta ha status code 409
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_ALREADY_REGISTERED"    |
+      | type    | "CONFLICT" |
+      
+    Scenario: Inserimento di una richiesta per un libro con richiesta già presente
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato 
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      When l'utente crea una richiesta per un libro, con i seguenti dati:
+     	"""
+        {
+          "isbn": "",
+          "author": "Italo Calvino",
+          "title": "Il visconte dimezzato",
+          "notes": ""
+        }
+        """
+      Then la risposta ha status code 409
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_ALREADY_EXIST" |
+      | type    | "CONFLICT"                   | 
+     
+  Rule: Visualizzazione elenco richieste libri
+  
+    Scenario: Richieste libri non presenti
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato 
+      When l'utente visualizza le richieste libri
+      Then la risposta ha status code 200
+      And la risposta contiene 0 elementi
+      
+    Scenario: Richieste libri presenti
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And il catalogo non contiene il libro con isbn "9788804336327"
+      And esiste una richiesta per il libro isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante"
+      And la richiesta è in stato "PENDING"
+      When l'utente visualizza le richieste libri
+      Then la risposta ha status code 200
+      And la risposta contiene 2 elementi
+      And la risposta contiene un elemento con i campi:
+      | author  | "Italo Calvino"         |
+      | title   | "Il visconte dimezzato" |
+      | isbn    | "9788804776369"         |
+      | status  | "PENDING"               |
+      | votes   | 1                       |
+      And la risposta contiene un elemento con i campi:
+      | author  | "Italo Calvino"         |
+      | title   | "Il barone rampante"    |
+      | isbn    | "9788804336327"         |
+      | status  | "PENDING"               |
+      | votes   | 1                       |
+      
+  Rule: Approvazione di una richiesta
+  
+    Scenario: Approvazione di una richiesta con successo
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      When l'amministratore approva la richiesta
+      Then la risposta ha status code 204
+      And la richiesta ha ISBN "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato", stato "APPROVED", voti 1
+      
+    Scenario: Approvazione di una richiesta in stato non pending
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And la richiesta è stata rigettata
+      And la richiesta è in stato "REJECTED"
+      When l'amministratore approva la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "INVALID_REQUEST_STATE_TRANSITION" |
+      | type    | "AGGREGATE_INVARIANT_FAILED" | 
+    
+    Scenario: Approvazione di una richiesta che non esiste
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And la richiesta con ID "BR-123" non esiste
+      When l'amministratore approva la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_NOT_EXIST"     |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+  Rule: Rigetto di una richiesta  
+  
+    Scenario: Rigetto di una richiesta con successo
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      When l'amministratore rigetta la richiesta
+      Then la risposta ha status code 204
+      And la richiesta ha ISBN "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato", stato "REJECTED", voti 1
+      
+    Scenario: Rigetto di una richiesta in stato non pending
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And la richiesta è stata approvata
+      And la richiesta è in stato "APPROVED"
+      When l'amministratore rigetta la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "INVALID_REQUEST_STATE_TRANSITION"   |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+    Scenario: Rigetto di una richiesta che non esiste
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And la richiesta con ID "BR-123" non esiste
+      When l'amministratore rigetta la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_NOT_EXIST"     |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+   Rule: Votazione di una richiesta
+   
+    Scenario: Votazione di una richiesta con successo
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "Test12345678", nome "Mario", cognome "Verdi"
+      And l'utente con credenziali "mario.verdi@gmail.com", "Test12345678" è autenticato
+      When l'utente vota la richiesta
+      Then la risposta ha status code 204
+      And la richiesta ha ISBN "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato", stato "PENDING", voti 2
+      
+    Scenario: Votazione di una richiesta che non esiste
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And la richiesta con ID "BR-123" non esiste
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      When l'utente vota la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_NOT_EXIST"     |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+     Scenario: Votazione di una richiesta non in stato pending
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And la richiesta è stata approvata
+      And la richiesta è in stato "APPROVED"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "Test12345678", nome "Mario", cognome "Verdi"
+      And l'utente con credenziali "mario.verdi@gmail.com", "Test12345678" è autenticato
+      When l'utente vota la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_ALREADY_CLOSED"  |
+      | type    | "AGGREGATE_INVARIANT_FAILED"   |
+      
+    Scenario: Un utente vota la richiesta che ha creato
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      When l'utente vota la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "USER_REQUESTER_CANNOT_VOTE"  |
+      | type    | "AGGREGATE_INVARIANT_FAILED"  |
+      
+    Scenario: Un utente vota 2 volte la stessa richiesta
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "Test12345678", nome "Mario", cognome "Verdi"
+      And l'utente con credenziali "mario.verdi@gmail.com", "Test12345678" è autenticato
+      And esiste un voto dell'utente per la richiesta
+      When l'utente vota la richiesta
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "USER_ALREADY_VOTED"  		   |
+      | type    | "AGGREGATE_INVARIANT_FAILED"     |
+      
+  Rule: Dettaglio di una richiesta
+  
+    Scenario: Dettaglio di una richiesta esistente
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "Test12345678", nome "Mario", cognome "Verdi"
+      And l'utente con credenziali "mario.verdi@gmail.com", "Test12345678" è autenticato
+      And esiste un voto dell'utente per la richiesta
+      When l'utente visualizza il dettaglio della richiesta
+      Then la risposta ha status code 200
+      And eventualmente la risposta contiene i seguenti campi:
+      | author  | "Italo Calvino"         |
+      | title   | "Il visconte dimezzato" |
+      | isbn    | "9788804776369"         |
+      | status  | "PENDING"               |
+      | votes   | 2                       |
+      And la lista dei voti della richiesta contiene 2 elementi
+      
+    Scenario: Dettaglio di una richiesta che non esiste
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And la richiesta con ID "BR-123" non esiste
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      When l'utente visualizza il dettaglio della richiesta
+      Then la risposta ha status code 404
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_NOT_FOUND" |
+      | type    | "APPLICATION_ERROR"      |
+    
       

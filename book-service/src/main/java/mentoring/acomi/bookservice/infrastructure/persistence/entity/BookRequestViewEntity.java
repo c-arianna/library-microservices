@@ -21,7 +21,7 @@ public class BookRequestViewEntity {
 	@Id
 	private String requestId;
 	
-	private String requestUserId;
+	private String requesterUserId;
 	
 	private String author;
 	
@@ -40,10 +40,10 @@ public class BookRequestViewEntity {
 	
 	private Instant updatedAt;
 
-	public BookRequestViewEntity(String requestId, String requestUserId, String author, String title, String isbn, String notes, int votes, 
+	public BookRequestViewEntity(String requestId, String requesterUserId, String author, String title, String isbn, String notes, int votes, 
 			BookRequestStatus status, Instant createdAt, Instant updatedAt) {
 		this.requestId = requestId;
-		this.requestUserId = requestUserId;
+		this.requesterUserId = requesterUserId;
 		this.author = author;
 		this.title = title;
 		this.isbn = isbn;
