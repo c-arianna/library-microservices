@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import mentoring.acomi.bookservice.application.dto.BookRequestAddedResponse;
 import mentoring.acomi.bookservice.application.dto.BookRequestDetailDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestRejectDto;
+import mentoring.acomi.bookservice.application.dto.UpdateEstimatedPriceDto;
 import mentoring.acomi.bookservice.application.services.BookRequestService;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequestDto;
 
@@ -70,4 +72,10 @@ public class BookRequestController {
 		return service.getBookRequestDetail(bookRequestId);		
 	}
 	
+	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+	@PatchMapping("/{bookRequestId}/estimatedPrice")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void updateEstimatedPrice(@Valid @RequestBody UpdateEstimatedPriceDto request, @PathVariable String bookRequestId) {
+		service.updateEstimatedPrice(bookRequestId, request.estimatedPrice());
+	}
 }

@@ -6,14 +6,17 @@ import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestAddedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestApprovedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEvent;
+import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestPriceUpdatedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestRejectedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestVotedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestAddedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestApprovedPayload;
+import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestPriceUpdatedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestRejectedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestVotedPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestAddedIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestApprovedIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestPriceUpdatedIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestRejectedIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestVotedIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
@@ -43,6 +46,10 @@ public class BookRequestIntegrationEventMapper {
 			yield getBookRequestRejectedEvent(e);
 		}
 
+		case BookRequestPriceUpdatedEvent e -> {
+			yield getBookRequestPriceUpdatedEvent(e);
+		}
+		
 		};
 	}
 
@@ -82,6 +89,16 @@ public class BookRequestIntegrationEventMapper {
 
 		return envelope(e, IntegrationEventTypes.BOOK_REQUEST_REJECTED, BookIntegrationPublisherEventVersions.BOOK_REQUEST_REJECTED, 
 				integrationPayload);
+	}
+	
+	private IntegrationEventEnvelope<?> getBookRequestPriceUpdatedEvent(BookRequestPriceUpdatedEvent e) {
+
+		BookRequestPriceUpdatedPayload payload = e.payload();
+		BookRequestPriceUpdatedIntegrationPayload integrationPayload = new BookRequestPriceUpdatedIntegrationPayload(payload.requestId(), 
+				payload.estimatedPrice());
+
+		return envelope(e, IntegrationEventTypes.BOOK_REQUEST_PRICE_UPDATED, 
+				BookIntegrationPublisherEventVersions.BOOK_REQUEST_PRICE_UPDATED, integrationPayload);
 	}
 	
 	private <T> IntegrationEventEnvelope<T> envelope(BookRequestEvent e, IntegrationEventTypes type, int version, T payload) {

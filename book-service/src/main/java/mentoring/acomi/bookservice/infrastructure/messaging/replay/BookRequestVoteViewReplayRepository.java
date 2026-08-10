@@ -40,7 +40,7 @@ public class BookRequestVoteViewReplayRepository implements BookRequestVoteViewR
 	@Override
 	public void add(BookRequestVoteView view) {
 		jdbcTemplate.update("""
-				INSERT INTO %s(request_id, requester_user_id, created_at) VALUES (?,?,?)""".formatted(TABLE_TMP), 
+				INSERT INTO %s(request_id, user_id, created_at) VALUES (?,?,?)""".formatted(TABLE_TMP), 
 				view.requestId(), view.userId(), view.createdAt());
 		
 	}

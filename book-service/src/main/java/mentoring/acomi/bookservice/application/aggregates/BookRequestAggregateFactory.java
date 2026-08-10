@@ -53,6 +53,9 @@ public class BookRequestAggregateFactory {
 			case BookRequestVoted -> {
 				yield BookIntegrationConsumerEventVersions.BOOK_REQUEST_VOTED;
 			}
+			case BookRequestPriceUpdated -> {
+				yield BookIntegrationConsumerEventVersions.BOOK_REQUEST_PRICE_UPDATED;
+			}
 
 		};
 	}

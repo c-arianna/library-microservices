@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.application.aggregates;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
@@ -16,10 +17,12 @@ import mentoring.acomi.bookservice.domain.errors.BookRequestAlreadyClosed;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestAddedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestApprovedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEvent;
+import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestPriceUpdatedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestRejectedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestVotedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestAddedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestApprovedPayload;
+import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestPriceUpdatedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestRejectedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestVotedPayload;
 
@@ -32,7 +35,7 @@ public class BookRequestAggregate {
 	private BookRequestStatus status;
 	private String requesterUserId;
 	Set<String> voters = new HashSet<>();
-	
+		
 	private int version = -1;
 	
 	public BookRequestAggregate(String requestId, Consumer<BookRequestEvent> dispatcher, List<BookRequestEvent> events) {
@@ -59,6 +62,7 @@ public class BookRequestAggregate {
 			case BookRequestVotedEvent e -> applyBookRequestVoted(e);
 			case BookRequestApprovedEvent e -> applyBookRequestApproved(e);
 			case BookRequestRejectedEvent e -> applyBookRequestRejected(e);
+			case BookRequestPriceUpdatedEvent e -> {}
 		}
 
 		version++;
@@ -138,6 +142,21 @@ public class BookRequestAggregate {
 			manageEvent(event);
 		}
 		
+	}
+	
+	public void updatePrice(BigDecimal estimatedPrice) {
+		
+		ensureCreated();
+		
+		if (status != BookRequestStatus.PENDING) {
+			throw new BookRequestAlreadyClosed("Request is already close");
+		}
+		
+		BookRequestPriceUpdatedPayload payload = new BookRequestPriceUpdatedPayload(requestId, estimatedPrice);
+		BookRequestPriceUpdatedEvent event = new BookRequestPriceUpdatedEvent(requestId, getEventId(), nextVersion(), payload, 
+					Instant.now());
+			manageEvent(event);
+			
 	}
 	
 	public void ensureCreated() {

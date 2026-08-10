@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.persistence.repositories;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -37,4 +38,10 @@ public interface BookRequestViewJpaRepository extends JpaRepository<BookRequestV
 			      and b.status = mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus.PENDING
 		    """)
 	Optional<BookRequestViewEntity> findPendingRequestByAuthorAndTitle(@Param("author") String author, @Param("title") String title);
+	
+	@Modifying
+	@Transactional
+	@Query("UPDATE BookRequestViewEntity e set e.estimatedPrice = :estimatedPrice, e.updatedAt = :updatedAt where e.requestId = :requestId")
+	void updatePrice(@Param("requestId") String requestId, @Param("estimatedPrice") BigDecimal estimatedPrice, 
+			@Param("updatedAt") Instant updatedAt);
 }

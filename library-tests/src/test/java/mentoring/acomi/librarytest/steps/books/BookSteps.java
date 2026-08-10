@@ -1,5 +1,6 @@
 package mentoring.acomi.librarytest.steps.books;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -362,6 +363,25 @@ public class BookSteps {
 		}
 
 	}
+	
+	@When("l'amministratore aggiorna il prezzo del libro richiesto con i seguenti dati:")
+	public void updateBookRequestPrice(DocString body) {
+
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+		String bookRequestId = context.get(BOOK_REQUEST_ID, String.class);
+
+		var result = client.patch().uri("/books/requests/%s/estimatedPrice".formatted(bookRequestId))
+				.contentType(MediaType.APPLICATION_JSON).header("Authorization", "Bearer %s".formatted(accessToken))
+				.body(body.getContent()).exchange().expectBody().returnResult();
+
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		
+		if (result.getResponseBody() != null) {
+			String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+			context.put(CommonSteps.RESPONSE_BODY, response);
+		}
+		
+	}
 
 	/*
 	 * ############################### THEN #####################################
@@ -462,9 +482,29 @@ public class BookSteps {
 
 	}
 
+	@Then("la richiesta ha ISBN {string}, prezzo stimato {string}")
+	public void checkBookRequestViewPrice(String isbn, String estimatedPrice) {
+
+		String accessToken = context.get(CommonSteps.USER_ACCESS_TOKEN, String.class);
+		String bookRequestId = context.get(BOOK_REQUEST_ID, String.class);
+
+		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get()
+				.uri("/books/requests/%s".formatted(bookRequestId))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+
+		BigDecimal price = new BigDecimal(estimatedPrice);
+		
+		Helper.awaitAndAssert(query, json -> Assertions.assertAll(() -> {
+			String isbnResponse = json.read("$.requestId");
+			Assertions.assertEquals(bookRequestId, isbnResponse);
+		}, () -> {
+			BigDecimal estimatedPriceResponse = json.read("$.estimatedPrice", BigDecimal.class);
+			Assertions.assertEquals(price, estimatedPriceResponse);
+		}), 5000, 200);
+	}
+	
 	/*
-	 * ############################### HELPER METHODS
-	 * #####################################
+	 * ############################### HELPER METHODS #####################################
 	 */
 
 	private EntityExchangeResult<byte[]> addBookCopies(String isbn, String accessToken, String body) {

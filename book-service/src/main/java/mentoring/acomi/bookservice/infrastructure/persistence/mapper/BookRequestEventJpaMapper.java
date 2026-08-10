@@ -6,10 +6,12 @@ import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestAddedEve
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestApprovedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestEventType;
+import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestPriceUpdatedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestRejectedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.BookRequestVotedEvent;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestAddedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestApprovedPayload;
+import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestPriceUpdatedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestRejectedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestVotedPayload;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
@@ -55,9 +57,11 @@ public class BookRequestEventJpaMapper implements EventMapper<BookRequestEvent, 
 			yield new BookRequestRejectedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, event.getOccurredAt());
 			
 		}
-		
-		default -> throw new IllegalArgumentException(String.format("Unexpected value: %s", eventType.name()));
-		
+		case BookRequestPriceUpdated -> {
+			BookRequestPriceUpdatedPayload payload = objectMapper.treeToValue(event.getPayload(), BookRequestPriceUpdatedPayload.class);
+			yield new BookRequestPriceUpdatedEvent(event.getAggregateId(), event.getEventId(), event.getEventVersion(), payload, 
+					event.getOccurredAt());
+		}	
 				
 		};
 

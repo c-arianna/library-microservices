@@ -13,7 +13,7 @@ public enum IntegrationEventTypes {
 	USER_SUBSCRIBED("user.subscribed"), USER_UNSUBSCRIBED("user.unsubscribed"), USER_SUSPENDED("user.suspended"), 
 	USER_UNSUSPENDED("user.unsuspended"), LIBRARY_CARD_ASSIGNED("user.libraryCard.assigned"),
 	BOOK_REQUEST_ADDED("book.request.added"), BOOK_REQUEST_VOTED("book.request.voted"), BOOK_REQUEST_APPROVED("book.request.approved"), 
-	BOOK_REQUEST_REJECTED("book.request.rejected");
+	BOOK_REQUEST_REJECTED("book.request.rejected"), BOOK_REQUEST_PRICE_UPDATED("book.request.price.updated");
 
 	public final String eventName;
 

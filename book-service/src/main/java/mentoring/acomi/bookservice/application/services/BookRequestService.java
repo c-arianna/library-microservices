@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.application.services;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -77,13 +78,16 @@ public class BookRequestService {
 	
 	@Transactional
 	public void approveBookRequest(String bookRequestId) {
+		
 		BookRequestAggregate aggregate = aggregateFactory.create(bookRequestId);
 		
 		aggregate.ensureCreated();
 		
 		if (!aggregate.isPending()) {
-			throw new InvalidBookRequestStateTransition("Cannot approve book request");
+			throw new InvalidBookRequestStateTransition("Cannot approve closed book request");
 		}
+		
+		
 		aggregate.approve();
 	}
 	
@@ -94,7 +98,7 @@ public class BookRequestService {
 		aggregate.ensureCreated();
 		
 		if (!aggregate.isPending()) {
-			throw new InvalidBookRequestStateTransition("Cannot approve book request");
+			throw new InvalidBookRequestStateTransition("Cannot reject closed book request");
 		}
 		aggregate.reject(request.reason());
 	}
@@ -123,8 +127,15 @@ public class BookRequestService {
 		List<BookRequestVoteDto> bookRequestVotes = bookRequestVoteQueryRepository.findVotesByRequestId(bookRequestId);
 		
 		return new BookRequestDetailDto(bookRequest.requestId(), bookRequest.requesterUserId(), cardNumber, bookRequest.isbn(), 
-				bookRequest.author(), bookRequest.title(), bookRequest.notes(), bookRequest.status(), bookRequest.votes(), 
-				canVote(bookRequest, bookRequestVotes), bookRequestVotes);
+				bookRequest.author(), bookRequest.title(), bookRequest.notes(), bookRequest.estimatedPrice(),
+				bookRequest.status(), bookRequest.votes(), canVote(bookRequest, bookRequestVotes), bookRequestVotes);
+		
+	}
+	
+	@Transactional
+	public void updateEstimatedPrice(String bookRequestId, BigDecimal estimatedPrice) {
+		BookRequestAggregate aggregate = aggregateFactory.create(bookRequestId);		
+		aggregate.updatePrice(estimatedPrice);
 		
 	}
 	

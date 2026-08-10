@@ -1,0 +1,46 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "BookRequestPriceUpdatedEventV1",
+	"allOf": [
+		{
+			"$ref": "../../../common/event-envelope.schema.json#/$defs/eventEnvelope"
+		},
+		{
+			"type": "object",
+			"properties": {
+				"eventType": {
+					"const": "BOOK_REQUEST_PRICE_UPDATED"
+				},
+				"producer": {
+					"const": "book-service"
+				},
+				"aggregateType": {
+					"const": "BOOK_REQUEST"
+				},
+				"payload": {
+					"type": "object",
+					"properties": {
+						"requestId": {
+							"$ref": "../../../common/common-types.schema.json#/$defs/nonBlankString"
+						},
+						"estimatedPrice": {
+							"type": "number",
+							"minimum": 0
+						}
+					},
+					"required": [
+						"requestId",
+						"estimatedPrice"
+					]
+				}
+			},
+			"required": [
+				"eventType",
+				"producer",
+				"aggregateType",
+				"payload"
+			]
+		}
+	],
+	"unevaluatedProperties": false
+}

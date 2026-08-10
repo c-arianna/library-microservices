@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.messaging.replay;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,9 +62,16 @@ public class BookRequestViewReplayRepository implements BookRequestViewRepositor
 				status.name(), updatedAt, requestId);
 		
 	}
+	
+	@Override
+	public void updatePrice(String requestId, BigDecimal estimatedPrice, Instant updatedAt) {
+		jdbcTemplate.update("UPDATE %s SET estimated_price = ?, updated_at = ? WHERE request_id = ?".formatted(TABLE_TMP), 
+				estimatedPrice, updatedAt, requestId);
+	}
 
 	@Override
 	public void deleteAll() {
 		throw new UnsupportedOperationException("Not needed");		
 	}
+
 }

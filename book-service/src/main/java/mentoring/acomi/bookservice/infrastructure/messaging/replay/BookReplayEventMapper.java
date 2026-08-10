@@ -11,6 +11,7 @@ import mentoring.acomi.bookservice.domain.events.book.payload.BookRegisteredPayl
 import mentoring.acomi.bookservice.domain.events.book.payload.BookReservationRejectedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestAddedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestApprovedPayload;
+import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestPriceUpdatedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestRejectedPayload;
 import mentoring.acomi.bookservice.domain.events.bookrequest.payload.BookRequestVotedPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookBorrowRejectedIntegrationPayload;
@@ -19,6 +20,7 @@ import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.Boo
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestAddedIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestApprovedIntegrationPayload;
+import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestPriceUpdatedIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestRejectedIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestVotedIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookReservationRejectedIntegrationPayload;
@@ -80,6 +82,10 @@ public class BookReplayEventMapper {
 				yield IntegrationEventTypes.BOOK_REQUEST_VOTED;
 			}
 			
+			case "BookRequestPriceUpdated" ->{
+				yield IntegrationEventTypes.BOOK_REQUEST_PRICE_UPDATED;
+			}
+			
 			default -> throw new IllegalArgumentException("Unexpected value: %s".formatted(eventType.eventName()));
 		};
 	}
@@ -133,6 +139,12 @@ public class BookReplayEventMapper {
 				BookRequestVotedPayload payload =  mapper.convertValue(eventPayload, BookRequestVotedPayload.class);
 				yield new BookRequestVotedIntegrationPayload(payload.requestId(), payload.userId());
 			}
+			
+			case "BookRequestPriceUpdated" ->{
+				BookRequestPriceUpdatedPayload payload =  mapper.convertValue(eventPayload, BookRequestPriceUpdatedPayload.class);
+				yield new BookRequestPriceUpdatedIntegrationPayload(payload.requestId(), payload.estimatedPrice());
+			}
+			
 			default -> throw new IllegalArgumentException("Unexpected value: %s".formatted(eventType.eventName()));
 			
 		};

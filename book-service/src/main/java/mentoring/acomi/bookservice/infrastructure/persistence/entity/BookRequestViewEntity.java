@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.persistence.entity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 import jakarta.persistence.Entity;
@@ -36,12 +37,14 @@ public class BookRequestViewEntity {
 	@Enumerated(EnumType.STRING)
 	private BookRequestStatus status;
 	
+	private BigDecimal estimatedPrice;
+	
 	private Instant createdAt;
 	
 	private Instant updatedAt;
 
 	public BookRequestViewEntity(String requestId, String requesterUserId, String author, String title, String isbn, String notes, int votes, 
-			BookRequestStatus status, Instant createdAt, Instant updatedAt) {
+			BigDecimal estimatedPrice, BookRequestStatus status, Instant createdAt, Instant updatedAt) {
 		this.requestId = requestId;
 		this.requesterUserId = requesterUserId;
 		this.author = author;
@@ -49,6 +52,7 @@ public class BookRequestViewEntity {
 		this.isbn = isbn;
 		this.notes = notes;
 		this.votes = votes;
+		this.estimatedPrice = estimatedPrice;
 		this.status = status;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;

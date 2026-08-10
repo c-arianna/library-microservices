@@ -15,6 +15,7 @@ public final class BookIntegrationPublisherEventVersions {
 	public static final int BOOK_REQUEST_VOTED = 1;
 	public static final int BOOK_REQUEST_APPROVED = 1;
 	public static final int BOOK_REQUEST_REJECTED = 1;
+	public static final int BOOK_REQUEST_PRICE_UPDATED = 1;
 
 	private BookIntegrationPublisherEventVersions() {}
 

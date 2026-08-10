@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.application.projection;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 import org.springframework.stereotype.Component;
@@ -38,10 +39,14 @@ public class BookRequestProjection implements BookRequestProjectionOperations{
 		repository.updateStatus(requestId, BookRequestStatus.REJECTED, occurredA);
 	}
 	
+	@Override
+	public void updatePrice(String requestId, BigDecimal estimatedPrice, Instant occurredA) {
+		repository.updatePrice(requestId, estimatedPrice, occurredA);		
+	}
+	
 	private BookRequestView getBookRequest(BookRequestAddedIntegrationPayload payload, Instant occurredAt) {
 		return new BookRequestView(payload.requestId(), payload.requesterUserId(), payload.author(), payload.title(), payload.isbn(),
-				payload.notes(), 1, BookRequestStatus.PENDING, occurredAt, occurredAt);
+				payload.notes(), 1, null, BookRequestStatus.PENDING, occurredAt, occurredAt);
 	}
-
 
 }

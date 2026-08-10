@@ -659,4 +659,96 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       | code    | "BOOK_REQUEST_NOT_FOUND" |
       | type    | "APPLICATION_ERROR"      |
     
+  Rule: Aggiornamento prezzo stimato libro richiesto
+  
+    Scenario: Aggiornamento con successo del prezzo stimato
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      When l'amministratore aggiorna il prezzo del libro richiesto con i seguenti dati:
+      """
+        {
+          "estimatedPrice": 12.82
+        }
+      """
+      Then la risposta ha status code 204
+      And la richiesta ha ISBN "9788804776369", prezzo stimato "12.82"
       
+    Scenario: Aggiornamento del prezzo stimato con richiesta non conforme al contratto API
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      When l'amministratore aggiorna il prezzo del libro richiesto con i seguenti dati:
+      """
+        {
+          "price": 12.82
+        }
+      """
+      Then la risposta ha status code 400
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "VALIDATION_ERROR"     |
+      | type    | "VALIDATION_ERROR"     |
+      
+    Scenario: Aggiornamento del prezzo stimato con dati non validi
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      When l'amministratore aggiorna il prezzo del libro richiesto con i seguenti dati:
+      """
+        {
+          "estimatedPrice": null
+        }
+      """
+      Then la risposta ha status code 400
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "VALIDATION_ERROR"     |
+      | type    | "VALIDATION_ERROR"     |
+      
+    Scenario: Aggiornamento del prezzo stimato per una richiesta che non esiste
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And la richiesta con ID "BR-123" non esiste
+      When l'amministratore aggiorna il prezzo del libro richiesto con i seguenti dati:
+      """
+        {
+          "estimatedPrice": 12.82
+        }
+      """
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_NOT_EXIST"     |
+      | type    | "AGGREGATE_INVARIANT_FAILED" |
+      
+    Scenario: Aggiornamento del prezzo stimato per una richiesta non in stato pending
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And la richiesta è stata approvata
+      And la richiesta è in stato "APPROVED"
+      When l'amministratore aggiorna il prezzo del libro richiesto con i seguenti dati:
+      """
+        {
+          "estimatedPrice": 12.82
+        }
+      """
+      Then la risposta ha status code 422
+      And la risposta contiene il campo "message"
+      And la risposta contiene i seguenti campi:
+      | code    | "BOOK_REQUEST_ALREADY_CLOSED"  |
+      | type    | "AGGREGATE_INVARIANT_FAILED"   |
+      
+    

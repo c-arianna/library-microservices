@@ -51,7 +51,8 @@ public class BookIntegrationEventListener {
 				eventProcessor.processProducerBookEvent(eventEnvelope);
 			}
 
-			case BOOK_REQUEST_ADDED, BOOK_REQUEST_APPROVED, BOOK_REQUEST_REJECTED, BOOK_REQUEST_VOTED -> {
+			case BOOK_REQUEST_ADDED, BOOK_REQUEST_APPROVED, BOOK_REQUEST_REJECTED, BOOK_REQUEST_VOTED,
+			     BOOK_REQUEST_PRICE_UPDATED -> {
 				eventProcessor.processProducerBookRquestEvent(eventEnvelope);
 			}
 			

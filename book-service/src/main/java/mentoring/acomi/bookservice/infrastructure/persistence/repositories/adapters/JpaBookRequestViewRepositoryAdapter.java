@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.persistence.repositories.adapters;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,11 @@ public class JpaBookRequestViewRepositoryAdapter implements BookRequestViewRepos
 		repository.updateStatus(requestId, status, updatedAt);
 	}
 
+	@Override
+	public void updatePrice(String requestId, BigDecimal estimatedPrice, Instant updatedAt) {
+		repository.updatePrice(requestId, estimatedPrice, updatedAt);	
+	}
+	
 	@Override
 	public void deleteAll() {
 		repository.deleteAll();

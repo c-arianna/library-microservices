@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.application.repositories;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 import mentoring.acomi.bookservice.application.view.BookRequestView;
@@ -10,4 +11,5 @@ public interface BookRequestViewRepository {
 	void registerVotes(String requestId, int votes, Instant updatedAt);
 	void updateStatus(String requestId, BookRequestStatus status, Instant updatedAt);
 	void deleteAll();
+	void updatePrice(String requestId, BigDecimal estimatedPrice, Instant updatedAt);
 }

@@ -1,0 +1,1 @@
+alter table book_request_view add column estimated_price DECIMAL(10,2) after votes;

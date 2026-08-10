@@ -4,7 +4,7 @@ import mentoring.acomi.bookservice.domain.events.ProducerEventType;
 
 public enum BookRequestEventType implements ProducerEventType {
 	
-    BookRequestAdded, BookRequestVoted, BookRequestApproved, BookRequestRejected;
+    BookRequestAdded, BookRequestVoted, BookRequestApproved, BookRequestRejected, BookRequestPriceUpdated;
     
     @Override
     public String eventName() {

@@ -15,6 +15,7 @@ import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRegiste
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReleasedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestAddedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestApprovedV1Handler;
+import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestPriceUpdatedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestRejectedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestVotedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReservedV1Handler;
@@ -57,6 +58,7 @@ public class ReplayBookHandlerFactory {
 				       new BookRequestApprovedV1Handler(replayBookRequestProjection, mapper),
 				       new BookRequestRejectedV1Handler(replayBookRequestProjection, mapper),
 				       new BookRequestVotedV1Handler(replayBookRequestProjection, replayBookRequestVoteProjection, mapper),
+				       new BookRequestPriceUpdatedV1Handler(replayBookRequestProjection, mapper),
 				       new UserSubscribedHandler(replayUserProjection, mapper),
 				       new UserUnsubscribedV1Handler(replayUserProjection, mapper)				       
 		);
