@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 import mentoring.acomi.bookservice.application.BookFilter;
 import mentoring.acomi.bookservice.application.aggregates.BookRequestAggregate;
 import mentoring.acomi.bookservice.application.aggregates.BookRequestAggregateFactory;
+import mentoring.acomi.bookservice.application.dto.AddBookRequestDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestAddedResponse;
 import mentoring.acomi.bookservice.application.dto.BookRequestDetailDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestDto;
@@ -35,7 +36,6 @@ import mentoring.acomi.bookservice.application.view.UserView;
 import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequest;
 import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus;
 import mentoring.acomi.bookservice.domain.errors.InvalidBookRequestStateTransition;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequestDto;
 
 @Service
 public class BookRequestService {

@@ -12,16 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import mentoring.acomi.bookservice.application.BookFilter;
+import mentoring.acomi.bookservice.application.dto.AddBookCopiesRequest;
+import mentoring.acomi.bookservice.application.dto.AddBookDto;
+import mentoring.acomi.bookservice.application.dto.AddSubscriptionRequest;
+import mentoring.acomi.bookservice.application.dto.BookDto;
+import mentoring.acomi.bookservice.application.dto.BookResponse;
+import mentoring.acomi.bookservice.application.dto.BookSubscriptionsResponse;
+import mentoring.acomi.bookservice.application.dto.BooksResponse;
+import mentoring.acomi.bookservice.application.dto.RemoveBookCopiesRequest;
 import mentoring.acomi.bookservice.application.services.BookService;
 import mentoring.acomi.bookservice.application.services.SubscriptionService;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
-import mentoring.acomi.bookservice.infrastructure.dto.AddSubscriptionRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.BookDto;
-import mentoring.acomi.bookservice.infrastructure.dto.BookResponse;
-import mentoring.acomi.bookservice.infrastructure.dto.BookSubscriptionsResponse;
-import mentoring.acomi.bookservice.infrastructure.dto.BooksResponse;
-import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
 
 @RestController
 public class BookController {

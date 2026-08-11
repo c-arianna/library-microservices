@@ -19,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import mentoring.acomi.bookservice.application.projection.BookRequestProjectionOperations;
 import mentoring.acomi.bookservice.application.projection.BookRequestVoteProjectionOperations;
+import mentoring.acomi.bookservice.application.view.BookRequestView;
+import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRequestAddedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestAddedIntegrationPayload;
@@ -58,7 +60,7 @@ public class BookRequestAddedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookRequestAddedIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).add(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).add(getBookRequest(event.payload(), event.occurredAt()));
 		verify(voteProjectionOperations, times(1)).add(event.payload().requestId(), event.payload().requesterUserId(), event.occurredAt());
 	}
 	
@@ -89,5 +91,10 @@ public class BookRequestAddedV1HandlerTest extends AbstractEventHandlerTest {
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_REQUEST_ADDED,
 				"test-handler", aggregateId, AggregateType.BOOK_REQUEST.name(), 0, Instant.now(),
 				schemaVersion, new BookRequestAddedIntegrationPayload(requestId, author, title, requesterUserId, isbn, "test"));
+	}
+	
+	private BookRequestView getBookRequest(BookRequestAddedIntegrationPayload payload, Instant occurredAt) {
+		return new BookRequestView(payload.requestId(), payload.requesterUserId(), payload.author(), payload.title(), payload.isbn(),
+				payload.notes(), 1, null, BookRequestStatus.PENDING, occurredAt, occurredAt);
 	}
 }

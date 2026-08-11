@@ -20,11 +20,11 @@ import mentoring.acomi.bookservice.application.dto.BookRequestAddedResponse;
 import mentoring.acomi.bookservice.application.dto.BookRequestDetailDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestRejectDto;
+import mentoring.acomi.bookservice.application.dto.AddBookRequestDto;
 import mentoring.acomi.bookservice.application.dto.BookPurchaseSuggestionDto;
 import mentoring.acomi.bookservice.application.dto.UpdateEstimatedPriceDto;
 import mentoring.acomi.bookservice.application.purchasesuggestion.services.BookPurchaseSuggestionService;
 import mentoring.acomi.bookservice.application.services.BookRequestService;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequestDto;
 
 @RestController
 @RequestMapping("/requests")

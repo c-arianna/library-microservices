@@ -54,7 +54,7 @@ public class BookReleasedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookLoanIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).release(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).release(event.payload().isbn(), event.occurredAt());
 
 	}
 

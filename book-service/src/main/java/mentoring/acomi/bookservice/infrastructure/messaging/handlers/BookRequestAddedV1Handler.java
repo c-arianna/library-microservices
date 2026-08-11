@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.messaging.handlers;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -7,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.bookservice.application.projection.BookRequestProjectionOperations;
 import mentoring.acomi.bookservice.application.projection.BookRequestVoteProjectionOperations;
+import mentoring.acomi.bookservice.application.view.BookRequestView;
+import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestAddedIntegrationPayload;
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
@@ -37,9 +40,14 @@ public class BookRequestAddedV1Handler extends AbstractEventHandler<BookRequestA
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(BookRequestAddedIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.add(payload, event.occurredAt());
+		projectionOperations.add(getBookRequest(payload, event.occurredAt()));
 		voteProjectionOperations.add(payload.requestId(), payload.requesterUserId(), event.occurredAt());
 		return Optional.of(new ProjectionUpdateNotification(payload.requestId()));
+	}
+	
+	private BookRequestView getBookRequest(BookRequestAddedIntegrationPayload payload, Instant occurredAt) {
+		return new BookRequestView(payload.requestId(), payload.requesterUserId(), payload.author(), payload.title(), payload.isbn(),
+				payload.notes(), 1, null, BookRequestStatus.PENDING, occurredAt, occurredAt);
 	}
 
 }

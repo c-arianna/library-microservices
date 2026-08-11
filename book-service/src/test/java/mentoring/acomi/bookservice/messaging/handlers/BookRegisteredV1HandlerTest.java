@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import mentoring.acomi.bookservice.application.projection.BookProjectionOperations;
+import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookRegisteredV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
@@ -54,7 +55,7 @@ public class BookRegisteredV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookRegisteredIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).addBook(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).addBook(getBook(event.payload()), event.occurredAt());
 	}
 	
 	
@@ -84,6 +85,10 @@ public class BookRegisteredV1HandlerTest extends AbstractEventHandlerTest {
 		return new IntegrationEventEnvelope<>(UUID.randomUUID().toString(), IntegrationEventTypes.BOOK_REGISTERED,
 				"test-handler", aggregateId, AggregateType.BOOK.name(), 0, Instant.now(),
 				schemaVersion, new BookRegisteredIntegrationPayload(isbn, author, title, description));
+	}
+	
+	private BookView getBook(BookRegisteredIntegrationPayload payload) {
+		return new BookView(payload.isbn(), payload.author(), payload.title(), payload.description(), 0, 0, 0, 0);
 	}
 
 }

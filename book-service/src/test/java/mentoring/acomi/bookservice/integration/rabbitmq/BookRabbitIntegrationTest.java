@@ -28,6 +28,8 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import mentoring.acomi.bookservice.application.dto.AddBookCopiesRequest;
+import mentoring.acomi.bookservice.application.dto.AddBookDto;
 import mentoring.acomi.bookservice.application.outbox.OutboxPublisher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewQueryRepository;
@@ -37,8 +39,6 @@ import mentoring.acomi.bookservice.config.RabbitMQConfigTest;
 import mentoring.acomi.bookservice.config.SecurityTestConfig;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.book.BookEventType;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
 import mentoring.acomi.bookservice.infrastructure.messaging.BookIntegrationConsumerEventVersions;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanRequestedIntegrationPayload;

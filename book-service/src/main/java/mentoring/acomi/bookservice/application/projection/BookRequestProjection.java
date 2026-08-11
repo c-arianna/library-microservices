@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import mentoring.acomi.bookservice.application.repositories.BookRequestViewRepository;
 import mentoring.acomi.bookservice.application.view.BookRequestView;
 import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRequestAddedIntegrationPayload;
 
 @Component
 public class BookRequestProjection implements BookRequestProjectionOperations{
@@ -20,8 +19,8 @@ public class BookRequestProjection implements BookRequestProjectionOperations{
 	}
 
 	@Override
-	public void add(BookRequestAddedIntegrationPayload payload, Instant occurredAt) {
-		repository.add(getBookRequest(payload, occurredAt));	
+	public void add(BookRequestView view) {
+		repository.add(view);	
 	}
 
 	@Override
@@ -44,9 +43,4 @@ public class BookRequestProjection implements BookRequestProjectionOperations{
 		repository.updatePrice(requestId, estimatedPrice, occurredA);		
 	}
 	
-	private BookRequestView getBookRequest(BookRequestAddedIntegrationPayload payload, Instant occurredAt) {
-		return new BookRequestView(payload.requestId(), payload.requesterUserId(), payload.author(), payload.title(), payload.isbn(),
-				payload.notes(), 1, null, BookRequestStatus.PENDING, occurredAt, occurredAt);
-	}
-
 }

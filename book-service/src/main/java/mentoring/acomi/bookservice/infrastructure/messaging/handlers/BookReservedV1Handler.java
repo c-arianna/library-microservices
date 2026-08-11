@@ -33,7 +33,7 @@ public class BookReservedV1Handler extends AbstractEventHandler<BookLoanIntegrat
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(BookLoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.reserve(payload, event.occurredAt());
+		projectionOperations.reserve(payload.isbn(), event.occurredAt());
 		return Optional.of(new ProjectionUpdateNotification(payload.isbn()));
 	}
 

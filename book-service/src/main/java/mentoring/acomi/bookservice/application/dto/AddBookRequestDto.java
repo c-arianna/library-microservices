@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.infrastructure.dto;
+package mentoring.acomi.bookservice.application.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

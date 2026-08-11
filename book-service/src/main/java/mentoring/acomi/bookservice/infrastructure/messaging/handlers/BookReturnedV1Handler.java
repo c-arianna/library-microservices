@@ -33,7 +33,7 @@ public class BookReturnedV1Handler extends AbstractEventHandler<BookLoanIntegrat
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(BookLoanIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.returnBorrowed(payload, event.occurredAt());
+		projectionOperations.returnBorrowed(payload.isbn(), event.occurredAt());
 		return Optional.of(new ProjectionUpdateNotification(payload.isbn()));
 	}
 

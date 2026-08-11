@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
 import mentoring.acomi.bookservice.domain.events.ProducerEventType;
 import mentoring.acomi.bookservice.domain.events.book.BookEventType;
@@ -20,10 +19,10 @@ import mentoring.acomi.sharedcorelibrary.replay.ReplayEventHandlerRegistry;
 @Service
 public class BookReplayService extends AbstractReplayService<BookEventEntity> {
 
-    private final BookEventRepository bookEventRepository;
+    private final BookEventReplayRepository bookEventRepository;
     private final BookReplayEventMapper replayMapper;
 
-    public BookReplayService(BookEventRepository bookEventRepository, BookReplayEventMapper replayMapper, 
+    public BookReplayService(BookEventReplayRepository bookEventRepository, BookReplayEventMapper replayMapper, 
     		ReplayEventHandlerRegistry registry, List<ReplayProjection> replayProjections) {
         super(registry, replayProjections);
         this.bookEventRepository = bookEventRepository;

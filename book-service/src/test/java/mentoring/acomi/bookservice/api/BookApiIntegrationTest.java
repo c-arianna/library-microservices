@@ -25,12 +25,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 
+import mentoring.acomi.bookservice.application.dto.AddBookCopiesRequest;
+import mentoring.acomi.bookservice.application.dto.AddBookDto;
+import mentoring.acomi.bookservice.application.dto.RemoveBookCopiesRequest;
 import mentoring.acomi.bookservice.application.messaging.EventDispatcher;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewRepository;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
-import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BookApiIntegrationTest {

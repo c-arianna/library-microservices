@@ -54,7 +54,8 @@ public class BookCopiesUpdatedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookCopiesUpdatedIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).updateCopies(event.payload(), event.occurredAt());
+		BookCopiesUpdatedIntegrationPayload payload = event.payload();
+		verify(projectionOperations, times(1)).updateCopies(payload.isbn(), payload.quantity(), event.occurredAt());
 	}
 	
 	@TestFactory

@@ -7,13 +7,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import mentoring.acomi.bookservice.application.dto.AddSubscriptionRequest;
+import mentoring.acomi.bookservice.application.dto.BookSubscriptionDto;
+import mentoring.acomi.bookservice.application.dto.BookSubscriptionsResponse;
 import mentoring.acomi.bookservice.application.errors.InvalidUser;
 import mentoring.acomi.bookservice.application.errors.UserNotFound;
 import mentoring.acomi.bookservice.application.repositories.BookSubscriptionRepository;
 import mentoring.acomi.bookservice.application.view.BookSubscriptionView;
-import mentoring.acomi.bookservice.infrastructure.dto.AddSubscriptionRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.BookSubscriptionDto;
-import mentoring.acomi.bookservice.infrastructure.dto.BookSubscriptionsResponse;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.BookSubscriptionStatus;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.SubscriptionType;
 

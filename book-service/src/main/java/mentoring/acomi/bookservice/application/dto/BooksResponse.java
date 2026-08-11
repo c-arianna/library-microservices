@@ -1,4 +1,4 @@
-package mentoring.acomi.bookservice.infrastructure.dto;
+package mentoring.acomi.bookservice.application.dto;
 
 import java.util.List;
 

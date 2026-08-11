@@ -9,6 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import mentoring.acomi.bookservice.application.BookFilter;
 import mentoring.acomi.bookservice.application.aggregates.BookAggregate;
 import mentoring.acomi.bookservice.application.aggregates.BookAggregateFactory;
+import mentoring.acomi.bookservice.application.dto.AddBookCopiesRequest;
+import mentoring.acomi.bookservice.application.dto.AddBookDto;
+import mentoring.acomi.bookservice.application.dto.BookDto;
+import mentoring.acomi.bookservice.application.dto.BookResponse;
+import mentoring.acomi.bookservice.application.dto.BooksResponse;
+import mentoring.acomi.bookservice.application.dto.RemoveBookCopiesRequest;
 import mentoring.acomi.bookservice.application.errors.BookNotFound;
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.application.repositories.BookViewQueryRepository;
@@ -16,12 +22,6 @@ import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.domain.book.model.Book;
 import mentoring.acomi.bookservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.bookservice.domain.events.AggregateType;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookCopiesRequest;
-import mentoring.acomi.bookservice.infrastructure.dto.AddBookDto;
-import mentoring.acomi.bookservice.infrastructure.dto.BookDto;
-import mentoring.acomi.bookservice.infrastructure.dto.BookResponse;
-import mentoring.acomi.bookservice.infrastructure.dto.BooksResponse;
-import mentoring.acomi.bookservice.infrastructure.dto.RemoveBookCopiesRequest;
 
 @Service
 public class BookService {

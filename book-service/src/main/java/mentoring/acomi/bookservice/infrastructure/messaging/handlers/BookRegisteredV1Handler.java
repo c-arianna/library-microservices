@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.bookservice.application.projection.BookProjectionOperations;
+import mentoring.acomi.bookservice.application.view.BookView;
 import mentoring.acomi.bookservice.infrastructure.messaging.payload.producer.BookRegisteredIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.AbstractEventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
@@ -33,8 +34,13 @@ public class BookRegisteredV1Handler extends AbstractEventHandler<BookRegistered
 
 	@Override
 	protected Optional<ProjectionUpdateNotification> process(BookRegisteredIntegrationPayload payload, IntegrationEventEnvelope<?> event) {
-		projectionOperations.addBook(payload, event.occurredAt());
+		BookView view = getBook(payload);
+		projectionOperations.addBook(view, event.occurredAt());
 		return Optional.of(new ProjectionUpdateNotification(payload.isbn()));
+	}
+	
+	private BookView getBook(BookRegisteredIntegrationPayload payload) {
+		return new BookView(payload.isbn(), payload.author(), payload.title(), payload.description(), 0, 0, 0, 0);
 	}
 
 }

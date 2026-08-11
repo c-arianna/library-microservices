@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.domain.events.book.BookEvent;
+import mentoring.acomi.bookservice.infrastructure.messaging.replay.BookEventReplayRepository;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
 import mentoring.acomi.bookservice.infrastructure.persistence.mapper.BookEventJpaMapper;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookEventJpaRepository;
@@ -15,7 +16,8 @@ import mentoring.acomi.sharedjpalibrary.eventstore.AbstractJpaEventRepositoryAda
 
 @Repository
 @Transactional
-public class JpaBookEventRepositoryAdapter extends AbstractJpaEventRepositoryAdapter<BookEvent, BookEventEntity> implements BookEventRepository{
+public class JpaBookEventRepositoryAdapter extends AbstractJpaEventRepositoryAdapter<BookEvent, BookEventEntity> implements BookEventRepository, 
+BookEventReplayRepository {
 
 	public JpaBookEventRepositoryAdapter(BookEventJpaRepository repository, BookEventJpaMapper mapper) {
 		 super(repository, mapper);

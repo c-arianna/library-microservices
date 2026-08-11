@@ -55,7 +55,7 @@ public class BookReservedV1HandlerTest extends AbstractEventHandlerTest {
 		IntegrationEventEnvelope<BookLoanIntegrationPayload> event = validEvent();
 		Optional<ProjectionUpdateNotification> notification = handler.handleEvent(event);
 		Assertions.assertTrue(notification.isPresent());
-		verify(projectionOperations, times(1)).reserve(event.payload(), event.occurredAt());
+		verify(projectionOperations, times(1)).reserve(event.payload().isbn(), event.occurredAt());
 	}
 	
 	@TestFactory
