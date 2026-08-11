@@ -8,13 +8,15 @@ import org.springframework.transaction.annotation.Transactional;
 import mentoring.acomi.sharedjpalibrary.eventstore.AbstractJpaEventRepositoryAdapter;
 import mentoring.acomi.userservice.application.repositories.UserEventRepository;
 import mentoring.acomi.userservice.domain.events.UserEvent;
+import mentoring.acomi.userservice.infrastructure.messaging.replay.UserEventReplayRepository;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserEventEntity;
 import mentoring.acomi.userservice.infrastructure.persistence.mapper.UserEventJpaMapper;
 import mentoring.acomi.userservice.infrastructure.persistence.repositories.UserEventJpaRepository;
 
 @Repository
 @Transactional
-public class JpaUserEventRepositoryAdapter extends AbstractJpaEventRepositoryAdapter<UserEvent, UserEventEntity> implements UserEventRepository {
+public class JpaUserEventRepositoryAdapter extends AbstractJpaEventRepositoryAdapter<UserEvent, UserEventEntity> implements UserEventRepository,
+UserEventReplayRepository {
 
 	public JpaUserEventRepositoryAdapter(UserEventJpaRepository repository, UserEventJpaMapper mapper) {
 		 super(repository, mapper);

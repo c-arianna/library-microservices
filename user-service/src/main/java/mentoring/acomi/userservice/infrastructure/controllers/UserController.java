@@ -12,15 +12,15 @@ import jakarta.validation.Valid;
 import mentoring.acomi.sharedcodelibrary.common.CardNumberUtils;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.UserFilter;
+import mentoring.acomi.userservice.application.dto.SubscribeRequest;
+import mentoring.acomi.userservice.application.dto.SuspendRequest;
+import mentoring.acomi.userservice.application.dto.UnsubscribeRequest;
+import mentoring.acomi.userservice.application.dto.UserDetail;
+import mentoring.acomi.userservice.application.dto.UserRegisterRequest;
+import mentoring.acomi.userservice.application.dto.UserResponse;
+import mentoring.acomi.userservice.application.dto.UserSubscribedResponse;
+import mentoring.acomi.userservice.application.dto.UsersResponse;
 import mentoring.acomi.userservice.application.services.UserService;
-import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
-import mentoring.acomi.userservice.infrastructure.dto.UserRegisterRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
-import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
-import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
 
 @RestController
 public class UserController {

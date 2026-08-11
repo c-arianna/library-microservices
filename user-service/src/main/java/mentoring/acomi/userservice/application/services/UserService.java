@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +16,16 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.UserFilter;
 import mentoring.acomi.userservice.application.aggregates.UserAggregate;
 import mentoring.acomi.userservice.application.aggregates.UserAggregateFactory;
+import mentoring.acomi.userservice.application.dto.SubscribeRequest;
+import mentoring.acomi.userservice.application.dto.SuspendRequest;
+import mentoring.acomi.userservice.application.dto.UnsubscribeRequest;
+import mentoring.acomi.userservice.application.dto.UserDetail;
+import mentoring.acomi.userservice.application.dto.UserRegisterRequest;
+import mentoring.acomi.userservice.application.dto.UserRegisteredDto;
+import mentoring.acomi.userservice.application.dto.UserResponse;
+import mentoring.acomi.userservice.application.dto.UserSubscribedResponse;
+import mentoring.acomi.userservice.application.dto.UsersResponse;
+import mentoring.acomi.userservice.application.errors.IdentityProviderException;
 import mentoring.acomi.userservice.application.errors.InvalidUser;
 import mentoring.acomi.userservice.application.errors.InvalidUserData;
 import mentoring.acomi.userservice.application.errors.UserCreationError;
@@ -29,16 +38,6 @@ import mentoring.acomi.userservice.application.view.UserView;
 import mentoring.acomi.userservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.userservice.domain.model.CardNumber;
 import mentoring.acomi.userservice.domain.model.User;
-import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
-import mentoring.acomi.userservice.infrastructure.dto.UserRegisterRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserRegisteredDto;
-import mentoring.acomi.userservice.infrastructure.dto.UserResponse;
-import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
-import mentoring.acomi.userservice.infrastructure.dto.UsersResponse;
-import mentoring.acomi.userservice.infrastructure.sso.keycloak.errors.KeycloakException;
 
 @Service
 public class UserService {
@@ -170,7 +169,7 @@ public class UserService {
 		
 		try {
 			return identityProviderService.createUser(user.email(), user.password(), user.name(), user.lastname(), user.role());
-		}catch (KeycloakException ex) {
+		}catch (IdentityProviderException ex) {
 		    throw mapIdentityProviderException(ex);
 		}
 	}
@@ -178,28 +177,31 @@ public class UserService {
 	private void deleteIdentityProviderUser(String userIdentityProviderId) {
 		try {	
 			identityProviderService.deleteUser(userIdentityProviderId);
-		}catch (KeycloakException ex) {
+		}catch (IdentityProviderException ex) {
 		    throw mapIdentityProviderException(ex);
 		}
 	}
 	
-	private RuntimeException mapIdentityProviderException(KeycloakException ex) {
+	private RuntimeException mapIdentityProviderException(IdentityProviderException ex) {
 		
-		String message = ex.getMessage();
+		return switch (ex.error()) {
 		
-		if (ex.getHttpStatusCode().equals(HttpStatus.CONFLICT)) {
-		    return new ApplicationConflict("USER_ALREADY_EXISTS", message);
-		}
+			case USER_ALREADY_EXISTS -> {
+				yield new ApplicationConflict("USER_ALREADY_EXISTS", ex.getMessage());
+			}
+			
+			case INVALID_USER_DATA -> {
+				yield new InvalidUserData(ex.getMessage());
+			}
+			case AUTHORIZATION_DENIED -> {
+				yield new AuthorizationDeniedException(ex.getMessage());
+			}
+			
+			default -> {
+				yield new UserCreationError(ex.getMessage());
+			}
+		};
 
-		if (ex.getHttpStatusCode().equals(HttpStatus.BAD_REQUEST)) {
-		    return new InvalidUserData(message);
-		}
-		
-		if (ex.getHttpStatusCode().equals(HttpStatus.FORBIDDEN)) {
-		    return new AuthorizationDeniedException(message);
-		}
-
-		return new UserCreationError(message);
 	}
 
 	public UserDetail getUserDetail(String userId) {

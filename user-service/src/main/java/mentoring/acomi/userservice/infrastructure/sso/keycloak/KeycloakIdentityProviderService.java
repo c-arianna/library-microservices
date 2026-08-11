@@ -13,6 +13,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
+import mentoring.acomi.userservice.application.errors.IdentityProviderError;
+import mentoring.acomi.userservice.application.errors.IdentityProviderException;
 import mentoring.acomi.userservice.application.sso.IdentityProviderService;
 import mentoring.acomi.userservice.application.sso.ProviderUserCreated;
 import mentoring.acomi.userservice.infrastructure.sso.client.KeycloakAdminTokenService;
@@ -33,8 +35,7 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 	private final KeycloakProperties properties;
 	private final KeycloakAdminTokenService tokenService;
 
-	public KeycloakIdentityProviderService(RestClient.Builder builder, KeycloakProperties properties,
-			KeycloakAdminTokenService tokenService) {
+	public KeycloakIdentityProviderService(RestClient.Builder builder, KeycloakProperties properties, KeycloakAdminTokenService tokenService) {
 		this.restClient = builder.build();
 		this.properties = properties;
 		this.tokenService = tokenService;
@@ -83,16 +84,16 @@ public class KeycloakIdentityProviderService implements IdentityProviderService 
 		return extractIdFromLocation(location);
 	}
 
-	private KeycloakException mapKeycloakError(RestClientResponseException ex, String email) {
+	private IdentityProviderException mapKeycloakError(RestClientResponseException ex, String email) {
 
 		HttpStatusCode status = ex.getStatusCode();
 
 		return switch (status.value()) {
-			case 400 -> new KeycloakException(status, String.format("Invalid user data for ", email));
-			case 403 -> new KeycloakException(status, "Not authorized to create user in Keycloak");
-			case 409 -> new KeycloakException(status, String.format("User already exists: ", email));
-			case 404 -> new KeycloakException(status, String.format("User not found: ", email));
-			default -> new KeycloakException(status, String.format("Keycloak error: ", ex.getResponseBodyAsString()));
+			case 400 -> new IdentityProviderException(IdentityProviderError.INVALID_USER_DATA, String.format("Invalid user data for ", email));
+			case 403 -> new IdentityProviderException(IdentityProviderError.AUTHORIZATION_DENIED, "Not authorized to create user in Keycloak");
+			case 404 -> new IdentityProviderException( IdentityProviderError.USER_ALREADY_EXISTS, String.format("User not found: ", email));
+			case 409 -> new IdentityProviderException(IdentityProviderError.USER_NOT_FOUND, String.format("User already exists: ", email));
+			default -> new IdentityProviderException(IdentityProviderError.GENERIC_ERROR, String.format("Keycloak error: ", ex.getResponseBodyAsString()));
 		};
 	}
 

@@ -30,15 +30,15 @@ import org.springframework.web.client.RestClient;
 
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
+import mentoring.acomi.userservice.application.dto.SubscribeRequest;
+import mentoring.acomi.userservice.application.dto.SuspendRequest;
+import mentoring.acomi.userservice.application.dto.UnsubscribeRequest;
+import mentoring.acomi.userservice.application.dto.UserDetail;
+import mentoring.acomi.userservice.application.dto.UserRegisterRequest;
+import mentoring.acomi.userservice.application.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.application.messaging.EventDispatcher;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.view.UserView;
-import mentoring.acomi.userservice.infrastructure.dto.SubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.SuspendRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UnsubscribeRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserDetail;
-import mentoring.acomi.userservice.infrastructure.dto.UserRegisterRequest;
-import mentoring.acomi.userservice.infrastructure.dto.UserSubscribedResponse;
 import mentoring.acomi.userservice.testcontainers.AbstractKeycloakIntegrationTest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

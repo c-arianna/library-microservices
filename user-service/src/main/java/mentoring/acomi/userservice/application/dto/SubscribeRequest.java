@@ -1,4 +1,4 @@
-package mentoring.acomi.userservice.infrastructure.dto;
+package mentoring.acomi.userservice.application.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
