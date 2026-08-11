@@ -751,4 +751,101 @@ Feature: Gestione del catalogo della biblioteca tramite l'applicazione
       | code    | "BOOK_REQUEST_ALREADY_CLOSED"  |
       | type    | "AGGREGATE_INVARIANT_FAILED"   |
       
+  Rule: Visualizzazione proposta di acquisto libri
+  
+    Scenario: Non ci sono richieste libri
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      When l'amministratore visuallizza le proposte di acquisto con budget "100.00" euro
+      Then la risposta ha status code 200
+      And la risposta contiene i seguenti campi:
+      | budget  	| 100  |
+      | totalCost   | 0    |
+      | totalScore  | 0    |
+      | status      | "NO_PENDING_REQUESTS" |
+      And la lista dei libri suggeriti contiene 0 elementi
+      
+    Scenario: Non ci sono richieste libri in stato pending e con prezzo settato
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And il catalogo non contiene il libro con isbn "9788804336327"
+      And esiste una richiesta per il libro isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante"
+      And la richiesta è in stato "PENDING"
+      And la richiesta è stata approvata
+      And la richiesta è in stato "APPROVED"
+      When l'amministratore visuallizza le proposte di acquisto con budget "100.00" euro
+      Then la risposta ha status code 200
+      And la risposta contiene i seguenti campi:
+      | budget  	| 100                      |
+      | totalCost   | 0                        |
+      | totalScore  | 0                        |
+      | status      | "NO_REQUESTS_WITH_PRICE" |
+      And la lista dei libri suggeriti contiene 0 elementi
+      
+    Scenario: Le richieste in stato pending hanno prezzo maggiore del budget previsto
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And la richiesta ha prezzo stimato "20.90" euro
+      And il catalogo non contiene il libro con isbn "9788804336327"
+      And esiste una richiesta per il libro isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante"
+      And la richiesta è in stato "PENDING"
+      And la richiesta ha prezzo stimato "22.50" euro
+      When l'amministratore visuallizza le proposte di acquisto con budget "20.00" euro
+      Then la risposta ha status code 200
+      And la risposta contiene i seguenti campi:
+      | budget  	| 20               |
+      | totalCost   | 0                |
+      | totalScore  | 0    			   |
+      | status      | "BUDGET_TOO_LOW" |
+      And la lista dei libri suggeriti contiene 0 elementi
+      
+    Scenario: Le richieste in stato pending soddisfano il budget a disposizione
+      Given l'amministratore con credenziali "admin@gmail.com", "admin12345678" è autenticato
+      And il catalogo non contiene il libro con isbn "9788804776369"
+      And esiste l'utente con credenziali "reader@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "reader@gmail.com", "Test12345678" è autenticato
+      And esiste una richiesta per il libro isbn "9788804776369", autore "Italo Calvino", titolo "Il visconte dimezzato"
+      And la richiesta è in stato "PENDING"
+      And la richiesta ha prezzo stimato "20.90" euro
+      And il catalogo non contiene il libro con isbn "9788804336327"
+      And esiste una richiesta per il libro isbn "9788804336327", autore "Italo Calvino", titolo "Il barone rampante"
+      And la richiesta è in stato "PENDING"
+      And la richiesta ha prezzo stimato "22.50" euro
+      And esiste l'utente con credenziali "mario.verdi@gmail.com", "Test12345678", nome "Mario", cognome "Verdi"
+      And l'utente con credenziali "mario.verdi@gmail.com", "Test12345678" è autenticato
+      And esiste un voto dell'utente per la richiesta
+      And il catalogo non contiene il libro con isbn "9780439139595"
+      And esiste una richiesta per il libro isbn "9780439139595", autore "J. K. Rowling", titolo "Harry Potter e il calice di fuoco"
+      And la richiesta è in stato "PENDING"
+      And la richiesta ha prezzo stimato "25.80" euro
+      And esiste l'utente con credenziali "mario.rossi@gmail.com", "Test12345678", nome "Mario", cognome "Rossi"
+      And l'utente con credenziali "mario.rossi@gmail.com", "Test12345678" è autenticato
+      And esiste un voto dell'utente per la richiesta
+      When l'amministratore visuallizza le proposte di acquisto con budget "50.00" euro
+      Then la risposta ha status code 200
+      And la risposta contiene i seguenti campi:
+      | budget  	| 50        |
+      | totalCost   | 48.30     |
+      | totalScore  | 8         |
+      | status      | "SUCCESS" |
+      And la lista dei libri suggeriti contiene 2 elementi
+      And la lista dei libri suggeriti ha un elemento con i campi:
+      | title  	       | "Il barone rampante" |
+      | author         | "Italo Calvino"      |
+      | estimatedPrice | 22.50                |
+      | votes          | 2                    |
+      | score          | 4                    |
+      And la lista dei libri suggeriti ha un elemento con i campi:
+      | title  	       | "Harry Potter e il calice di fuoco" |
+      | author         | "J. K. Rowling"                     |
+      | estimatedPrice | 25.80                               |
+      | votes          | 2                                   |
+      | score          | 4                                   |
     

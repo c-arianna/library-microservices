@@ -77,4 +77,14 @@ public class JpaBookRequestViewRepositoryAdapter implements BookRequestViewRepos
 		return bookRequest.isEmpty() ? Optional.empty() : Optional.of(mapper.toView(bookRequest.get()));
 	}
 	
+	@Override
+	public List<BookRequestView> findPurchasableRequests() {
+		return repository.findPurchasableRequests();
+	}
+
+	@Override
+	public long countByStatus(BookRequestStatus status) {
+		return repository.countByStatus(status);
+	}
+	
 }

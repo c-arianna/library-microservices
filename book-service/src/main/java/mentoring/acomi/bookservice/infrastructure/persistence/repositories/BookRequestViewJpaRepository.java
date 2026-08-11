@@ -2,6 +2,7 @@ package mentoring.acomi.bookservice.infrastructure.persistence.repositories;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import mentoring.acomi.bookservice.application.view.BookRequestView;
 import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus;
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookRequestViewEntity;
 
@@ -44,4 +46,14 @@ public interface BookRequestViewJpaRepository extends JpaRepository<BookRequestV
 	@Query("UPDATE BookRequestViewEntity e set e.estimatedPrice = :estimatedPrice, e.updatedAt = :updatedAt where e.requestId = :requestId")
 	void updatePrice(@Param("requestId") String requestId, @Param("estimatedPrice") BigDecimal estimatedPrice, 
 			@Param("updatedAt") Instant updatedAt);
+	
+	@Query("""
+			SELECT b 
+			   FROM BookRequestViewEntity b 
+			      WHERE b.estimatedPrice IS NOT NULL and 
+			      b.status = mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus.PENDING
+		    """)
+	List<BookRequestView> findPurchasableRequests();
+
+	long countByStatus(BookRequestStatus status);
 }

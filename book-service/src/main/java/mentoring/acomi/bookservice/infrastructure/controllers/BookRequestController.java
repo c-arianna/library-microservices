@@ -1,5 +1,6 @@
 package mentoring.acomi.bookservice.infrastructure.controllers;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,7 +20,9 @@ import mentoring.acomi.bookservice.application.dto.BookRequestAddedResponse;
 import mentoring.acomi.bookservice.application.dto.BookRequestDetailDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestDto;
 import mentoring.acomi.bookservice.application.dto.BookRequestRejectDto;
+import mentoring.acomi.bookservice.application.dto.BookPurchaseSuggestionDto;
 import mentoring.acomi.bookservice.application.dto.UpdateEstimatedPriceDto;
+import mentoring.acomi.bookservice.application.purchasesuggestion.services.BookPurchaseSuggestionService;
 import mentoring.acomi.bookservice.application.services.BookRequestService;
 import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequestDto;
 
@@ -27,9 +31,11 @@ import mentoring.acomi.bookservice.infrastructure.dto.AddBookRequestDto;
 public class BookRequestController {
 
 	private final BookRequestService service;
+	private final BookPurchaseSuggestionService purchaseService;
 
-	public BookRequestController(BookRequestService service) {
+	public BookRequestController(BookRequestService service, BookPurchaseSuggestionService purchaseService) {
 		this.service = service;
+		this.purchaseService = purchaseService;
 	}
 
 	@PreAuthorize("hasAnyRole('READER')")
@@ -77,5 +83,11 @@ public class BookRequestController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void updateEstimatedPrice(@Valid @RequestBody UpdateEstimatedPriceDto request, @PathVariable String bookRequestId) {
 		service.updateEstimatedPrice(bookRequestId, request.estimatedPrice());
+	}
+	
+	@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+	@GetMapping("/purchaseSuggestions")
+	public BookPurchaseSuggestionDto suggest(@RequestParam BigDecimal budget) {
+	    return purchaseService.suggest(budget);
 	}
 }

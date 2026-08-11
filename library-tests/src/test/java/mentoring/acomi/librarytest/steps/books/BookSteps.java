@@ -153,6 +153,40 @@ public class BookSteps {
 
 	}
 
+	@Given("la richiesta ha prezzo stimato {string} euro")
+	public void assignEstimatedPrice(String price) {
+		
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+		String bookRequestId = context.get(BOOK_REQUEST_ID, String.class);
+
+		BigDecimal estimatedPrice = new BigDecimal(price);
+		
+		String body = """
+				{
+				   "estimatedPrice": %s
+				}				
+				""".formatted(estimatedPrice.toPlainString());
+		
+		var result = client.patch().uri("/books/requests/%s/estimatedPrice".formatted(bookRequestId))
+				.contentType(MediaType.APPLICATION_JSON).header("Authorization", "Bearer %s".formatted(accessToken))
+				.body(body).exchange().expectBody().returnResult();
+		
+		Assertions.assertEquals(204, result.getStatus().value());
+		
+		Supplier<EntityExchangeResult<byte[]>> query = () -> client.get()
+				.uri("/books/requests/%s".formatted(bookRequestId))
+				.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+		
+		Helper.awaitAndAssert(query, json -> Assertions.assertAll(() -> {
+			String isbnResponse = json.read("$.requestId");
+			Assertions.assertEquals(bookRequestId, isbnResponse);
+		}, () -> {
+			BigDecimal estimatedPriceResponse = json.read("$.estimatedPrice", BigDecimal.class);
+			Assertions.assertTrue(estimatedPrice.compareTo(estimatedPriceResponse) == 0, 
+					"Expected %s but was %s".formatted(price, estimatedPriceResponse));
+		}), 5000, 200);
+		
+	}
 	/*
 	 * ############################### WHEN #####################################
 	 */
@@ -382,6 +416,25 @@ public class BookSteps {
 		}
 		
 	}
+	
+	@When("l'amministratore visuallizza le proposte di acquisto con budget {string} euro")
+	public void getSuggestPurchaseBooks(String budget) {
+		
+		String accessToken = context.get(CommonSteps.ADMIN_ACCESS_TOKEN, String.class);
+				
+		BigDecimal budgetParam = new BigDecimal(budget);
+		
+		var result = client.get().uri("/books/requests/purchaseSuggestions?budget=%s".formatted(budgetParam))
+			.header("Authorization", "Bearer %s".formatted(accessToken)).exchange().expectBody().returnResult();
+		
+		context.put(CommonSteps.RESPONSE_STATUS, result.getStatus().value());
+		
+		if (result.getResponseBody() != null) {
+			String response = new String(result.getResponseBody(), StandardCharsets.UTF_8);
+			context.put(CommonSteps.RESPONSE_BODY, response);
+		}
+		
+	}
 
 	/*
 	 * ############################### THEN #####################################
@@ -503,6 +556,37 @@ public class BookSteps {
 		}), 5000, 200);
 	}
 	
+	@Then("la lista dei libri suggeriti contiene {int} elementi")
+	public void checkPurchaseSuggestBookList(int size) {
+
+		String body = context.get(CommonSteps.RESPONSE_BODY, String.class);
+		var responseBody = JsonPath.parse(body);
+		
+		Integer actual = responseBody.read("$.books.length()");
+		Assertions.assertEquals(size, actual, "Expected %d elements', found %d".formatted(size, actual));
+		
+	}
+	
+	@Then("la lista dei libri suggeriti ha un elemento con i campi:")
+    public void checkPurchaseSuggestBookListContent(Map<String, String> expectedRaw) {
+		
+		Map<String, ExpectedValue> expected = new LinkedHashMap<>();
+		expectedRaw.forEach((k, v) -> {
+			String resolved = Helper.resolve(v, context);
+			expected.put(k, Helper.normalizeExpected(resolved));
+		});
+
+		String body = context.get(CommonSteps.RESPONSE_BODY, String.class);
+
+		var bodyResponse = JsonPath.parse(body);
+		
+		List<Map<String, Object>> items = bodyResponse.read("$.books");
+		
+		boolean found = items.stream().anyMatch(item -> matchesExpectedFields(item, expected));
+		
+		Assertions.assertTrue(found, "Nessun elemento della lista contiene i campi attesi: %s, response: ".formatted(expected, body));
+	}
+	
 	/*
 	 * ############################### HELPER METHODS #####################################
 	 */
@@ -555,6 +639,23 @@ public class BookSteps {
 				.header("Authorization", String.join(" ", "Bearer", accessToken)).exchange().expectBody()
 				.returnResult();
 
+	}
+	
+	private boolean matchesExpectedFields(Map<String, Object> item, Map<String, ExpectedValue> expected) {
+
+	    return expected.entrySet().stream().allMatch(entry -> {
+
+	                String fieldName = entry.getKey();
+	                ExpectedValue expectedValue = entry.getValue();
+
+	                if (!item.containsKey(fieldName)) {
+	                    return false;
+	                }
+
+	                Object actualValue = item.get(fieldName);
+
+	                return expectedValue.matches(actualValue);
+	            });
 	}
 
 }
