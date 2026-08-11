@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.LoanEvent;
+import mentoring.acomi.loanservice.infrastructure.messaging.replay.LoanEventReplayRepository;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
 import mentoring.acomi.loanservice.infrastructure.persistence.mapper.LoanEventJpaMapper;
 import mentoring.acomi.loanservice.infrastructure.persistence.repositories.LoanEventJpaRepository;
@@ -14,7 +15,8 @@ import mentoring.acomi.sharedjpalibrary.eventstore.AbstractJpaEventRepositoryAda
 
 @Repository
 @Transactional
-public class JpaLoanEventRepositoryAdapter extends AbstractJpaEventRepositoryAdapter<LoanEvent, LoanEventEntity> implements LoanEventRepository {
+public class JpaLoanEventRepositoryAdapter extends AbstractJpaEventRepositoryAdapter<LoanEvent, LoanEventEntity> implements LoanEventRepository,
+LoanEventReplayRepository {
 
 	public JpaLoanEventRepositoryAdapter(LoanEventJpaRepository repository, LoanEventJpaMapper mapper) {
 		super(repository, mapper);

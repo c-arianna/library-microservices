@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.loanservice.application.repositories.LoanEventRepository;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanEventEntity;
 import mentoring.acomi.sharedcodelibrary.eventstore.replay.AbstractReplayService;
@@ -18,10 +17,10 @@ import mentoring.acomi.sharedcorelibrary.replay.ReplayEventHandlerRegistry;
 @Service
 public class LoanReplayService extends AbstractReplayService<LoanEventEntity> {
 
-    private final LoanEventRepository loanEventRepository;
+    private final LoanEventReplayRepository loanEventRepository;
     private final LoanReplayEventMapper replayMapper;
 
-    public LoanReplayService(LoanEventRepository loanEventRepository, LoanReplayEventMapper replayMapper, ReplayEventHandlerRegistry registry, 
+    public LoanReplayService(LoanEventReplayRepository loanEventRepository, LoanReplayEventMapper replayMapper, ReplayEventHandlerRegistry registry, 
     		List<ReplayProjection> replayProjections) {
         super(registry, replayProjections);
         this.loanEventRepository = loanEventRepository;
