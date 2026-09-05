@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import mentoring.acomi.sharedcodelibrary.common.CardNumberUtils;
+import mentoring.acomi.sharedcorelibrary.common.CardNumberUtils;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.application.UserFilter;
 import mentoring.acomi.userservice.application.dto.SubscribeRequest;

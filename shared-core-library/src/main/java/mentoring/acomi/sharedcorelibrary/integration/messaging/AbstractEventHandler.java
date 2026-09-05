@@ -2,7 +2,7 @@ package mentoring.acomi.sharedcorelibrary.integration.messaging;
 
 import java.util.Optional;
 
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.event.handlers.EventPayloadMapper;
 
 public abstract class AbstractEventHandler<T> implements EventHandler {
 

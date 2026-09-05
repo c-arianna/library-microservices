@@ -1,4 +1,4 @@
-package mentoring.acomi.sharedcodelibrary.common;
+package mentoring.acomi.sharedcorelibrary.common;
 
 public final class CardNumberUtils {
 

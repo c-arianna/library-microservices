@@ -19,7 +19,7 @@ import mentoring.acomi.loanservice.application.dto.LoansResponse;
 import mentoring.acomi.loanservice.application.dto.ReturnLoanRequest;
 import mentoring.acomi.loanservice.application.services.LoanService;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.sharedcodelibrary.common.CardNumberUtils;
+import mentoring.acomi.sharedcorelibrary.common.CardNumberUtils;
 
 @RestController
 public class LoanController {

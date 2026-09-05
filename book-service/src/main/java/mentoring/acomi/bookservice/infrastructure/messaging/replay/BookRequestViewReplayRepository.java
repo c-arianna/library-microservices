@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import mentoring.acomi.bookservice.application.repositories.BookRequestViewRepository;
 import mentoring.acomi.bookservice.application.view.BookRequestView;
 import mentoring.acomi.bookservice.domain.bookrequest.model.BookRequestStatus;
-import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedcorelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 
 @Repository("replayBookRequestRepo")

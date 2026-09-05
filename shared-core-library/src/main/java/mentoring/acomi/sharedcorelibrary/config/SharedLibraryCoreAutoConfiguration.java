@@ -1,4 +1,4 @@
-package mentoring.acomi.sharedcodelibrary.config;
+package mentoring.acomi.sharedcorelibrary.config;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import jakarta.validation.Validator;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandlerRegistry;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;

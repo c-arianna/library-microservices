@@ -16,7 +16,7 @@ import mentoring.acomi.bookservice.application.projection.BookRequestProjectionO
 import mentoring.acomi.bookservice.application.projection.BookRequestVoteProjectionOperations;
 import mentoring.acomi.bookservice.application.projection.UserProjectionOperations;
 import mentoring.acomi.bookservice.infrastructure.messaging.replay.ReplayBookHandlerFactory;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMetadata;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.HandlerMode;

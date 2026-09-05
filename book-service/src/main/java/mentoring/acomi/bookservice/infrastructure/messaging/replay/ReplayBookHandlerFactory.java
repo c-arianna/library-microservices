@@ -22,7 +22,7 @@ import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReserve
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.BookReturnedV1Handler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.UserSubscribedHandler;
 import mentoring.acomi.bookservice.infrastructure.messaging.handlers.UserUnsubscribedV1Handler;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 
 @Component

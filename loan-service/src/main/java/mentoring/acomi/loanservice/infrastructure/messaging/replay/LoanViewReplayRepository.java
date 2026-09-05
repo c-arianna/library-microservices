@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
-import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedcorelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 
 @Repository("replayRepo")

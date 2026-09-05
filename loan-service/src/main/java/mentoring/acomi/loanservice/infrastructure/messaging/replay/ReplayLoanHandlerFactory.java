@@ -18,7 +18,7 @@ import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSubscri
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserSuspendedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserUnsubscribedV1Handler;
 import mentoring.acomi.loanservice.infrastructure.messaging.handlers.UserUnsuspendedV1Handler;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.event.handlers.EventPayloadMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 
 @Component

@@ -5,7 +5,7 @@ import java.time.Instant;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedcorelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 import mentoring.acomi.userservice.application.repositories.UserViewRepository;

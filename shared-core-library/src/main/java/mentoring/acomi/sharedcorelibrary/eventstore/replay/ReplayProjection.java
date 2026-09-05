@@ -1,4 +1,4 @@
-package mentoring.acomi.sharedcodelibrary.eventstore.replay;
+package mentoring.acomi.sharedcorelibrary.eventstore.replay;
 
 public interface ReplayProjection {
     void createTempTable();

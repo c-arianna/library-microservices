@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.loanservice.application.repositories.BookViewRepository;
 import mentoring.acomi.loanservice.application.view.BookView;
-import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedcorelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 
 @Repository("replayBookViewRepo")

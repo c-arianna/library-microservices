@@ -5,8 +5,8 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.sharedcodelibrary.eventstore.replay.AbstractReplayService;
-import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedcorelibrary.eventstore.replay.AbstractReplayService;
+import mentoring.acomi.sharedcorelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.replay.ReplayEventHandlerRegistry;

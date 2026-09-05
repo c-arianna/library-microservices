@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Assertions;
 
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import mentoring.acomi.sharedcodelibrary.event.handlers.EventPayloadMapper;
-import mentoring.acomi.sharedcodelibrary.event.handlers.InvalidEventPayloadException;
+import mentoring.acomi.sharedcorelibrary.event.handlers.EventPayloadMapper;
+import mentoring.acomi.sharedcorelibrary.event.handlers.InvalidEventPayloadException;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import tools.jackson.databind.ObjectMapper;

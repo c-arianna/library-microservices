@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.view.UserView;
-import mentoring.acomi.sharedcodelibrary.eventstore.replay.ReplayProjection;
+import mentoring.acomi.sharedcorelibrary.eventstore.replay.ReplayProjection;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.sharedjpalibrary.eventstore.replay.ReplayTableManager;
 

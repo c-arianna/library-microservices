@@ -1,4 +1,4 @@
-package mentoring.acomi.sharedcodelibrary.event.handlers;
+package mentoring.acomi.sharedcorelibrary.event.handlers;
 
 import jakarta.validation.Validator;
 import tools.jackson.databind.ObjectMapper;
