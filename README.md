@@ -108,6 +108,13 @@ Each Service
 └── Projections
 ```
 
+## Documentation
+
+This repository contains additional documentation describing the architecture and infrastructure of the platform:
+
+- [Architecture](./docs/architecture.md)
+- [Infrastructure](./docker/README.md)
+
 ## Platform Modules
 
 | Module | Responsibility |
@@ -117,7 +124,6 @@ Each Service
 | [Loan Service](./loan-service/README.md) | Loan lifecycle and statistics |
 | [User Service](./user-service/README.md) | User management and identity integration |
 | [Notification Service](./notification-service/README.md) | Event-driven notifications |
-| [Infrastructure](./docker/README.md) | Development and testing environments, Docker Compose configuration and supporting platform services |
 | [Shared Core Library](./shared-core-library/README.md) | Shared event contracts, DTOs, and cross-service abstractions |
 | [Shared JPA Library](./shared-jpa-library/README.md) | Reusable persistence abstractions and event-store infrastructure |
 | [Library Tests](./library-tests/README.md) | End-to-end testing infrastructure, Testcontainers and BDD Gherkin scenarios |
