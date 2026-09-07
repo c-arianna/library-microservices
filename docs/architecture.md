@@ -5,8 +5,7 @@
 The Library Platform is a distributed microservices-based application built to explore and demonstrate architectural patterns commonly used in modern enterprise 
 systems.
 
-The project represents the latest stage of a multi-phase software architecture learning journey, evolving from earlier monolithic implementations toward a 
-fully distributed architecture.
+The project represents the latest stage of a multi-phase software architecture learning journey, evolving from earlier monolithic implementations toward a fully distributed architecture.
 
 Although the business domain focuses on library management, the architectural approaches implemented throughout the platform are applicable to a wide range of 
 domains, including:
@@ -26,20 +25,22 @@ communication, security, observability, reliability, and projection rebuilding.
 ## Architecture Overview
 
 The platform consists of three business services, a dedicated Notification Service and an API Gateway.
+
 The supporting infrastructure includes RabbitMQ, Keycloak and Zipkin.
 
 ```text
-                     ┌──────────────┐
-                     │   Frontend   │
-                     └──────┬───────┘
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │  API Gateway  │
-                    └──────┬────────┘
-                           │
-      ┌────────────┬───────┼────────────┐
-      ▼            ▼       ▼            ▼
+               ┌──────────────┐
+               │   Frontend   │
+               └──────┬───────┘
+                      │
+                      ▼
+               ┌───────────────┐
+               │  API Gateway  │
+               └──────┬────────┘
+                      │
+				      ▼
+      ┌──────────┬──────────┬────────────┐
+      ▼          ▼          ▼            ▼
 ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────────┐
 │  Book   │ │  Loan   │ │  User   │ │ Notification│
 │ Service │ │ Service │ │ Service │ │   Service   │
@@ -57,7 +58,8 @@ Business capabilities are distributed across three autonomous bounded contexts:
 - Loan Service, responsible for loan lifecycle management;
 - User Service, responsible for user management and identity-related concerns.
 
-The services communicate primarily through asynchronous integration events exchanged through RabbitMQ. 
+The services communicate primarily through asynchronous integration events exchanged through RabbitMQ.
+
 Each service owns its own persistence model, event store, projections and business logic, ensuring a high degree of autonomy and loose coupling.
 
 The Notification Service is isolated from business domains and focuses exclusively on user communication concerns. 
@@ -368,8 +370,6 @@ Domain events are:
 
 They are part of the domain model and are never exchanged directly between services.
 
----
-
 ### Integration Events
 
 Integration events represent versioned contracts exchanged between services.
@@ -389,8 +389,6 @@ Integration events are:
 - consumed by projections and external services.
 
 They provide a stable communication layer between bounded contexts and are designed for long-term compatibility.
-
----
 
 ### Why Separate Them?
 
@@ -448,7 +446,9 @@ The v2 event contains the same information as v1 together with the additional `c
 
 Event handler for USER_SUBSCRIBED supports both schema versions. For v2, validation rules ensure that reader users always provide a valid library card number.
 
-Although this approach preserves compatibility for newly generated events, it does not solve the problem of users created before the introduction of library cards. Existing projections still lack the newly required information.
+Although this approach preserves compatibility for newly generated events, it does not solve the problem of users created before the introduction of library cards. 
+
+Existing projections still lack the newly required information.
 
 To address this scenario, a dedicated migration process was implemented in the User Service.
 
@@ -457,7 +457,7 @@ The migration is executed once through a dedicated Spring profile and performs t
 1. retrieves users without a library card number;
 2. generates a card number for each user;
 3. updates the corresponding aggregate;
-4. generates a `LibraryCardAssignedEvent`.
+4. generates a domain event `LibraryCardAssignedEvent`.
 
 The domain event is transformed into the integration event `LIBRARY_CARD_ASSIGNED` and published through RabbitMQ.
 
@@ -473,8 +473,6 @@ Because the event is persisted in the event store, replay operations can reconst
 
 A key advantage of this approach is that existing projections are updated automatically through the normal event-processing pipeline, without requiring a 
 replay operation immediately after the migration.
-
----
 
 ### Strategy 2: Backward-Compatible Projection Logic
 
@@ -513,6 +511,7 @@ LOAN_RETURNED event handler therefore supports both schema versions:
 This approach preserves compatibility while avoiding the complexity of an additional migration process and technical event.
 
 Unlike the library card scenario, existing projections must be rebuilt through replay after deploying the new projection logic. 
+
 During replay, historical v1 events are processed again and the missing `returnedAt` value is reconstructed from the original event metadata.
 
 As a result, historical events remain fully replayable and projections can reconstruct the complete loan history even when processing older event versions.
@@ -567,7 +566,7 @@ This approach provides several benefits:
 - temporal debugging;
 - service autonomy during projection rebuilding.
 
-Because every business change is represented as an immutable event, the platform can reconstruct historical states, investigate past business behaviour and 
+Because every business change is represented as an immutable event, the platform can reconstruct historical states, investigate past business behavior and 
 rebuild projections without relying on snapshots of the current state.
 
 Event Sourcing also enables some of the most important capabilities of the platform, including replay processing, projection rebuilding and long-term schema 
@@ -898,10 +897,9 @@ events are processed in the same order in which they are delivered by RabbitMQ.
 
 This ordering model is sufficient for the expected workload of the platform and preserves event consistency without introducing additional partitioning complexity.
 
-The current solution favors simplicity over scalability.
+The current solution favors simplicity over scalability: ordering guarantees rely on a single-consumer model. 
 
-Ordering guarantees rely on a single-consumer model. In larger deployments, preserving per-aggregate ordering would require a partitioning strategy based on 
-aggregate identifiers.
+In larger deployments, preserving per-aggregate ordering would require a partitioning strategy based on aggregate identifiers.
 
 In such a scenario, all events belonging to the same aggregate would need to be routed to the same logical partition and processed sequentially, while events 
 belonging to different aggregates could still be processed in parallel.
@@ -962,8 +960,8 @@ Notification Service
 
 This design isolates infrastructure concerns from business logic and allows notification channels to evolve independently without affecting the notification workflow.
 
-The current implementation uses a mock SMS provider intended for demonstration and testing purposes. Instead of sending real SMS messages, notification requests 
-are written to the application logs.
+The current implementation uses a mock SMS provider intended for demonstration and testing purposes.
+Instead of sending real SMS messages, notification requests are written to the application logs.
 
 Because the Notification Service depends only on the `SmsSender` abstraction, a real SMS gateway can be integrated in the future without changes to the 
 notification processing logic.
@@ -1024,6 +1022,7 @@ By combining application logs with distributed traces, operators can quickly ide
 and where failures or performance bottlenecks occurred.
 
 Unlike a monolithic application, log entries are distributed across multiple independent services. 
+
 Trace correlation allows these distributed log streams to be connected and analyzed as a single business workflow.
 
 ### Zipkin Integration
@@ -1085,7 +1084,7 @@ This approach reduces the risk of breaking inter-service integrations when event
 
 The platform includes a dedicated `library-e2e-tests` module containing end-to-end tests executed against the complete running application.
 
-Tests are written using the Gherkin language and follow a Behaviour-Driven Development (BDD) approach.
+Tests are written using the Gherkin language and follow a Behavior-Driven Development (BDD) approach.
 
 ```gherkin
 Given ...
@@ -1124,7 +1123,7 @@ correctly both in isolation and across service boundaries.
 This project was developed as part of a mentoring journey aimed at exploring architectural patterns and technologies beyond the traditional CRUD-based 
 applications I had previously worked on.
 
-Several of the architectural choices adopted in the platform, including Event Sourcing, CQRS, Replay and Behaviour-Driven Development, were intentionally 
+Several of the architectural choices adopted in the platform, including Event Sourcing, CQRS, Replay and Behavior-Driven Development, were intentionally 
 selected to challenge my existing experience and expose me to new ways of designing, implementing and validating distributed systems.
 
 Throughout the project, I gained practical experience with:
@@ -1135,12 +1134,13 @@ Throughout the project, I gained practical experience with:
 - projection rebuilding through replay;
 - contract versioning and schema evolution;
 - distributed tracing and observability;
-- behaviour-driven testing with Gherkin.
+- behavior-driven testing with Gherkin.
 
 While these architectural patterns introduce additional complexity compared to more traditional approaches, they also provide capabilities that would otherwise 
 be difficult to achieve, such as complete auditability, replay-driven recovery, projection evolution and loose coupling between services.
 
-One of the most valuable lessons learned during the project was understanding that every architectural decision involves trade-offs. 
+One of the most valuable lessons learned during the project was understanding that every architectural decision involves trade-offs.
+
 Features such as Event Sourcing, CQRS and asynchronous messaging increase flexibility and long-term evolvability, but they also require additional infrastructure,
 operational concerns and development discipline.
 

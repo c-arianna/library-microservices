@@ -117,6 +117,7 @@ Each Service
 | [Loan Service](./loan-service/README.md) | Loan lifecycle and statistics |
 | [User Service](./user-service/README.md) | User management and identity integration |
 | [Notification Service](./notification-service/README.md) | Event-driven notifications |
+| [Infrastructure](./docker/README.md) | Development and testing environments, Docker Compose configuration and supporting platform services |
 | [Shared Core Library](./shared-core-library/README.md) | Shared event contracts, DTOs, and cross-service abstractions |
 | [Shared JPA Library](./shared-jpa-library/README.md) | Reusable persistence abstractions and event-store infrastructure |
 | [Library Tests](./library-tests/README.md) | End-to-end testing infrastructure, Testcontainers and BDD Gherkin scenarios |
@@ -256,9 +257,9 @@ These tests can be executed directly from the IDE or through Maven.
 
 ### End-to-End Tests
 
-The repository includes a dedicated `library-e2e-tests` module containing Behaviour Driven Development (BDD) scenarios written in Gherkin.
+The repository includes a dedicated `library-e2e-tests` module containing Behavior-Driven Development (BDD) scenarios written in Gherkin.
 
-The purpose of these tests is to validate complete business workflows across the entire distributed platform rather than individual service behaviour.
+The purpose of these tests is to validate complete business workflows across the entire distributed platform rather than individual service behavior.
 
 The end-to-end scenarios exercise interactions between:
 
@@ -430,6 +431,8 @@ and start the development environment:
 docker compose -p dev --profile dev up -d
 ```
 
+#### Available Services
+
 The development environment provisions:
 
 - API Gateway
@@ -442,11 +445,7 @@ The development environment provisions:
 - MySQL databases
 - Zipkin
 
-#### Available Services
-
-Once the platform is running, the following services are available:
-
-#### Development Environment
+Once the environment has started successfully, the following services are available:
 
 | Component | URL |
 |------------|------|
@@ -454,15 +453,6 @@ Once the platform is running, the following services are available:
 | Keycloak | http://localhost:8084 |
 | RabbitMQ Management | http://localhost:15672 |
 | Zipkin | http://localhost:9411 |
-
-#### Gherkin Test Environment
-
-| Component | URL |
-|------------|------|
-| API Gateway | http://localhost:9080 |
-| Keycloak | http://localhost:8084 |
-| RabbitMQ Management | http://localhost:15673 |
-| Zipkin | http://localhost:9412 |
 
 In development mode the individual microservices are also directly accessible through their exposed ports for debugging and troubleshooting purposes.
 
@@ -497,7 +487,28 @@ and start the dedicated testing environment:
 docker compose -p gherkin --profile gherkin up -d
 ```
 
-This profile provisions isolated infrastructure used by the `library-e2e-tests` module.
+#### Available Services
+
+The test environment provisions isolated infrastructure used by the `library-e2e-tests` module:
+
+- API Gateway
+- Book Service
+- Loan Service
+- User Service
+- Notification Service
+- RabbitMQ
+- Keycloak
+- MySQL databases
+- Zipkin
+
+Once the environment has started successfully, the following services are available:
+
+| Component | URL |
+|------------|------|
+| API Gateway | http://localhost:9080 |
+| Keycloak | http://localhost:8084 |
+| RabbitMQ Management | http://localhost:15673 |
+| Zipkin | http://localhost:9412 |
 
 ## Development Credentials
 

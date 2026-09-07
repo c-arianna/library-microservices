@@ -38,7 +38,7 @@ User Service
  Notification Events
         │
         ▼
- RabbitMQ
+	RabbitMQ
         │
         ▼
 Notification Service
@@ -187,12 +187,6 @@ Access to notification channels is controlled through Spring Security authorizat
 | `/topic/users` | LIBRARIAN, ADMIN |
 | `/user/**` | Authenticated users |
 
-## Observability
-
-The service participates in platform-wide distributed tracing.
-
-Notification publication and processing include tracing information that can be correlated through Zipkin to support end-to-end workflow monitoring.
-
 ## Testing Strategy
 
 The module includes:
@@ -210,6 +204,12 @@ Tests validate:
 - handler version resolution;
 - error handling;
 - event publication logic.
+
+## Observability
+
+The service participates in platform-wide distributed tracing.
+
+Notification publication and processing include tracing information that can be correlated through Zipkin to support end-to-end workflow monitoring.
 
 ## Deployment
 

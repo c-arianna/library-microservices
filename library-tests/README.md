@@ -29,7 +29,7 @@ The suite verifies:
 
 ## Testing Approach
 
-Tests are written using behavior Driven Development (BDD) principles.
+Tests are written using Behavior-Driven Development (BDD) principles.
 
 Business scenarios are expressed through:
 
