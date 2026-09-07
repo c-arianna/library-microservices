@@ -57,6 +57,65 @@ Key responsibilities include:
 - approving requests;
 - rejecting requests.
 
+## Purchase Recommendation Engine
+
+The Book Service includes a purchase recommendation feature designed to assist librarians when deciding which requested books should be purchased within a limited purchase budget.
+
+The recommendation process is modeled as a variation of the classic 0/1 Knapsack optimization problem.
+
+Each purchase request is treated as a candidate item with:
+
+- a weight represented by the estimated purchase price;
+- a value represented by a calculated business score.
+
+The score is computed as:
+
+```text
+score = (votes²) + waitingDays
+```
+
+where:
+
+- `votes` represents the number of user votes received by the request;
+- `waitingDays` represents the number of days the request has been waiting for evaluation.
+
+This scoring strategy prioritizes highly requested books while also preventing older requests from being ignored indefinitely.
+
+Only requests in the `PENDING` state and with an estimated price defined are considered as candidates.
+
+Given an available purchase budget, the algorithm determines the combination of requests that maximizes the total score while ensuring that:
+
+```text
+total purchase cost <= available budget
+```
+
+The optimization objective can be expressed as:
+
+```text
+maximize Σ((votes²) + waitingDays)
+
+subject to
+
+Σ estimatedPrice <= budget
+```
+
+The implementation uses a dynamic-programming approach based on the 0/1 Knapsack algorithm.
+
+Each request can either be:
+
+```text
+0 = not selected
+1 = selected
+```
+
+The algorithm evaluates candidate combinations and computes the maximum achievable score for every budget level.
+
+Once the optimal score has been calculated, the selected requests are reconstructed by traversing the dynamic-programming matrix backwards, producing the final set of recommended purchases.
+
+Unlike greedy approaches that evaluate requests individually, the Knapsack algorithm guarantees an optimal solution for the defined objective function by considering the overall combination of candidate books.
+
+This feature was introduced to explore the application of classical optimization techniques to real-world business requirements rather than relying solely on sorting or heuristic-based selection strategies.
+
 ## Architectural Patterns
 
 The service implements several architectural patterns commonly used in enterprise systems:

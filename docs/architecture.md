@@ -89,8 +89,6 @@ Responsibilities include:
 
 The gateway does not contain business-domain logic and is responsible exclusively for request processing and security-related concerns.
 
----
-
 ### Book Service
 
 The Book Service is the system of record for library catalogue management.
@@ -105,9 +103,8 @@ Responsibilities include:
 - book subscriptions;
 - purchase requests;
 - purchase request voting;
-- purchase request approval workflows.
-
----
+- purchase request approval workflows;
+- budget-constrained purchase recommendations.
 
 ### Loan Service
 
@@ -125,8 +122,6 @@ Responsibilities include:
 - loan statistics;
 - dashboard data.
 
----
-
 ### User Service
 
 The User Service manages users and account lifecycles.
@@ -141,8 +136,6 @@ Responsibilities include:
 - account suspension;
 - account reactivation;
 - identity provider synchronization.
-
----
 
 ### Notification Service
 

@@ -108,6 +108,16 @@ Each Service
 └── Projections
 ```
 
+### Notable Business Features
+
+In addition to the architectural patterns explored throughout the platform, some business capabilities required domain-specific solutions.
+
+One example is the purchase recommendation engine implemented in the Book Service. 
+
+Given a fixed purchase budget, book requests submitted and voted by users are evaluated using a score that combines popularity and waiting time.
+
+The recommendation process is based on a 0/1 Knapsack optimization algorithm, which identifies the combination of books that maximizes overall user value while respecting the available budget constraints.
+
 ## Documentation
 
 This repository contains additional documentation describing the architecture and infrastructure of the platform:
@@ -524,3 +534,7 @@ These credentials are intended exclusively for local development and demonstrati
 ## License
 
 See the `LICENSE` file for licensing information.
+
+## Feedback
+
+Bug reports, suggestions and constructive feedback are welcome through GitHub Issues.
