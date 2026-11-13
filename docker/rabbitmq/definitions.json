@@ -39,7 +39,15 @@
             "type": "fanout",
             "durable": true,
 			"autoDelete": false
-        }, {
+        }, 
+		{
+            "name": "assistant-service.dlx",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+			"autoDelete": false
+        },
+		{
             "name": "notifications.exchange",
             "vhost": "/",
             "type": "topic",
@@ -72,6 +80,14 @@
                 "x-dead-letter-exchange": "user-service.dlx"
             }
         },
+		{
+            "name": "assistant-service.queue",
+            "vhost": "/",
+            "durable": true,
+            "arguments": {
+                "x-dead-letter-exchange": "assistant-service.dlx"
+            }
+        },
         {
             "name": "replay.book.queue",
             "vhost": "/",
@@ -84,6 +100,11 @@
         },
         {
             "name": "replay.user.queue",
+            "vhost": "/",
+            "durable": true
+        },
+		{
+            "name": "replay.assistant.queue",
             "vhost": "/",
             "durable": true
         },
@@ -109,6 +130,11 @@
         },
         {
             "name": "user-service.dlq",
+            "vhost": "/",
+            "durable": true
+        },
+		{
+            "name": "assistant-service.dlq",
             "vhost": "/",
             "durable": true
         }
@@ -366,6 +392,13 @@
             "destination_type": "queue",
             "routing_key": "replay.user"
         },
+		{
+            "source": "replay.exchange",
+            "vhost": "/",
+            "destination": "replay.assistant.queue",
+            "destination_type": "queue",
+            "routing_key": "replay.assistant"
+        },
         {
             "source": "notifications.exchange",
             "vhost": "/",
@@ -424,6 +457,12 @@
             "source": "user-service.dlx",
             "vhost": "/",
             "destination": "user-service.dlq",
+            "destination_type": "queue"
+        },
+		 {
+            "source": "assistant-service.dlx",
+            "vhost": "/",
+            "destination": "assistant-service.dlq",
             "destination_type": "queue"
         }
     ],

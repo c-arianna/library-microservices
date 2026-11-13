@@ -8,14 +8,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.loanservice.application.dto.LoanDto;
 import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
 
-@Repository
 public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, String> {
 	@Modifying
 	@Transactional

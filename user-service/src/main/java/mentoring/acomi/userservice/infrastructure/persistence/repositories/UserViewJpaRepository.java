@@ -9,14 +9,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.userservice.infrastructure.persistence.entity.UserViewEntity;
 
-@Repository
 public interface UserViewJpaRepository extends JpaRepository<UserViewEntity, String>, JpaSpecificationExecutor<UserViewEntity>{
 	@Query("""
 			SELECT u 

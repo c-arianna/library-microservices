@@ -12,7 +12,7 @@ import mentoring.acomi.userservice.application.repositories.UserViewRepository;
 import mentoring.acomi.userservice.application.sso.IdentityProviderService;
 
 @RestController
-@RequestMapping("/test")
+@RequestMapping("/test/reset")
 @Profile("gherkin")
 public class TestController {
 	
@@ -29,14 +29,14 @@ public class TestController {
         this.service = service;
     }
 
-    @PostMapping("/reset")
+    @PostMapping
     public void reset() {
     	userRepository.deleteAllReaderUsers();
         eventRepository.deleteAll();
         outboxRepository.deleteAll();
     }
     
-    @PostMapping("/reset/user/{userIdentityProviderId}")
+    @PostMapping("/user/{userIdentityProviderId}")
     public void deleteUser(@PathVariable String userIdentityProviderId) {
     	userRepository.deleteByUserIdentityProviderId(userIdentityProviderId);
     	service.deleteUser(userIdentityProviderId);

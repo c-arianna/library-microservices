@@ -29,6 +29,10 @@ echo Building user-service...
 docker build -t user-service:dev ./user-service
 IF %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
+echo Building assistant-service...
+docker build -t assistant-service:dev ./assistant-service
+IF %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
+
 echo Building notification-service...
 docker build -t notification-service:dev ./notification-service
 IF %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%

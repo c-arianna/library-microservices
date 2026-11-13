@@ -10,6 +10,10 @@ $services = @(
     @{
         RoutingKey = "replay.loan"
         TargetService = "loan-service"
+    },
+	@{
+        RoutingKey = "replay.assistant"
+        TargetService = "assistant-service"
     }
 )
 

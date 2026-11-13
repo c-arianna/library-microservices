@@ -154,7 +154,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
+  
+  mysql-assistant:
+    profiles: ["dev"]
+    image: mysql:8
+    container_name: mysql-assistant
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: assistant_db
+      MYSQL_USER: libraryApp
+      MYSQL_PASSWORD: libraryAppTest!
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql_assistant_data:/var/lib/mysql
+      - ./mysql-assistant:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      
   mysql-book-gherkin:
     profiles: ["gherkin"]
     image: mysql:8
@@ -212,6 +232,27 @@ services:
       - /var/lib/mysql
     volumes:
       - ./mysql-user/init-test:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  
+  mysql-assistant-gherkin:
+    profiles: ["gherkin"]
+    image: mysql:8
+    container_name: mysql-assistant-gherkin
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: assistant_test_db
+      MYSQL_USER: libraryApp
+      MYSQL_PASSWORD: libraryAppTest!
+    ports:
+      - "3320:3306"
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ./mysql-assistant/init-test:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -287,6 +328,30 @@ services:
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
       mysql-user:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      zipkin:
+        condition: service_started
+        
+  assistant-service:
+    profiles: ["dev"]
+    image: assistant-service:dev
+    container_name: assistant-service
+    ports:
+      - "8086:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-assistant:3306/assistant_db?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: libraryApp
+      SPRING_DATASOURCE_PASSWORD: libraryAppTest!
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      mysql-assistant:
         condition: service_healthy
       rabbitmq:
         condition: service_started
@@ -393,6 +458,31 @@ services:
         condition: service_started
       zipkin-gherkin:
         condition: service_started
+  
+  assistant-service-gherkin:
+    profiles: ["gherkin"]
+    image: assistant-service:dev
+    container_name: assistant-service-gherkin
+    ports:
+      - "9086:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-assistant-gherkin:3306/assistant_test_db?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: libraryApp
+      SPRING_DATASOURCE_PASSWORD: libraryAppTest!
+      SPRING_RABBITMQ_HOST: rabbitmq-gherkin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+      ZIPKIN_ENDPOINT: http://zipkin-gherkin:9411/api/v2/spans
+      SPRING_PROFILES_ACTIVE: gherkin
+      APP_TEST_MODE: true
+    depends_on:
+      mysql-assistant-gherkin:
+        condition: service_healthy
+      rabbitmq-gherkin:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      zipkin-gherkin:
+        condition: service_started
         
   notification-service-gherkin:
     profiles: ["gherkin"]
@@ -436,6 +526,8 @@ services:
         condition: service_started
       user-service:
         condition: service_started
+      assistant-service:
+        condition: service_started
       keycloak:
         condition: service_started
       zipkin:
@@ -464,6 +556,8 @@ services:
         condition: service_started
       user-service-gherkin:
         condition: service_started
+      assistant-service-gherkin:
+        condition: service_started
       keycloak:
         condition: service_started
       zipkin-gherkin:
@@ -476,3 +570,4 @@ volumes:
   mysql_book_data:
   mysql_loan_data:
   mysql_user_data:
+  mysql_assistant_data:

@@ -6,12 +6,10 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import mentoring.acomi.bookservice.infrastructure.persistence.entity.BookEventEntity;
 import mentoring.acomi.sharedjpalibrary.eventstore.BaseEventJpaRepository;
 
-@Repository
 public interface BookEventJpaRepository extends BaseEventJpaRepository<BookEventEntity> {
 
 	@Query("""

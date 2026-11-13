@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/test")
+@RequestMapping("/test/reset")
 @Profile("gherkin")
 public class TestController {
 
@@ -23,12 +23,12 @@ public class TestController {
 		this.userClient = userClient;
 	}
 
-	@PostMapping("/reset")
+	@PostMapping
 	public Mono<Void> resetAll() {
 		return Mono.when(bookClient.reset(), loanClient.reset(), userClient.reset());
 	}
 	
-	@PostMapping("/reset/user/{userIdentityProviderId}")
+	@PostMapping("/user/{userIdentityProviderId}")
 	public Mono<Void> deleteUser(@PathVariable String userIdentityProviderId){
 		return Mono.when(userClient.deleteUser(userIdentityProviderId));
 	}

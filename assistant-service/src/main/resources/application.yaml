@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: assistant-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/assistant_db}
+    username: ${SPRING_DATASOURCE_USERNAME:libraryApp}
+    password: ${SPRING_DATASOURCE_PASSWORD:libraryAppTest!}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      initializationFailTimeout: 0
+      connectionTimeout: 30000
+      validationTimeout: 5000
+
+  security:
+    user:
+      name: none
+      password: none
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: libraryApp
+    password: libraryAppTest!
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+
+  sql:
+    init:
+      continue-on-error: true
+
+  flyway:
+    baseline-on-migrate: true
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+    export:
+      zipkin:
+        endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
