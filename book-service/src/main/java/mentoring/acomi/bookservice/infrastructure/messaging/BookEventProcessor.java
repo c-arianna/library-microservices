@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.bookservice.application.repositories.BookEventRepository;
 import mentoring.acomi.bookservice.infrastructure.messaging.notifications.BookNotificationService;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.bookservice.infrastructure.persistence.repositories.BookIntegrationRepository;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.EventHandlerRegistry;
@@ -38,7 +37,7 @@ public class BookEventProcessor {
 	}
 	
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void processConsumerEvent(IntegrationEventEnvelope<?> event, LoanIntegrationPayload payload) {
+	public void processConsumerEvent(IntegrationEventEnvelope<?> event) {
 
 		if (bookIntegrationRepository.exists(event.eventId(), event.aggregateId())) {
 			return;

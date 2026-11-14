@@ -8,22 +8,18 @@ import org.springframework.stereotype.Component;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import mentoring.acomi.bookservice.application.errors.NonRetryableEventException;
-import mentoring.acomi.bookservice.infrastructure.messaging.payload.consumer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
-import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class BookIntegrationEventListener {
 
-	private final ObjectMapper mapper;
 	private final Tracer tracer;
 	private final BookEventProcessor eventProcessor;
 	
 	private final Logger logger = LogManager.getLogger(BookIntegrationEventListener.class);
 	
-	public BookIntegrationEventListener(ObjectMapper mapper, Tracer tracer, BookEventProcessor eventProcessor) {
-		this.mapper = mapper;
+	public BookIntegrationEventListener(Tracer tracer, BookEventProcessor eventProcessor) {
 		this.tracer = tracer;
 		this.eventProcessor = eventProcessor;
 	}
@@ -42,8 +38,7 @@ public class BookIntegrationEventListener {
 
 			case LOAN_REQUESTED, LOAN_CONFIRM_REQUESTED, LOAN_CANCELED, LOAN_RETURNED,
 			USER_SUBSCRIBED, USER_UNSUBSCRIBED -> {
-				eventProcessor.processConsumerEvent(eventEnvelope,
-						mapper.convertValue(eventEnvelope.payload(), LoanIntegrationPayload.class));
+				eventProcessor.processConsumerEvent(eventEnvelope);
 			}
 
 			case BOOK_REGISTERED , BOOK_COPIES_UPDATED, BOOK_RESERVED, BOOK_BORROWED, BOOK_RELEASED, BOOK_RETURNED, BOOK_BORROW_REJECTED,
