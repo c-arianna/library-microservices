@@ -1,4 +1,7 @@
 package mentoring.acomi.notificationservice.infrastructure.messaging.dto;
 
-public record BookRequestUpdatedNotificationPayload(String requestId, String author, String title, String isbn, int votes,
-        BookRequestStatus status) implements EventNotificationPayload{}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record BookRequestUpdatedNotificationPayload(@NotBlank String requestId, @NotBlank String author, @NotBlank String title, 
+		@NotBlank String isbn, int votes, @NotNull BookRequestStatus status) implements EventNotificationPayload{}

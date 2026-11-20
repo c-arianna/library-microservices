@@ -1,7 +1,6 @@
 package mentoring.acomi.notificationservice.messaging.handler;
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -23,16 +22,13 @@ import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNot
 import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.BookUpdatedV1NotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
-import tools.jackson.databind.ObjectMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;
 
 @ExtendWith(MockitoExtension.class)
-public class BookUpdatedNotificationHandlerTest {
+public class BookUpdatedNotificationHandlerTest extends AbstractNotificationHandlerTest {
 
 	@Mock
 	private SimpMessagingTemplate messagingTemplate;
-
-	private ObjectMapper mapper = new ObjectMapper();
 
 	private BookUpdatedV1NotificationHandler handler;
 
@@ -41,6 +37,16 @@ public class BookUpdatedNotificationHandlerTest {
 		handler = new BookUpdatedV1NotificationHandler(mapper, messagingTemplate);
 	}
 
+	@Override
+	protected NotificationHandler handler() {
+		return handler;
+	}
+
+	@Override
+	protected NotificationEventEnvelope<?> validEvent() {
+		return buildBookUpdatedEvent();
+	}
+	
 	@Test
 	void shouldSendNotification() {
 
@@ -70,18 +76,6 @@ public class BookUpdatedNotificationHandlerTest {
 				() -> Assertions.assertEquals(expectedPayload.reservedCopies(), payload.reservedCopies()),
 				() -> Assertions.assertEquals(expectedPayload.borrowedCopies(), payload.borrowedCopies()));
 
-	}
-
-	@Test
-	void shouldRejectNullPayload() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.BOOK_UPDATED, "book-service", Instant.now(), 1, null);
-
-		NotificationHandlingException ex  = Assertions.assertThrows(NotificationHandlingException.class, () -> handler.handleEvent(event));
-		Assertions.assertEquals("Payload is null", ex.getMessage());
-		
-		verifyNoInteractions(messagingTemplate);
 	}
 
 	private NotificationEventEnvelope<BookUpdatedNotificationPayload> buildBookUpdatedEvent() {

@@ -1,12 +1,7 @@
 package mentoring.acomi.sharedcorelibrary.eventstore;
 
-import java.time.Instant;
-
-public interface IntegrationEvent {
+public interface IntegrationEvent extends StoredEvent {
 	String aggregateId();
 	String aggregateType();
-	String eventId();
 	int eventVersion();
-	Instant occurredAt();
-	Object payload();
 }

@@ -1,4 +1,6 @@
 package mentoring.acomi.notificationservice.infrastructure.messaging.dto;
 
-public record BookSubscriptionRequestedPayload(long subscriptionId, String isbn, String userIdentityId, String phoneNumber,
-		String title) implements EventNotificationPayload{}
+import jakarta.validation.constraints.NotBlank;
+
+public record BookSubscriptionRequestedPayload(long subscriptionId, @NotBlank String isbn, @NotBlank String userIdentityId, 
+		@NotBlank String phoneNumber, @NotBlank String title) implements EventNotificationPayload{}

@@ -1,7 +1,6 @@
 package mentoring.acomi.notificationservice.messaging.handler;
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -24,16 +23,13 @@ import mentoring.acomi.notificationservice.infrastructure.messaging.dto.EventNot
 import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.BookRequestUpdatedV1NotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
-import tools.jackson.databind.ObjectMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;
 
 @ExtendWith(MockitoExtension.class)
-public class BookRequestUpdatedNotificationHandlerTest {
+public class BookRequestUpdatedNotificationHandlerTest extends AbstractNotificationHandlerTest {
 
 	@Mock
 	private SimpMessagingTemplate messagingTemplate;
-
-	private ObjectMapper mapper = new ObjectMapper();
 
 	private BookRequestUpdatedV1NotificationHandler handler;
 
@@ -42,6 +38,16 @@ public class BookRequestUpdatedNotificationHandlerTest {
 		handler = new BookRequestUpdatedV1NotificationHandler(mapper, messagingTemplate);
 	}
 
+	@Override
+	protected NotificationHandler handler() {
+		return handler;
+	}
+
+	@Override
+	protected NotificationEventEnvelope<?> validEvent() {
+		return buildBookRequestUpdatedEvent();
+	}
+	
 	@Test
 	void shouldSendNotification() {
 
@@ -71,25 +77,13 @@ public class BookRequestUpdatedNotificationHandlerTest {
 
 	}
 
-	@Test
-	void shouldRejectNullPayload() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.BOOK_REQUEST_UPDATED, "book-service", Instant.now(), 1, null);
-
-		NotificationHandlingException ex  = Assertions.assertThrows(NotificationHandlingException.class, () -> handler.handleEvent(event));
-		Assertions.assertEquals("Payload is null", ex.getMessage());
-		
-		verifyNoInteractions(messagingTemplate);
-	}
-
 	private NotificationEventEnvelope<BookRequestUpdatedNotificationPayload> buildBookRequestUpdatedEvent() {
 		return new NotificationEventEnvelope<BookRequestUpdatedNotificationPayload>(UUID.randomUUID().toString(), 
 				NotificationEventType.BOOK_REQUEST_UPDATED, "book-service", Instant.now(), 1, getPayload());
 	}
 
 	private BookRequestUpdatedNotificationPayload getPayload() {
-		return new BookRequestUpdatedNotificationPayload("REQ-1", "Italo Calvino", "Il barone rampante", "", 2, BookRequestStatus.PENDING);
+		return new BookRequestUpdatedNotificationPayload("REQ-1", "Italo Calvino", "Il barone rampante", "9788804336327", 2, BookRequestStatus.PENDING);
 	}
 
 }

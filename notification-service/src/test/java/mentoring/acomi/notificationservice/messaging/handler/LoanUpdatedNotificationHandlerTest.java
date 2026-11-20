@@ -3,7 +3,6 @@ package mentoring.acomi.notificationservice.messaging.handler;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Instant;
@@ -25,24 +24,31 @@ import mentoring.acomi.notificationservice.infrastructure.messaging.dto.LoanUpda
 import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.LoanUpdatedNotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
-import tools.jackson.databind.ObjectMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanUpdatedNotificationHandlerTest {
+public class LoanUpdatedNotificationHandlerTest extends AbstractNotificationHandlerTest {
 	
 	private static final String CARD_NUMBER = "LIB-000001";
 
 	@Mock
 	private SimpMessagingTemplate messagingTemplate;
-
-	private ObjectMapper mapper = new ObjectMapper();
 	
 	private LoanUpdatedNotificationHandler handler;
 	
 	@BeforeEach
 	void setUp() {
 		handler = new LoanUpdatedNotificationHandler(mapper, messagingTemplate);
+	}
+	
+	@Override
+	protected NotificationHandler handler() {
+		return handler;
+	}
+
+	@Override
+	protected NotificationEventEnvelope<?> validEvent() {
+		return buildLoanUpdatedEvent();
 	}
 	
 	@Test
@@ -74,18 +80,6 @@ public class LoanUpdatedNotificationHandlerTest {
 				() -> Assertions.assertEquals(expectedPayload.status(), payload.status()),
 				() -> Assertions.assertEquals(expectedPayload.startDate(), payload.startDate()),
 				() -> Assertions.assertEquals(expectedPayload.endDate(), payload.endDate()));
-	}
-
-	@Test
-	void shouldRejectNullPayload() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.LOAN_UPDATED, "loan-service", Instant.now(), 1, null);
-
-		NotificationHandlingException ex  = Assertions.assertThrows(NotificationHandlingException.class, () -> handler.handleEvent(event));
-		Assertions.assertEquals("Payload is null", ex.getMessage());
-		
-		verifyNoInteractions(messagingTemplate);
 	}
 
 	private NotificationEventEnvelope<LoanUpdatedNotificationPayload> buildLoanUpdatedEvent() {

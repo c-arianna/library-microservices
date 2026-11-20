@@ -2,6 +2,10 @@ package mentoring.acomi.notificationservice.infrastructure.messaging.dto;
 
 import java.time.LocalDate;
 
-public record LoanUpdatedNotificationPayload(String loanId, String isbn, String userId, String identityProviderId, 
-		String cardNumber, LoanStatus status, LocalDate startDate, LocalDate endDate, boolean overdue, long daysOverdue) 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record LoanUpdatedNotificationPayload(@NotBlank String loanId, @NotBlank String isbn, @NotBlank String userId, 
+		@NotBlank String identityProviderId, String cardNumber, @NotNull LoanStatus status,  @NotNull LocalDate startDate, 
+		 @NotNull LocalDate endDate, boolean overdue, long daysOverdue) 
      implements EventNotificationPayload{}

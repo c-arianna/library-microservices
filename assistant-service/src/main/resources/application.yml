@@ -1,0 +1,96 @@
+spring:
+  application:
+    name: assistant-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/assistant_db}
+    username: ${SPRING_DATASOURCE_USERNAME:libraryApp}
+    password: ${SPRING_DATASOURCE_PASSWORD:libraryAppTest!}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      initializationFailTimeout: 0
+      connectionTimeout: 30000
+      validationTimeout: 5000
+
+  security:
+    user:
+      name: none
+      password: none
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: libraryApp
+    password: libraryAppTest!
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+
+  sql:
+    init:
+      continue-on-error: true
+
+  flyway:
+    baseline-on-migrate: true
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate.type.json_format_mapper: mentoring.acomi.assistantservice.infrastructure.persistence.configuration.Jackson3HibernateJsonFormatMapper
+
+  ai:
+    model:
+      chat: ollama
+      embedding: ollama
+
+    ollama:
+      base-url: ${SPRING_AI_OLLAMA_BASE_URL:http://localhost:11434}
+
+      chat:
+        model: ${SPRING_AI_OLLAMA_CHAT_MODEL:qwen2.5:3b}
+        temperature: 0.2
+
+      embedding:
+        model: ${SPRING_AI_OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+    export:
+      zipkin:
+        endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
+recommendation:
+  prompt: classpath:/prompts/recommendation.st
+  newreader:
+    prompt: classpath:/prompts/recommendation-for-new-reader.st
+  explain:
+    prompt: classpath:/prompts/recommendation-explain.st
+
+reading:
+  explain:
+    prompt: classpath:/prompts/reading-path-explain.st
+  build:
+    prompt: classpath:/prompts/reading-path-build.st
+
+searchSimilarBooks:
+  prompt: classpath:/prompts/similar-books-search.st
+
+assistant:
+  vectorstore:
+    url:  ${POSTGRES_VECTOR_STORE_DB:jdbc:postgresql://localhost:5432/assistant_vector_db}
+    username: ${POSTGRES_VECTOR_STORE_USER:postgres}
+    password: ${POSTGRES_VECTOR_STORE_PASSWORD:postgres}
+    enabled: true

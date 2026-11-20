@@ -26,25 +26,32 @@ import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.Boo
 import mentoring.acomi.notificationservice.infrastructure.messaging.publisher.NotificationEventPublisher;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
-import tools.jackson.databind.ObjectMapper;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;
 
 @ExtendWith(MockitoExtension.class)
-public class BookSubscriptionRequestedHandlerTest {
+public class BookSubscriptionRequestedHandlerTest extends AbstractNotificationHandlerTest {
 	
 	@Mock
 	private NotificationEventPublisher publisher;
 
 	@Mock
 	private  SmsSender smsSender;
-	
-	private ObjectMapper mapper = new ObjectMapper();
 
 	private BookSubscriptionRequestedV1Handler handler;
 
 	@BeforeEach
 	void setUp() {
 		handler = new BookSubscriptionRequestedV1Handler(mapper, publisher, smsSender);
+	}
+	
+	@Override
+	protected NotificationHandler handler() {
+		return handler;
+	}
+
+	@Override
+	protected NotificationEventEnvelope<?> validEvent() {
+		return buildBookSubscriptionRequestedEvent();
 	}
 
 	@Test
@@ -64,19 +71,6 @@ public class BookSubscriptionRequestedHandlerTest {
 		Assertions.assertTrue(messageCaptor.getValue().contains(event.payload().title()));
 		
 		inOrder.verify(publisher, times(1)).publishBookSubscriptionNotified(event.payload().subscriptionId(), event.payload().isbn());
-	}
-
-	@Test
-	void shouldRejectNullPayload() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.BOOK_SUBSCRIPTION_REQUESTED, "book-service", Instant.now(), 1, null);
-
-		NotificationHandlingException ex  = Assertions.assertThrows(NotificationHandlingException.class, () -> handler.handleEvent(event));
-		Assertions.assertEquals("Payload is null", ex.getMessage());
-		
-		verifyNoInteractions(publisher);
-		verifyNoInteractions(smsSender);
 	}
 	
 	@Test

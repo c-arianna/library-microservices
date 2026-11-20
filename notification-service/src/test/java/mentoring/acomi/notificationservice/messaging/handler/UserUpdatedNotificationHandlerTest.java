@@ -3,7 +3,6 @@ package mentoring.acomi.notificationservice.messaging.handler;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Instant;
@@ -23,24 +22,31 @@ import mentoring.acomi.notificationservice.infrastructure.messaging.dto.UserUpda
 import mentoring.acomi.notificationservice.infrastructure.messaging.handlers.UserUpdatedNotificationHandler;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationEventType;
-import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.error.NotificationHandlingException;
+import mentoring.acomi.sharedcorelibrary.integration.messaging.notifications.NotificationHandler;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
-import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
-public class UserUpdatedNotificationHandlerTest {
+public class UserUpdatedNotificationHandlerTest extends AbstractNotificationHandlerTest {
 	
 	@Mock
 	private SimpMessagingTemplate messagingTemplate;
-
-	private ObjectMapper mapper = new ObjectMapper();
 	
 	private UserUpdatedNotificationHandler handler;
 	
 	@BeforeEach
 	void setUp() {
 		handler = new UserUpdatedNotificationHandler(mapper, messagingTemplate);
+	}
+	
+	@Override
+	protected NotificationHandler handler() {
+		return handler;
+	}
+
+	@Override
+	protected NotificationEventEnvelope<?> validEvent() {
+		return buildUserUpdatedEvent();
 	}
 	
 	@Test
@@ -73,18 +79,6 @@ public class UserUpdatedNotificationHandlerTest {
 				() -> Assertions.assertEquals(expectedPayload.cardNumber(), payload.cardNumber()),
 				() -> Assertions.assertEquals(expectedPayload.status(), payload.status()),
 				() -> Assertions.assertEquals(expectedPayload.role(), payload.role()));
-	}
-
-	@Test
-	void shouldRejectNullPayload() {
-
-		NotificationEventEnvelope<?> event = new NotificationEventEnvelope<>(UUID.randomUUID().toString(),
-				NotificationEventType.USER_UPDATED, "user-service", Instant.now(), 1, null);
-
-		NotificationHandlingException ex  = Assertions.assertThrows(NotificationHandlingException.class, () -> handler.handleEvent(event));
-		Assertions.assertEquals("Payload is null", ex.getMessage());
-		
-		verifyNoInteractions(messagingTemplate);
 	}
 
 	private NotificationEventEnvelope<UserUpdatedNotificationPayload> buildUserUpdatedEvent() {

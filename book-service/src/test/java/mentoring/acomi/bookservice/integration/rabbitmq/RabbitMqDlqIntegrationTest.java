@@ -7,15 +7,13 @@ import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -25,12 +23,7 @@ import mentoring.acomi.bookservice.infrastructure.messaging.RabbitMQConfig;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
 
 @Testcontainers
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {
-        RabbitMQConfig.class,
-        RabbitMQConfigTest.class,
-        FailingListener.class
-})
+@SpringJUnitConfig({ RabbitMQConfig.class, RabbitMQConfigTest.class, FailingListener.class })
 @TestPropertySource(properties = {"spring.datasource.url=jdbc:h2:mem:test;MODE=MySQL"})
 public class RabbitMqDlqIntegrationTest {
 
