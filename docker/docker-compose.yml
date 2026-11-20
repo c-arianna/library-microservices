@@ -94,7 +94,49 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  ollama:
+    profiles: ["dev"]
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    
+  postgres-assistant-vector:
+    profiles: ["dev"]
+    image: pgvector/pgvector:pg17
+    container_name: postgres-assistant-vector
+    environment:
+      POSTGRES_DB: assistant_vector_db
+      POSTGRES_USER: assistant
+      POSTGRES_PASSWORD: assistant
+    ports:
+      - "5434:5432"
+    volumes:
+      - assistant_vector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U assistant -d assistant_vector_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  pgadmin-vector:
+    image: dpage/pgadmin4
+    container_name: pgadmin-vector
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres-assistant-vector
+      
   mysql-book:
     profiles: ["dev"]
     image: mysql:8
@@ -108,7 +150,6 @@ services:
       - "3307:3306"
     volumes:
       - mysql_book_data:/var/lib/mysql
-      - ./mysql-book:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -128,7 +169,6 @@ services:
       - "3308:3306"
     volumes:
       - mysql_loan_data:/var/lib/mysql
-      - ./mysql-loan:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -148,7 +188,6 @@ services:
       - "3309:3306"
     volumes:
       - mysql_user_data:/var/lib/mysql
-      - ./mysql-user/init-dev:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -168,7 +207,6 @@ services:
       - "3310:3306"
     volumes:
       - mysql_assistant_data:/var/lib/mysql
-      - ./mysql-assistant:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -188,8 +226,6 @@ services:
       - "3317:3306"
     tmpfs:
       - /var/lib/mysql
-    volumes:
-      - ./mysql-book:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -209,8 +245,6 @@ services:
       - "3318:3306"
     tmpfs:
       - /var/lib/mysql
-    volumes:
-      - ./mysql-loan:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -251,8 +285,6 @@ services:
       - "3320:3306"
     tmpfs:
       - /var/lib/mysql
-    volumes:
-      - ./mysql-assistant/init-test:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -349,6 +381,12 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
       ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_AI_OLLAMA_BASE_URL: http://ollama:11434
+      SPRING_AI_OLLAMA_CHAT_MODEL: qwen2.5:3b
+      SPRING_AI_OLLAMA_EMBEDDING_MODEL: nomic-embed-text
+      POSTGRES_VECTOR_STORE_DB: jdbc:postgresql://postgres-assistant-vector:5432/assistant_vector_db
+      POSTGRES_VECTOR_STORE_USER: assistant
+      POSTGRES_VECTOR_STORE_PASSWORD: assistant
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
       mysql-assistant:
@@ -358,6 +396,10 @@ services:
       keycloak:
         condition: service_started
       zipkin:
+        condition: service_started
+      postgres-assistant-vector:
+        condition: service_healthy
+      ollama:
         condition: service_started
         
   notification-service:
@@ -472,6 +514,7 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
       ZIPKIN_ENDPOINT: http://zipkin-gherkin:9411/api/v2/spans
+      SPRING_AI_OLLAMA_BASE_URL: http://host.docker.internal:11434
       SPRING_PROFILES_ACTIVE: gherkin
       APP_TEST_MODE: true
     depends_on:
@@ -483,7 +526,7 @@ services:
         condition: service_started
       zipkin-gherkin:
         condition: service_started
-        
+          
   notification-service-gherkin:
     profiles: ["gherkin"]
     image: notification-service:dev
@@ -516,6 +559,7 @@ services:
       BOOK_SERVICE_URL: http://book-service:8080
       LOAN_SERVICE_URL: http://loan-service:8080
       USER_SERVICE_URL: http://user-service:8080
+      ASSISTANT_SERVICE_URL: http://assistant-service:8080
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices/protocol/openid-connect/certs
       ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_PROFILES_ACTIVE: dev
@@ -544,6 +588,7 @@ services:
       BOOK_SERVICE_URL: http://book-service-gherkin:8080
       LOAN_SERVICE_URL: http://loan-service-gherkin:8080
       USER_SERVICE_URL: http://user-service-gherkin:8080
+      ASSISTANT_SERVICE_URL: http://assistant-service-gherkin:8080
       SPRING_RABBITMQ_HOST: rabbitmq-gherkin
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/library-microservices-test/protocol/openid-connect/certs
       ZIPKIN_ENDPOINT: http://zipkin-gherkin:9411/api/v2/spans
@@ -571,3 +616,5 @@ volumes:
   mysql_loan_data:
   mysql_user_data:
   mysql_assistant_data:
+  assistant_vector_data:
+  ollama_data:

@@ -32,6 +32,13 @@ spring:
               - Path=/loans, /loans/**
             filters:
               - StripPrefix=1
+
+          - id: assistant-service
+            uri: ${ASSISTANT_SERVICE_URL:http://loan-service:8080}
+            predicates:
+              - Path=/assistant, /assistant/**
+            filters:
+              - StripPrefix=1
       globalcors:
         corsConfigurations:
           '[/**]':

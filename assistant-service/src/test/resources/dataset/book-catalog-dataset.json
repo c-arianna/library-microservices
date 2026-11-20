@@ -1,0 +1,110 @@
+[
+  {
+    "isbn": "9788831020787",
+    "author": "J. K. Rowling",
+    "title": "Harry Potter e la pietra filosofale",
+    "description": "Primo capitolo della saga di Harry Potter. Un ragazzo scopre di essere un mago e viene introdotto al mondo di Hogwarts, tra amicizia, magia, avventura e lotta contro il male.",
+    "totalCopies": 2,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "9788867156009",
+    "author": "J. K. Rowling",
+    "title": "Harry Potter e il Principe Mezzosangue",
+    "description": "Harry affronta il sesto anno a Hogwarts mentre la minaccia di Voldemort cresce. Romanzo fantasy ricco di mistero, crescita personale e magia.",
+	"totalCopies": 3,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "8804774118",
+    "author": "Italo Calvino",
+    "title": "Il barone rampante",
+    "description": "Romanzo fantastico e allegorico. Un ragazzo decide di vivere sugli alberi per il resto della sua vita, osservando il mondo da una prospettiva unica. Temi: libertà, crescita personale e immaginazione.",
+	"totalCopies": 4,
+	"borrowedCopies": 2,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "9788804776369",
+    "author": "Italo Calvino",
+    "title": "Il visconte dimezzato",
+    "description": "Romanzo fantastico e allegorico. Un nobile viene diviso in due metà, una buona e una cattiva. Temi: identità, natura umana e dualismo.",
+	"totalCopies": 2,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "8804776374",
+    "author": "Italo Calvino",
+    "title": "Il cavaliere inesistente",
+    "description": "Romanzo fantastico ambientato nel ciclo carolingio. Un cavaliere esiste soltanto grazie alla forza della propria volontà. Temi: identità, immaginazione e senso dell'esistenza.",
+	"totalCopies": 2,
+	"borrowedCopies": 0,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "1942788762",
+    "author": "Gene Kim",
+    "title": "The Unicorn Project: A Novel About Developers, Digital Disruption, and Thriving in the Age of Data",
+    "description": "Romanzo ambientato nel mondo dello sviluppo software e della trasformazione digitale. Affronta temi come DevOps, collaborazione, innovazione e modernizzazione tecnologica.",
+	"totalCopies": 5,
+	"borrowedCopies": 3,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "9781942788294",
+    "author": "Gene Kim",
+    "title": "The Phoenix Project: A Novel About IT, DevOps, and Helping Your Business Win",
+    "description": "Romanzo sul miglioramento dei processi IT e DevOps. Racconta la trasformazione di un'organizzazione attraverso collaborazione, automazione e miglioramento continuo.",
+	"totalCopies": 2,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "1966280025",
+    "author": "Gene Kim",
+    "title": "Vibe Coding: Building Production-grade Software With Genai, Chat, Agents, and Beyond",
+    "description": "Libro dedicato allo sviluppo software moderno con AI generativa, agenti intelligenti e strumenti collaborativi, focalizzato sulla produttività degli sviluppatori.",
+	"totalCopies": 2,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "9788828727422",
+    "author": "René Goscinny, Albert Uderzo",
+    "title": "Asterix omnibus (Vol. 1)",
+    "description": "Prima raccolta delle avventure di Asterix e Obelix. Fumetto umoristico ambientato nella Gallia occupata dai Romani. Temi: amicizia, avventura e comicità.",
+	"totalCopies": 3,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "9788828776727",
+    "author": "René Goscinny, Albert Uderzo",
+    "title": "Asterix omnibus (Vol. 2)",
+    "description": "Seconda raccolta delle avventure di Asterix e Obelix. Fumetto umoristico ricco di viaggi, battaglie e situazioni comiche.",
+	"totalCopies": 2,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "9788828781653",
+    "author": "René Goscinny, Albert Uderzo",
+    "title": "Asterix omnibus (Vol. 3)",
+    "description": "Terza raccolta delle avventure di Asterix e Obelix. Continuità narrativa della serie con ambientazioni storiche e umoristiche.",
+	"totalCopies": 4,
+	"borrowedCopies": 3,
+	"reservedCopies": 0
+  },
+  {
+    "isbn": "9788828797968",
+    "author": "René Goscinny, Albert Uderzo",
+    "title": "Asterix omnibus (Vol. 4)",
+    "description": "Quarta raccolta delle avventure di Asterix e Obelix. Avventure comiche, viaggi e incontri con culture diverse del mondo antico.",
+	"totalCopies": 2,
+	"borrowedCopies": 1,
+	"reservedCopies": 0
+  }
+]
