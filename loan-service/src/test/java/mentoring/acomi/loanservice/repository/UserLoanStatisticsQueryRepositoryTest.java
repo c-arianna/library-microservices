@@ -19,7 +19,7 @@ import mentoring.acomi.loanservice.application.repositories.UserLoanStatisticRep
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.application.view.UserLoanStatisticView;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 @SpringBootTest
 @Transactional

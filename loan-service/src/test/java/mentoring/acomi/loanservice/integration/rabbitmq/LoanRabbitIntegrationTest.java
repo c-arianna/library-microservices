@@ -43,6 +43,7 @@ import mentoring.acomi.loanservice.infrastructure.messaging.payload.consumer.Use
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.MessagingTopology;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 import mentoring.acomi.sharedcorelibrary.model.UserRole;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 import mentoring.acomi.loanservice.application.dto.AddLoanRequest;
@@ -59,7 +60,6 @@ import mentoring.acomi.loanservice.config.RabbitMQConfigTest;
 import mentoring.acomi.loanservice.config.SecurityTestConfig;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.events.LoanEventType;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
 
 @SpringBootTest
 @Testcontainers

@@ -53,7 +53,7 @@ public interface UserLoanStatisticJpaRepository extends JpaRepository<UserLoanSt
 		    LEFT JOIN UserViewEntity uv ON uv.id = u.userId
 		    LEFT JOIN LoanViewEntity l
 		        ON u.userId = l.userId
-		       AND l.status = mentoring.acomi.loanservice.domain.model.LoanStatus.CONFIRMED
+		       AND l.status = mentoring.acomi.sharedcorelibrary.model.LoanStatus.CONFIRMED
 		       AND l.endDate < :today
 		       AND l.returnedAt IS NULL
 		    GROUP BY

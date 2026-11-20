@@ -36,7 +36,7 @@ import mentoring.acomi.loanservice.domain.errors.ApplicationConflict;
 import mentoring.acomi.loanservice.domain.errors.InvalidLoanStateTransition;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
 import mentoring.acomi.loanservice.domain.model.Loan;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @Service

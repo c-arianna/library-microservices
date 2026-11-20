@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 @EqualsAndHashCode
 @ToString

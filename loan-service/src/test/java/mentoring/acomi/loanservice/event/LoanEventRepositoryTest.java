@@ -26,7 +26,7 @@ import mentoring.acomi.loanservice.domain.events.LoanRequestedEvent;
 import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
 import mentoring.acomi.loanservice.domain.model.DateRange;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 @SpringBootTest
 @Transactional

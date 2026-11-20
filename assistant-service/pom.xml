@@ -70,9 +70,24 @@
 			<artifactId>spring-boot-starter-zipkin</artifactId>
 		</dependency>
 
+        <dependency>
+			<groupId>mentoring.acomi</groupId>
+			<artifactId>shared-jpa-library</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
+		</dependency>
+		
+		<dependency>
+    		<groupId>org.postgresql</groupId>
+    		<artifactId>postgresql</artifactId>
 		</dependency>
 
 		<dependency>
@@ -93,6 +108,12 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
@@ -105,6 +126,18 @@
 		</dependency>
 		
 		<dependency>
+    		<groupId>org.testcontainers</groupId>
+    		<artifactId>postgresql</artifactId>
+    		<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mysql</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>mentoring.acomi</groupId>
 			<artifactId>event-contracts</artifactId>
 			<scope>test</scope>
@@ -115,6 +148,11 @@
 			<artifactId>archunit-junit5</artifactId>
 			<version>${archunit.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
@@ -171,7 +209,39 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			<plugin>
+            	<groupId>org.apache.maven.plugins</groupId>
+            	<artifactId>maven-surefire-plugin</artifactId>
+            
+	            <configuration>
+	                <excludedGroups>semantic</excludedGroups>
+	            </configuration>
+
+        	</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+
+	    <profile>
+	        <id>semantic-tests</id>
+	
+	        <build>
+	            <plugins>
+	                <plugin>
+	                    <groupId>org.apache.maven.plugins</groupId>
+	                    <artifactId>maven-surefire-plugin</artifactId>
+	
+	                    <configuration>
+	                        <groups>semantic</groups>
+	                    </configuration>
+	                </plugin>
+	            </plugins>
+	        </build>
+	
+	    </profile>
+
+	</profiles>
 
 </project>

@@ -5,6 +5,12 @@ spring:
     username: admin
     password: admin
 
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate.type.json_format_mapper: mentoring.acomi.assistantservice.infrastructure.persistence.configuration.Jackson3HibernateJsonFormatMapper
+
   h2:
     console:
       enabled: true
@@ -24,3 +30,7 @@ management:
     export:
       zipkin:
         enabled: false
+
+assistant:
+  vectorstore:
+    enabled: false

@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 @Entity
 @Table(name = "loan_view")

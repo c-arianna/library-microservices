@@ -26,7 +26,7 @@ public abstract class BaseEventEntity {
 
     protected String eventType;
 
-    protected int eventVersion;
+    protected Integer eventVersion;
     
     protected String eventCategory;
     

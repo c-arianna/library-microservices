@@ -29,10 +29,10 @@ import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.domain.model.DateRange;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationEventMapper;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

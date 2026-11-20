@@ -26,11 +26,11 @@ import mentoring.acomi.loanservice.application.repositories.UserLoanStatisticRep
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.application.view.UserLoanStatisticView;
 import mentoring.acomi.loanservice.domain.events.AggregateType;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanReturnedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.projection.UserLoanStatisticProjection;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 @ExtendWith(MockitoExtension.class)
 public class UserLoanStatisticsProjectionTest {

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 import mentoring.acomi.loanservice.application.view.BookView;
 import mentoring.acomi.loanservice.application.view.LoanView;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.messaging.notifications.payload.LoanUpdatedNotificationPayload;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 @Component
 public class LoanNotificationMapper {

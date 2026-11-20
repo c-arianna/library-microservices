@@ -11,8 +11,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import mentoring.acomi.loanservice.application.dto.LoanDto;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.persistence.entity.LoanViewEntity;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, String> {
 	@Modifying
@@ -30,7 +30,7 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 							    l.endDate,
 							    l.status,
 							    CASE
-							        WHEN l.status = mentoring.acomi.loanservice.domain.model.LoanStatus.CONFIRMED
+							        WHEN l.status = mentoring.acomi.sharedcorelibrary.model.LoanStatus.CONFIRMED
 							             AND l.endDate < :today
 							             AND l.returnedAt IS NULL
 							        THEN true
@@ -54,7 +54,7 @@ public interface LoanViewJpaRepository extends JpaRepository<LoanViewEntity, Str
 	@Transactional
 	@Query("""
 			UPDATE LoanViewEntity l 
-			SET l.status = mentoring.acomi.loanservice.domain.model.LoanStatus.RETURNED, l.returnedAt = :returnedAt, 
+			SET l.status = mentoring.acomi.sharedcorelibrary.model.LoanStatus.RETURNED, l.returnedAt = :returnedAt, 
 			l.updatedAt = :updatedAt WHERE l.id = :id
 			""")
 	void returnLoan(@Param("id") String id, @Param("updatedAt") Instant updatedAt, @Param("returnedAt") LocalDate returnedAt);

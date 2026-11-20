@@ -38,7 +38,7 @@ import mentoring.acomi.loanservice.application.repositories.LoanViewRepository;
 import mentoring.acomi.loanservice.application.repositories.UserViewRepository;
 import mentoring.acomi.loanservice.application.view.LoanView;
 import mentoring.acomi.loanservice.application.view.UserView;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

@@ -23,5 +23,6 @@ public interface BaseEventJpaRepository<ENTITY extends BaseEventEntity> extends 
 	List<ENTITY> findAllByOrderByOccurredAtAscIdAsc();
 	
 	 Optional<ENTITY> getByEventIdAndAggregateType(String eventId, String aggregateType);
-		
+	
+	 boolean existsByEventId(String eventId);
 }

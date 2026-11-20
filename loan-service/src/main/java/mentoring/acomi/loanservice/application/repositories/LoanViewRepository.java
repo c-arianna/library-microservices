@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 import mentoring.acomi.loanservice.application.view.LoanView;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 public interface LoanViewRepository {
 	 public void insertRequest(LoanView loan, Instant createdAt);

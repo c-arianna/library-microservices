@@ -25,12 +25,12 @@ import mentoring.acomi.loanservice.domain.events.payload.LoanPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanRequestPayload;
 import mentoring.acomi.loanservice.domain.events.payload.LoanReturnedPayload;
 import mentoring.acomi.loanservice.domain.model.DateRange;
-import mentoring.acomi.loanservice.domain.model.LoanStatus;
 import mentoring.acomi.loanservice.infrastructure.messaging.LoanIntegrationEventMapper;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanFailedIntegrationPayload;
 import mentoring.acomi.loanservice.infrastructure.messaging.payload.producer.LoanIntegrationPayload;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventEnvelope;
 import mentoring.acomi.sharedcorelibrary.integration.messaging.IntegrationEventTypes;
+import mentoring.acomi.sharedcorelibrary.model.LoanStatus;
 
 public class LoanIntegrationEventMapperTest {
 
