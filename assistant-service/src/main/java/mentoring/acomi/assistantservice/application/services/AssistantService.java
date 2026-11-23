@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import mentoring.acomi.assistantservice.application.dto.BookRecommendation;
 import mentoring.acomi.assistantservice.application.dto.ReadingPathRecommendation;
 import mentoring.acomi.assistantservice.application.dto.RecommendationExplanation;
-import mentoring.acomi.assistantservice.application.dto.SimilarBookResponse;
+import mentoring.acomi.assistantservice.application.dto.SimilarBooksResult;
 import mentoring.acomi.assistantservice.application.services.explanation.RecommendationExplanationService;
 import mentoring.acomi.assistantservice.application.services.readingpath.ReadingPathService;
 import mentoring.acomi.assistantservice.application.services.recommendation.RecommendationService;
@@ -33,7 +33,7 @@ public class AssistantService {
 		return recommendationService.recommend();
 	}
 
-	public List<SimilarBookResponse> findSimilarBooks(String isbn) {
+	public SimilarBooksResult findSimilarBooks(String isbn) {
 		return similarBooksService.findSimilarBooks(isbn);
 	}
 

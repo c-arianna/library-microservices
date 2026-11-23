@@ -1,7 +1,9 @@
 package mentoring.acomi.assistantservice.application.services.semantic;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.ai.chat.client.ChatClient;
@@ -11,7 +13,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import mentoring.acomi.assistantservice.application.context.SimilarBooksContext;
+import mentoring.acomi.assistantservice.application.dto.BookDetail;
 import mentoring.acomi.assistantservice.application.dto.SimilarBookResponse;
+import mentoring.acomi.assistantservice.application.dto.SimilarBooksResult;
 import mentoring.acomi.assistantservice.application.model.RelatedReadBook;
 import mentoring.acomi.assistantservice.application.model.SemanticSearchResponse;
 import mentoring.acomi.assistantservice.application.model.SimilarBook;
@@ -31,9 +35,13 @@ public class SimilarBooksService {
         this.semanticSearch = semanticSearch;
     }
 
-    public List<SimilarBookResponse> findSimilarBooks(String isbn) {
+    public SimilarBooksResult findSimilarBooks(String isbn) {
 
         SemanticSearchResponse semanticSearchResponse = semanticSearch.findSimilarBookCandidates(isbn);
+        
+        BookView bookView = semanticSearchResponse.source();
+        String description = bookView.description() ==  null || bookView.description().isBlank() ? "" : bookView.description();
+		BookDetail sourceBook = new BookDetail(bookView.isbn(), bookView.author(), bookView.title(), description);
         
         SimilarBooksContext context = buildContext(semanticSearchResponse.source(), semanticSearchResponse.candidates());
     	
@@ -42,7 +50,9 @@ public class SimilarBooksService {
         Map<String, BookView> candidatesByIsbn = context.candidateBooks().stream()
                                                     .collect(Collectors.toMap(BookView::isbn, Function.identity()));
        
-        return selected.stream().filter(book -> candidatesByIsbn.containsKey(book.isbn()))
+        Set<String> seen = new HashSet<>();
+        List<SimilarBookResponse> similarBooks = selected.stream().filter(book -> candidatesByIsbn.containsKey(book.isbn()))
+        		                .filter(selection -> seen.add(selection.isbn()))
                 				.map(book -> {
                 						BookView view = candidatesByIsbn.get(book.isbn());
 
@@ -52,6 +62,8 @@ public class SimilarBooksService {
 					                            view.title(),
 					                            book.reason());
                 					}).toList();
+        
+       return new SimilarBooksResult(sourceBook, similarBooks);
     }
     
     private SimilarBooksContext buildContext(BookView sourceBook, List<RelatedReadBook> documents) {

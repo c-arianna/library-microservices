@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import mentoring.acomi.assistantservice.application.dto.BookRecommendation;
 import mentoring.acomi.assistantservice.application.dto.ReadingPathRecommendation;
 import mentoring.acomi.assistantservice.application.dto.RecommendationExplanation;
-import mentoring.acomi.assistantservice.application.dto.SimilarBookResponse;
+import mentoring.acomi.assistantservice.application.dto.SimilarBooksResult;
 import mentoring.acomi.assistantservice.application.services.AssistantService;
 
 @RestController
@@ -27,7 +27,7 @@ public class AssistantController {
 	}
 	
 	@GetMapping("/books/{isbn}/similar")
-	public List<SimilarBookResponse> findSimilarBooks(@PathVariable String isbn) {
+	public SimilarBooksResult findSimilarBooks(@PathVariable String isbn) {
 	    return service.findSimilarBooks(isbn);
 	}
 	
