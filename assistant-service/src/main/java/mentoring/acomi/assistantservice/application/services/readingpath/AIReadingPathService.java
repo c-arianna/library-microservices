@@ -1,6 +1,7 @@
 package mentoring.acomi.assistantservice.application.services.readingpath;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
@@ -34,7 +35,7 @@ public class AIReadingPathService {
 
 		return chatClient.prompt()
 				.user(spec -> spec.text(buildPrompt)
-						.param("candidateBooks", formatBooks(context.candidateBooks())))
+						.param("candidateBooks", formatBookCandidates(context.candidateBooks())))
 				.options(OllamaChatOptions.builder().numPredict(200))
 				.call()
 				.entity(ReadingPathSelection.class);
@@ -49,7 +50,7 @@ public class AIReadingPathService {
 				.content();
 	}
 
-	private String formatBooks(List<BookView> books) {
+	private String formatBookCandidates(Map<Integer, BookView> books) {
 		return promptFormatter.formatBooks(books);
 	}
 

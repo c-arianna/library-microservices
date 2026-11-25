@@ -1,7 +1,8 @@
 package mentoring.acomi.assistantservice.application.services.readingpath;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,7 @@ public class ReadingPathContextBuilder {
 		this.semanticSearchService = semanticSearchService;
 	}
 
-	public ReadingPathContext build(String isbn) {
+	public ReadingPathContext buildReadingPathContext(String isbn) {
 
 		BookView sourceBook = bookRepository.findByIsbn(isbn)
 				.orElseThrow(() -> new BookNotFound(String.format("Book not found %s", isbn)));
@@ -31,10 +32,21 @@ public class ReadingPathContextBuilder {
 		List<RelatedReadBook> relatedBooks = semanticSearchService.findSimilarBookCandidates(isbn).candidates();
 		List<BookView> candidates = relatedBooks.stream().map(RelatedReadBook::book).toList();
 
-		List<BookView> pathBooks = new ArrayList<>();
-	    pathBooks.add(sourceBook);
-	    pathBooks.addAll(candidates);
-	    
-		return new ReadingPathContext(sourceBook, pathBooks.stream().distinct().toList());
+		Map<String, BookView> uniqueBooks = new LinkedHashMap<>();
+
+		uniqueBooks.put(sourceBook.isbn(), sourceBook);
+
+		for (BookView candidate : candidates) {
+		    uniqueBooks.putIfAbsent(candidate.isbn(), candidate);
+		}
+
+		Map<Integer, BookView> pathBooks = new LinkedHashMap<>();
+
+		int id = 1;
+		for (BookView book : uniqueBooks.values()) {
+		    pathBooks.put(id++, book);
+		}
+	
+		return new ReadingPathContext(sourceBook, pathBooks);
 	}
 }

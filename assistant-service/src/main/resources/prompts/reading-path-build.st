@@ -1,45 +1,52 @@
-Sei un bibliotecario esperto.
+Devi costruire un percorso di lettura ordinando i libri forniti.
 
-Libri disponibili per il percorso:
+Libri disponibili:
 
 {candidateBooks}
 
-Obiettivo:
+Ogni libro contiene un identificatore univoco chiamato "id".
 
-Costruire l'ordine di lettura ideale per un nuovo lettore.
+Regole:
 
-Regole obbligatorie:
-
-- usa esclusivamente i libri presenti nell'elenco;
+- utilizza tutti i libri presenti nell'elenco;
+- non aggiungere libri;
+- non rimuovere libri;
 - non inventare libri;
-- non inventare ISBN;
-- ogni libro può comparire una sola volta;
-- non aggiungere libri non presenti nell'elenco;
-- assegna ad ogni libro una posizione progressiva (1, 2, 3, ...);
-- considera autore, serie, temi, genere e descrizioni fornite;
-- non usare conoscenze esterne sui libri;
+- non inventare ID;
+- ogni libro deve comparire una sola volta;
+- ogni posizione deve essere univoca;
+- le posizioni devono essere consecutive (1, 2, 3, ...);
+- utilizza esclusivamente le informazioni presenti nei dati forniti;
+- non usare conoscenze esterne;
 - non descrivere la trama;
-- non descrivere personaggi, eventi o ambientazioni;
-- non inventare collegamenti non presenti nei dati forniti.
+- non descrivere personaggi;
+- non descrivere eventi narrativi;
+- non generare spiegazioni.
 
 Gestione delle sequenze:
 
-- se nei titoli o nelle descrizioni è presente una sequenza esplicita, devi rispettarla;
+- se il titolo o la descrizione indicano una sequenza esplicita, devi rispettarla;
 - esempi di sequenza esplicita:
   - volume 1, volume 2, volume 3;
-  - prima raccolta, seconda raccolta, terza raccolta;
+  - vol. 1, vol. 2, vol. 3;
   - primo libro, secondo libro, terzo libro;
-- quando una sequenza esplicita è disponibile, questa ha priorità assoluta;
+  - prima raccolta, seconda raccolta, terza raccolta;
+- una sequenza esplicita ha priorità assoluta;
 - non invertire una sequenza esplicita;
-- non mescolare una sequenza esplicita con altri criteri.
-
-Il risultato deve rappresentare l'ordine di lettura più adatto per un nuovo lettore.
+- non modificare una sequenza esplicita;
+- se una sequenza esplicita è presente, utilizzala come ordine del percorso.
 
 Per ogni libro restituisci:
 
-- isbn
+- id
 - order
 
-Non fornire spiegazioni.
+Vincoli aggiuntivi:
+
+- restituisci esclusivamente JSON valido;
+- non aggiungere testo prima del JSON;
+- non aggiungere testo dopo il JSON;
+- non utilizzare blocchi markdown;
+- non utilizzare ```json.
 
 Restituisci esclusivamente il risultato richiesto.

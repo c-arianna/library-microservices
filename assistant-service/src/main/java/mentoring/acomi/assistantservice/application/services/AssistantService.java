@@ -1,10 +1,8 @@
 package mentoring.acomi.assistantservice.application.services;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 
-import mentoring.acomi.assistantservice.application.dto.BookRecommendation;
+import mentoring.acomi.assistantservice.application.dto.BookRecommendationsResult;
 import mentoring.acomi.assistantservice.application.dto.ReadingPathRecommendation;
 import mentoring.acomi.assistantservice.application.dto.RecommendationExplanation;
 import mentoring.acomi.assistantservice.application.dto.SimilarBooksResult;
@@ -29,7 +27,7 @@ public class AssistantService {
 		this.readingPathService = readingPathService;
 	}
 
-	public List<BookRecommendation> recommend() {
+	public BookRecommendationsResult recommend() {
 		return recommendationService.recommend();
 	}
 

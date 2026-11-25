@@ -20,9 +20,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import mentoring.acomi.assistantservice.application.context.RecommendationContext;
 import mentoring.acomi.assistantservice.application.dto.BookRecommendation;
-import mentoring.acomi.assistantservice.application.model.BookRecommendationSelection;
+import mentoring.acomi.assistantservice.application.dto.BookRecommendationsResult;
+import mentoring.acomi.assistantservice.application.model.RecommendationType;
 import mentoring.acomi.assistantservice.application.security.UserIdentityProvider;
-import mentoring.acomi.assistantservice.application.services.explanation.AIRecommendationService;
 import mentoring.acomi.assistantservice.application.services.recommendation.RecommendationContextBuilder;
 import mentoring.acomi.assistantservice.application.services.recommendation.RecommendationService;
 import mentoring.acomi.assistantservice.application.view.BookView;
@@ -37,9 +37,6 @@ public class RecommendationServiceTest {
 
 	@MockitoBean
 	private RecommendationContextBuilder builder;
-
-	@MockitoBean
-	private AIRecommendationService aiService;
 
 	@Autowired
 	private RecommendationDatasetLoader datasetLoader;
@@ -76,20 +73,20 @@ public class RecommendationServiceTest {
 				.filter(b -> b.isbn().equals(RecommendationDataset.CAVALIERE_INESISTENTE)).findFirst()
 				.orElseThrow(() -> new IllegalStateException(
 						String.format("Book %s not found", RecommendationDataset.CAVALIERE_INESISTENTE)));
-
-		RecommendationContext context = new RecommendationContext(List.of(readBook),
-				List.of(visconteDimezzato, cavaliereInesistente));
-
+		
+		List<BookView> candidates = List.of(visconteDimezzato, cavaliereInesistente);
+		
+		RecommendationContext context = new RecommendationContext(List.of(readBook), candidates);
+		
 		when(builder.buildRecommendationContext(anyString())).thenReturn(context);
 
-		when(aiService.recommend(context)).thenReturn(
-				List.of(new BookRecommendationSelection(RecommendationDataset.VISCONTE_DIMEZZATO, "same author")));
+		BookRecommendationsResult result = service.recommend();
 
-		List<BookRecommendation> result = service.recommend();
-
-		assertFalse(result.isEmpty());
-
-		assertEquals(RecommendationDataset.VISCONTE_DIMEZZATO, result.getFirst().isbn());
+		assertEquals(RecommendationType.PERSONALIZED, result.type());
+		
+		List<BookRecommendation> books = result.books();
+		assertFalse(books.isEmpty());
+		assertEquals(RecommendationDataset.VISCONTE_DIMEZZATO, books.getFirst().isbn());
 	}
 
 	@Test
@@ -106,15 +103,14 @@ public class RecommendationServiceTest {
 				.findFirst().orElseThrow(() -> new IllegalStateException(
 						String.format("Book %s not found", RecommendationDataset.HARRY_POTTER_1)));
 
-		RecommendationContext context = new RecommendationContext(List.of(), List.of(visconteDimezzato, harryPotter1));
+		List<BookView> candidates = List.of(visconteDimezzato, harryPotter1);
+		RecommendationContext context = new RecommendationContext(List.of(), candidates);
 
 		when(builder.buildRecommendationContext(anyString())).thenReturn(context);
 
-		when(aiService.recommendForNewReader(context)).thenReturn(
-				List.of(new BookRecommendationSelection(RecommendationDataset.HARRY_POTTER_1, "Good starting point")));
+		BookRecommendationsResult result = service.recommend();
 
-		List<BookRecommendation> books = service.recommend();
-
-		assertFalse(books.isEmpty());
+		assertEquals(RecommendationType.POPULAR, result.type());
+		assertFalse(result.books().isEmpty());
 	}
 }

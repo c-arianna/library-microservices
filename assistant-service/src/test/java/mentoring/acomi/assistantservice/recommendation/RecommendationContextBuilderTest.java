@@ -88,7 +88,7 @@ public class RecommendationContextBuilderTest {
 		RecommendationContext context = builder.buildRecommendationContext("keycloak-user");
 
 		assertEquals(1, context.readBooks().size());
-		assertEquals(2, context.candidates().size());
+		assertEquals(2, context.recommendedBooks().size());
 	}
 
 	@Test
@@ -117,7 +117,7 @@ public class RecommendationContextBuilderTest {
 
 		assertTrue(context.readBooks().isEmpty());
 
-		assertEquals(2, context.candidates().size());
+		assertEquals(2, context.recommendedBooks().size());
 
 	}
 }

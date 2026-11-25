@@ -73,9 +73,6 @@ management:
         endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 recommendation:
-  prompt: classpath:/prompts/recommendation.st
-  newreader:
-    prompt: classpath:/prompts/recommendation-for-new-reader.st
   explain:
     prompt: classpath:/prompts/recommendation-explain.st
 

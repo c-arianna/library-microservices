@@ -3,8 +3,6 @@ package mentoring.acomi.assistantservice.application.services.readingpath;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -27,7 +25,7 @@ public class ReadingPathService {
 
 	public ReadingPathRecommendation getReadingPath(String isbn) {
 
-		ReadingPathContext context = builder.build(isbn);
+		ReadingPathContext context = builder.buildReadingPathContext(isbn);
 
 		ReadingPathSelection selection = aiService.buildReadingPath(context);
 
@@ -40,12 +38,10 @@ public class ReadingPathService {
 
 	private List<ReadingPathStep> buildReadingStep(ReadingPathContext context, ReadingPathSelection selection) {
 		
-		Map<String, BookView> booksByIsbn = context.candidateBooks().stream()
-				.collect(Collectors.toMap(BookView::isbn, Function.identity()));
-
-		List<ReadingPathStep> steps = selection.books().stream().filter(bookPath -> booksByIsbn.containsKey(bookPath.isbn()))
+		Map<Integer, BookView> candidateBooks = context.candidateBooks();
+		List<ReadingPathStep> steps = selection.books().stream().filter(bookPath -> candidateBooks.containsKey(bookPath.id()))
 				.map(bookPath -> {
-					BookView view = booksByIsbn.get(bookPath.isbn());
+					BookView view = candidateBooks.get(bookPath.id());
 					return new ReadingPathStep(view.isbn(), view.title(), view.author(), view.description(), bookPath.order());
 				}).sorted(Comparator.comparing(ReadingPathStep::order)).toList();
 		return steps;
