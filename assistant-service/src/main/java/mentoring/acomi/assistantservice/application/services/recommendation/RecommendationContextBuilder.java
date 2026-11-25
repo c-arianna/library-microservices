@@ -50,8 +50,8 @@ public class RecommendationContextBuilder {
 		List<ReaderHistoryView> history = historyRepository.findByUserId(user.userId());
 
 		if (history.isEmpty()) {
-		    List<BookView> candidates = getPopolarBooks();
-		    return new RecommendationContext(List.of(), candidates);
+			List<BookView> popularBooks = getPopolarBooks();
+		    return new RecommendationContext(List.of(), popularBooks);
 		}
 		
 		Set<String> readIsbns = history.stream().map(ReaderHistoryView::isbn).collect(Collectors.toSet());
@@ -67,7 +67,7 @@ public class RecommendationContextBuilder {
 			similarBooks.forEach(candidate -> {
 				BookView book = bookRepository.findByIsbn(candidate.book().isbn()).orElseThrow(
 						() -> new BookNotFound(String.format("Book not found %s", candidate.book().isbn())));
-				if (!readIsbns.contains(book.isbn())) {
+				if (book.available() && !readIsbns.contains(book.isbn())) {
 					logger.info("add '{}' to similarCandidates", book.title());
 					similarCandidates.put(book.isbn(), book);
 				}
@@ -80,7 +80,7 @@ public class RecommendationContextBuilder {
 	}
 
 	private List<BookView> getPopolarBooks() {
-		return bookRepository.findMostPopularBooks(10);
+		return bookRepository.findMostPopularBooks(5);
 	}
 
 	private UserView getUser(String userIdentityProviderId) {

@@ -1,33 +1,62 @@
-ei un bibliotecario che parla direttamente al lettore.
+Devi spiegare il motivo della raccomandazione di un libro.
 
-Libri già letti dall'utente:
+Libri già letti:
 
 {relatedReadBooks}
 
-Libro consigliato:
+Libro raccomandato:
 
 {recommendedBook}
 
-Spiega in modo semplice e naturale perché questo libro potrebbe piacere al lettore.
+Utilizza esclusivamente le informazioni presenti nei dati forniti.
 
-La spiegazione deve basarsi soltanto su:
+Regole:
 
-- autore;
-- serie;
-- genere;
-- temi;
-- descrizioni fornite.
+- non usare conoscenze esterne;
+- non descrivere la trama;
+- non descrivere personaggi;
+- non descrivere eventi narrativi;
+- non descrivere ambientazioni;
+- non valutare la qualità del libro;
+- non utilizzare linguaggio promozionale;
+- non formulare consigli di lettura;
+- non rivolgerti direttamente all'utente;
+- non usare espressioni come:
+  - potrebbe piacerti
+  - ti consiglio
+  - ottima scelta
+  - imperdibile
+  - coinvolgente
+  - divertente
+  - appassionante
+  - di alta qualità
+- non inventare collegamenti non presenti nei dati;
+- non citare informazioni non presenti nelle descrizioni;
+- non citare personaggi o luoghi presenti nei titoli.
 
-Se un autore è condiviso tra i libri, evidenzialo.
-Se una serie è condivisa tra i libri, evidenziala.
-Se una relazione non è supportata dai dati forniti, non menzionarla.
-Non spiegare la trama del libro consigliato.
+La spiegazione deve:
 
-Non spiegare cosa accade nel libro.
+- indicare esclusivamente gli elementi comuni tra il libro raccomandato e i libri già letti;
+- fare riferimento ad almeno un libro letto quando esiste un collegamento diretto;
+- evidenziare soltanto autore, serie, genere o temi comuni;
+- essere composta da una sola frase;
+- essere lunga al massimo 20 parole;
+- essere oggettiva e fattuale.
 
-Non descrivere personaggi, eventi o ambientazioni.
+Esempi validi:
 
-Spiega soltanto quali caratteristiche comuni emergono dai dati forniti.
-Scrivi una spiegazione breve e naturale di 2-4 frasi rivolta direttamente al lettore.
-La spiegazione deve includere almeno un titolo dei libri letti che si collegano alla raccomandazione e l'autore in comune.
-Restituisci solo la spiegazione finale.
+- "Stessa serie e stessi autori di Asterix omnibus (Vol. 4)."
+- "Condivide autore e temi fantasy con Harry Potter e la pietra filosofale."
+- "Condivide temi di DevOps e trasformazione digitale con The Phoenix Project."
+- "Condivide autore e temi legati all'identità con Il barone rampante."
+
+Esempi NON validi:
+
+- "Ti piacerà sicuramente."
+- "È un'ottima scelta."
+- "Prosegue la tua avventura."
+- "Amerai questo libro."
+- "Harry continua il suo percorso."
+- "Il libro approfondisce la storia dei protagonisti."
+
+Restituisci esclusivamente la spiegazione finale.

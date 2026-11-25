@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,13 +82,17 @@ public class ReadingPathServiceTest {
 				.orElseThrow(() -> new IllegalStateException(
 						String.format("Book %s not found", RecommendationDataset.CAVALIERE_INESISTENTE)));
 		
-        ReadingPathContext context = new ReadingPathContext(visconteDimezzato, List.of(cavaliereInesistente, barone));
+		int cavaliereInesistenteId = 0;
+		int baroneId = 1;
+		
+		Map<Integer, BookView> candidates = Map.of(cavaliereInesistenteId, cavaliereInesistente, baroneId, barone);
+        ReadingPathContext context = new ReadingPathContext(visconteDimezzato, candidates);
 
-        when(builder.build(anyString())).thenReturn(context);
+        when(builder.buildReadingPathContext(anyString())).thenReturn(context);
 
         ReadingPathSelection selection = new ReadingPathSelection(
-                        List.of(new ReadingPathBook(RecommendationDataset.CAVALIERE_INESISTENTE, 1),
-                                new ReadingPathBook(RecommendationDataset.BARONE_RAMPANTE, 2)));
+                        List.of(new ReadingPathBook(cavaliereInesistenteId, 1),
+                                new ReadingPathBook(baroneId, 2)));
 
         when(aiService.buildReadingPath(context)).thenReturn(selection);
         when(aiService.explainReadingPath(anyList())).thenReturn("Percorso consigliato di Calvino");

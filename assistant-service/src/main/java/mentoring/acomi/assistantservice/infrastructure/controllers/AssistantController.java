@@ -1,12 +1,10 @@
 package mentoring.acomi.assistantservice.infrastructure.controllers;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import mentoring.acomi.assistantservice.application.dto.BookRecommendation;
+import mentoring.acomi.assistantservice.application.dto.BookRecommendationsResult;
 import mentoring.acomi.assistantservice.application.dto.ReadingPathRecommendation;
 import mentoring.acomi.assistantservice.application.dto.RecommendationExplanation;
 import mentoring.acomi.assistantservice.application.dto.SimilarBooksResult;
@@ -22,7 +20,7 @@ public class AssistantController {
 	}
 	
 	@GetMapping("/recommendation")
-	public List<BookRecommendation> getBookRecommendations(){
+	public BookRecommendationsResult getBookRecommendations(){
 		return service.recommend();
 	}
 	
