@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
@@ -36,6 +37,7 @@ import mentoring.acomi.assistantservice.recommendation.RecommendationDatasetLoad
 @SpringBootTest
 @Testcontainers
 @Tag("semantic")
+@ActiveProfiles("semantic")
 public class SemanticSearchServiceTest {
 
 	private static final AtomicBoolean initialized = new AtomicBoolean(false);

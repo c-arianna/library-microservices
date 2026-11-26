@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
@@ -44,6 +45,7 @@ import mentoring.acomi.sharedcorelibrary.model.UserStatus;
 @SpringBootTest
 @Testcontainers
 @Tag("semantic")
+@ActiveProfiles("semantic")
 public class RecommendationReadingSemanticTest {
 	
 	private static final String USER_ID = "user1";

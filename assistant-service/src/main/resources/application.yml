@@ -85,6 +85,9 @@ reading:
 searchSimilarBooks:
   prompt: classpath:/prompts/similar-books-search.st
 
+analytics:
+  prompt: classpath:/prompts/analytics.st
+
 assistant:
   vectorstore:
     url:  ${POSTGRES_VECTOR_STORE_DB:jdbc:postgresql://localhost:5432/assistant_vector_db}
